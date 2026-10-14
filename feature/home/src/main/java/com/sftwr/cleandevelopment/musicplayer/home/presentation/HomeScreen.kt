@@ -1,4 +1,4 @@
-package com.sftwr.cleandevelopment.musicplayer.home
+package com.sftwr.cleandevelopment.musicplayer.home.presentation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -17,10 +17,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sftwr.cleandevelopment.musicplayer.home.components.BottomPlayerBar
-import com.sftwr.cleandevelopment.musicplayer.home.components.LibraryCard
-import com.sftwr.cleandevelopment.musicplayer.home.components.PlaylistCard
-import com.sftwr.cleandevelopment.musicplayer.home.components.TopBarSection
+import com.sftwr.cleandevelopment.musicplayer.home.presentation.components.BottomPlayerBar
+import com.sftwr.cleandevelopment.musicplayer.home.presentation.components.LibraryCard
+import com.sftwr.cleandevelopment.musicplayer.home.presentation.components.PlaylistCard
+import com.sftwr.cleandevelopment.musicplayer.home.presentation.components.TopBarSection
 
 /**
  * Data class representing a playlist item with title, track count, and icon.

@@ -1,4 +1,4 @@
-package com.sftwr.cleandevelopment.musicplayer.home.components
+package com.sftwr.cleandevelopment.musicplayer.home.presentation.components
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
