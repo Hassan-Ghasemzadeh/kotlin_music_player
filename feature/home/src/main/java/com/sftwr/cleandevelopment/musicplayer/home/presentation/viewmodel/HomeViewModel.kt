@@ -1,7 +1,14 @@
 package com.sftwr.cleandevelopment.musicplayer.home.presentation.viewmodel
 
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.LibraryAdd
+import androidx.compose.material.icons.filled.QueueMusic
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sftwr.cleandevelopment.musicplayer.home.presentation.PlaylistUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -13,14 +20,12 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    // Inject your use cases here from :core:domain (e.g., GetPlaylistsUseCase)
+    // Inject your use cases here from :core:domain
 ) : ViewModel() {
 
-    // Backing field for UI state
     private val _uiState = MutableStateFlow(HomeUiState())
     val uiState: StateFlow<HomeUiState> = _uiState.asStateFlow()
 
-    // Channel for one-time side effects (navigation, alerts, etc.)
     private val _uiEvent = Channel<HomeUiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
@@ -28,17 +33,21 @@ class HomeViewModel @Inject constructor(
         loadInitialData()
     }
 
-    // Load playlists and initial data from domain layer
+    // ۱. مقداردهی اولیه پلی‌لیست‌ها هنگام شروع
     private fun loadInitialData() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
-            // TODO: Fetch data from UseCase
-            // and update _uiState with actual playlists
-            _uiState.value = _uiState.value.copy(isLoading = false)
+            _uiState.value = _uiState.value.copy(
+                isLoading = false,
+                playlists = listOf(
+                    PlaylistUiModel("Recently Added", "11 Tracks", Icons.Default.LibraryAdd),
+                    PlaylistUiModel("Recently Played", "11 Tracks", Icons.Default.History),
+                    PlaylistUiModel("Most Played", "11 Tracks", Icons.Default.TrendingUp),
+                    PlaylistUiModel("Favorite Tracks", "18 Tracks", Icons.Default.Favorite)
+                )
+            )
         }
     }
 
-    // Handle user actions and trigger navigation events if needed
     fun onPlaylistClicked(playlistTitle: String) {
         viewModelScope.launch {
             _uiEvent.send(HomeUiEvent.OpenPlaylist(playlistTitle))
@@ -54,12 +63,6 @@ class HomeViewModel @Inject constructor(
     fun onSongPlayClicked(songId: String) {
         viewModelScope.launch {
             _uiEvent.send(HomeUiEvent.NavigateToPlayer(songId))
-        }
-    }
-
-    fun createNewPlaylist(playlistName: String) {
-        viewModelScope.launch {
-            // Logic to add playlist via domain layer
         }
     }
 
@@ -81,9 +84,19 @@ class HomeViewModel @Inject constructor(
     fun confirmCreatePlaylist() {
         val currentName = _uiState.value.newPlaylistName
         if (currentName.isNotBlank()) {
-            viewModelScope.launch {
-                onDismissCreateDialog()
-            }
+            val newPlaylist = PlaylistUiModel(
+                title = currentName,
+                subtitle = "0 Tracks",
+                icon = Icons.Default.QueueMusic
+            )
+
+            val updatedPlaylists = _uiState.value.playlists + newPlaylist
+
+            _uiState.value = _uiState.value.copy(
+                playlists = updatedPlaylists,
+                isCreateDialogVisible = false,
+                newPlaylistName = ""
+            )
         }
     }
 }

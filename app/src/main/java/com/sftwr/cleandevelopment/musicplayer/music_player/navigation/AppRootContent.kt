@@ -8,6 +8,7 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sftwr.cleandevelopment.musicplayer.home.presentation.components.BottomPlayerBar
+import androidx.compose.ui.graphics.Color
 
 @Composable
 fun AppRootContent(
@@ -19,10 +20,10 @@ fun AppRootContent(
     val showBottomBar = currentRoute != "SearchRouteKey" && currentRoute != "PlayerRouteKey"
 
     Scaffold(
+        containerColor = Color(0xFF122144),
         bottomBar = {
             if (showBottomBar) {
                 BottomPlayerBar(
-//                    modifier = Modifier.fillMaxWidth(),
 //                    onPlayerClick = {
 //                        navController.navigate(Screen.Player(/* song data */))
 //                    }

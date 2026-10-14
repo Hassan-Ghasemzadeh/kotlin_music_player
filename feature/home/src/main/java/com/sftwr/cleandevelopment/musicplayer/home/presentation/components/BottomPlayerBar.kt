@@ -39,6 +39,7 @@ fun BottomPlayerBar() {
     GlassCard(
         modifier = Modifier
             .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 15.dp)
             .height(72.dp)
     ) {
         Row(
