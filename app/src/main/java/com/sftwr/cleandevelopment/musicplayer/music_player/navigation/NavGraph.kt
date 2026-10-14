@@ -5,9 +5,10 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.toRoute
+import com.sftwr.cleandevelopment.musicplayer.home.HomeRouteKey
 import com.sftwr.cleandevelopment.musicplayer.home.PlayerRouteKey
 import com.sftwr.cleandevelopment.musicplayer.home.homeGraph
-import com.sftwr.cleandevelopment.musicplayer.home.presentation.HomeScreen
 
 @Composable
 fun AppNavGraph(
@@ -16,7 +17,7 @@ fun AppNavGraph(
 ) {
     NavHost(
         navController = navController,
-        startDestination = Screen.Home,
+        startDestination = HomeRouteKey,
         modifier = modifier
     ) {
         // home main graph
@@ -31,19 +32,12 @@ fun AppNavGraph(
 
             }
         )
+        composable<PlayerRouteKey> { backStackEntry ->
+            val playerRoute: PlayerRouteKey = backStackEntry.toRoute()
+            val songId = playerRoute.songId
 
-        // player graph
-        composable<Screen.Home> { backStackEntry ->
-            HomeScreen(
-                uiState = TODO(),
-                onPlaylistClick = TODO(),
-                onSearchClick = TODO(),
-                onSongClick = TODO(),
-                onAddPlaylistClick = TODO(),
-                onDismissDialog = TODO(),
-                onPlaylistNameChanged = TODO(),
-                onConfirmCreate = TODO(),
-            )
+            // PlayerScreen(songId = songId)
         }
+
     }
 }
