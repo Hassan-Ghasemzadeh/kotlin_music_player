@@ -258,10 +258,10 @@ fun HomeScreenPreview() {
     HomeScreen(
         uiState = HomeUiState(
             playlists = listOf(
-                PlaylistUiModel("Recently Added", "11 Tracks", Icons.Default.History),
-                PlaylistUiModel("Recently Played", "11 Tracks", Icons.Default.History),
-                PlaylistUiModel("Most Played", "11 Tracks", Icons.Default.History),
-                PlaylistUiModel("Favorite Tracks", "18 Tracks", Icons.Default.FavoriteBorder)
+                PlaylistUiModel("Recently Added", "11 Tracks", Icons.Default.LibraryAdd),     // یا FiberNew
+                PlaylistUiModel("Recently Played", "11 Tracks", Icons.Default.History),      // یا Schedule
+                PlaylistUiModel("Most Played", "11 Tracks", Icons.Default.TrendingUp),       // یا Star
+                PlaylistUiModel("Favorite Tracks", "18 Tracks", Icons.Default.Favorite)      // قلب توپر برای علاقه‌مندی‌ها
             )
         ),
         onPlaylistClick = {},
