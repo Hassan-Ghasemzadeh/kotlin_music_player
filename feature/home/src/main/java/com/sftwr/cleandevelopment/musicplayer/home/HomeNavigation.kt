@@ -24,11 +24,8 @@ fun NavGraphBuilder.homeGraph(
     onOpenPlaylist: (String) -> Unit,
 ) {
     composable<HomeRouteKey> {
-        // Hilt provides the ViewModel automatically inside the feature module
-        val viewModel: HomeViewModel = hiltViewModel()
 
         HomeRoute(
-            viewModel = viewModel,
             onNavigateToPlayer = onNavigateToPlayer,
             onNavigateToSearch = onNavigateToSearch,
             onOpenPlaylist = onOpenPlaylist,

@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.home.presentation.viewmodel.HomeUiEvent
 import com.sftwr.cleandevelopment.musicplayer.home.presentation.viewmodel.HomeViewModel
@@ -11,7 +12,7 @@ import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun HomeRoute(
-    viewModel: HomeViewModel,
+    viewModel: HomeViewModel = hiltViewModel(),
     onNavigateToPlayer: (String) -> Unit,
     onNavigateToSearch: () -> Unit,
     onOpenPlaylist: (String) -> Unit,

@@ -34,8 +34,16 @@ fun AppNavGraph(
 
         // player graph
         composable<Screen.Home> { backStackEntry ->
-//            val playerArgs = backStackEntry.toRoute<Screen.Home>()
-            HomeScreen()
+            HomeScreen(
+                uiState = TODO(),
+                onPlaylistClick = TODO(),
+                onSearchClick = TODO(),
+                onSongClick = TODO(),
+                onAddPlaylistClick = TODO(),
+                onDismissDialog = TODO(),
+                onPlaylistNameChanged = TODO(),
+                onConfirmCreate = TODO(),
+            )
         }
     }
 }

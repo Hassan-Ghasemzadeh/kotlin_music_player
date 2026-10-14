@@ -38,44 +38,6 @@ data class PlaylistUiModel(
 )
 
 /**
- * HomeRoute acts as the stateful wrapper that connects HomeViewModel
- * to the stateless HomeScreen UI component.
- */
-@Composable
-fun HomeRoute(
-    modifier: Modifier = Modifier,
-    viewModel: HomeViewModel = hiltViewModel(),
-    onNavigateToPlayer: (String) -> Unit = {},
-    onNavigateToSearch: () -> Unit = {},
-    onOpenPlaylist: (String) -> Unit = {}
-) {
-    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
-    // Handle one-time UI events (Navigation side-effects)
-    LaunchedEffect(key1 = true) {
-        viewModel.uiEvent.collectLatest { event ->
-            when (event) {
-                is HomeUiEvent.NavigateToPlayer -> onNavigateToPlayer(event.songId)
-                is HomeUiEvent.NavigateToSearch -> onNavigateToSearch()
-                is HomeUiEvent.OpenPlaylist -> onOpenPlaylist(event.playlistTitle)
-            }
-        }
-    }
-
-    HomeScreen(
-        uiState = uiState,
-        onPlaylistClick = { playlistTitle -> viewModel.onPlaylistClicked(playlistTitle) },
-        onSearchClick = { viewModel.onSearchClicked() },
-        onSongClick = { songId -> viewModel.onSongPlayClicked(songId) },
-        onAddPlaylistClick = { viewModel.onAddPlaylistClicked() },
-        onDismissDialog = { viewModel.onDismissCreateDialog() },
-        onPlaylistNameChanged = { name -> viewModel.onNewPlaylistNameChanged(name) },
-        onConfirmCreate = { viewModel.confirmCreatePlaylist() },
-        modifier = modifier
-    )
-}
-
-/**
  * MusicPlayerScreen featuring library grid, dynamic custom playlists creation,
  * and a bottom music player bar (Stateless UI Component).
  */
@@ -210,11 +172,6 @@ fun HomeScreen(
                     )
                 }
             }
-
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Bottom Player Bar
-            BottomPlayerBar()
         }
 
         // Dialog for creating a new custom playlist (Controlled by ViewModel state)
@@ -258,10 +215,26 @@ fun HomeScreenPreview() {
     HomeScreen(
         uiState = HomeUiState(
             playlists = listOf(
-                PlaylistUiModel("Recently Added", "11 Tracks", Icons.Default.LibraryAdd),     // یا FiberNew
-                PlaylistUiModel("Recently Played", "11 Tracks", Icons.Default.History),      // یا Schedule
-                PlaylistUiModel("Most Played", "11 Tracks", Icons.Default.TrendingUp),       // یا Star
-                PlaylistUiModel("Favorite Tracks", "18 Tracks", Icons.Default.Favorite)      // قلب توپر برای علاقه‌مندی‌ها
+                PlaylistUiModel(
+                    "Recently Added",
+                    "11 Tracks",
+                    Icons.Default.LibraryAdd
+                ),     // یا FiberNew
+                PlaylistUiModel(
+                    "Recently Played",
+                    "11 Tracks",
+                    Icons.Default.History
+                ),      // یا Schedule
+                PlaylistUiModel(
+                    "Most Played",
+                    "11 Tracks",
+                    Icons.Default.TrendingUp
+                ),       // یا Star
+                PlaylistUiModel(
+                    "Favorite Tracks",
+                    "18 Tracks",
+                    Icons.Default.Favorite
+                )      // قلب توپر برای علاقه‌مندی‌ها
             )
         ),
         onPlaylistClick = {},
