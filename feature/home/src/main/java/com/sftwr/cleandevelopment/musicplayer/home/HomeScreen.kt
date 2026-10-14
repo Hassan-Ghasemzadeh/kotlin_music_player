@@ -1,4 +1,4 @@
-package com.sftwr.cleandevelopment.musicplayer.home.presentation
+package com.sftwr.cleandevelopment.musicplayer.home
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
