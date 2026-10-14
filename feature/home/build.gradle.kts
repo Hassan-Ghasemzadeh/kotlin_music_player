@@ -28,15 +28,20 @@ dependencies {
     implementation(project(":core:designsystem"))
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.navigation.common.ktx)
+    implementation(libs.androidx.navigation.runtime.ktx)
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.material)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
-    implementation("androidx.compose.material:material-icons-extended:1.6.8")
+    implementation(libs.androidx.compose.material.icons.extended)
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    implementation(libs.androidx.hilt.navigation.compose) // نسخه را مطابق با پروژه خود تنظیم کنید
+
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)

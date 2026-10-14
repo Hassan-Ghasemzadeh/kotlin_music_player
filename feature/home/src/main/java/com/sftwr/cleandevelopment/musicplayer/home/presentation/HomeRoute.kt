@@ -1,2 +1,43 @@
 package com.sftwr.cleandevelopment.musicplayer.home.presentation
 
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.Modifier
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sftwr.cleandevelopment.musicplayer.home.presentation.viewmodel.HomeUiEvent
+import com.sftwr.cleandevelopment.musicplayer.home.presentation.viewmodel.HomeViewModel
+import kotlinx.coroutines.flow.collectLatest
+
+@Composable
+fun HomeRoute(
+    viewModel: HomeViewModel,
+    onNavigateToPlayer: (String) -> Unit,
+    onNavigateToSearch: () -> Unit,
+    onOpenPlaylist: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    // Collect UI state safely with lifecycle awareness
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Handle one-time UI events (Navigation side-effects)
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is HomeUiEvent.NavigateToPlayer -> onNavigateToPlayer(event.songId)
+                is HomeUiEvent.NavigateToSearch -> onNavigateToSearch()
+                is HomeUiEvent.OpenPlaylist -> onOpenPlaylist(event.playlistTitle)
+            }
+        }
+    }
+
+    // Pass state and action callbacks down to the stateless UI screen
+    HomeScreen(
+//        uiState = uiState,
+//        onPlaylistClick = { viewModel.onPlaylistClicked(it) },
+//        onSearchClick = { viewModel.onSearchClicked() },
+//        onSongClick = { viewModel.onSongPlayClicked(it) },
+//        onCreatePlaylist = { viewModel.createNewPlaylist(it) },
+        modifier = modifier
+    )
+}
