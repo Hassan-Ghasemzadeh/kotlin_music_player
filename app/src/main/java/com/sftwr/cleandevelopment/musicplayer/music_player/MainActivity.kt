@@ -10,7 +10,13 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.ui.Modifier
 import com.sftwr.cleandevelopment.musicplayer.home.presentation.HomeScreen
 import com.sftwr.cleandevelopment.musicplayer.music_player.ui.theme.Music_playerTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+/**
+ * Main entry point activity annotated with @AndroidEntryPoint
+ * to enable Hilt dependency injection for Compose and ViewModels.
+ */
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
