@@ -17,10 +17,16 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.home.presentation.components.BottomPlayerBar
 import com.sftwr.cleandevelopment.musicplayer.home.presentation.components.LibraryCard
 import com.sftwr.cleandevelopment.musicplayer.home.presentation.components.PlaylistCard
 import com.sftwr.cleandevelopment.musicplayer.home.presentation.components.TopBarSection
+import com.sftwr.cleandevelopment.musicplayer.home.presentation.viewmodel.HomeUiEvent
+import com.sftwr.cleandevelopment.musicplayer.home.presentation.viewmodel.HomeUiState
+import com.sftwr.cleandevelopment.musicplayer.home.presentation.viewmodel.HomeViewModel
+import kotlinx.coroutines.flow.collectLatest
 
 /**
  * Data class representing a playlist item with title, track count, and icon.
@@ -32,31 +38,59 @@ data class PlaylistUiModel(
 )
 
 /**
+ * HomeRoute acts as the stateful wrapper that connects HomeViewModel
+ * to the stateless HomeScreen UI component.
+ */
+@Composable
+fun HomeRoute(
+    modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = hiltViewModel(),
+    onNavigateToPlayer: (String) -> Unit = {},
+    onNavigateToSearch: () -> Unit = {},
+    onOpenPlaylist: (String) -> Unit = {}
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Handle one-time UI events (Navigation side-effects)
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collectLatest { event ->
+            when (event) {
+                is HomeUiEvent.NavigateToPlayer -> onNavigateToPlayer(event.songId)
+                is HomeUiEvent.NavigateToSearch -> onNavigateToSearch()
+                is HomeUiEvent.OpenPlaylist -> onOpenPlaylist(event.playlistTitle)
+            }
+        }
+    }
+
+    HomeScreen(
+        uiState = uiState,
+        onPlaylistClick = { playlistTitle -> viewModel.onPlaylistClicked(playlistTitle) },
+        onSearchClick = { viewModel.onSearchClicked() },
+        onSongClick = { songId -> viewModel.onSongPlayClicked(songId) },
+        onAddPlaylistClick = { viewModel.onAddPlaylistClicked() },
+        onDismissDialog = { viewModel.onDismissCreateDialog() },
+        onPlaylistNameChanged = { name -> viewModel.onNewPlaylistNameChanged(name) },
+        onConfirmCreate = { viewModel.confirmCreatePlaylist() },
+        modifier = modifier
+    )
+}
+
+/**
  * MusicPlayerScreen featuring library grid, dynamic custom playlists creation,
- * and a bottom music player bar.
+ * and a bottom music player bar (Stateless UI Component).
  */
 @Composable
 fun HomeScreen(
+    uiState: HomeUiState,
+    onPlaylistClick: (String) -> Unit,
+    onSearchClick: () -> Unit,
+    onSongClick: (String) -> Unit,
+    onAddPlaylistClick: () -> Unit,
+    onDismissDialog: () -> Unit,
+    onPlaylistNameChanged: (String) -> Unit,
+    onConfirmCreate: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // State to control the visibility of the "Create Playlist" dialog
-    var showCreateDialog by remember { mutableStateOf(false) }
-
-    // State for the new playlist name input text
-    var newPlaylistName by remember { mutableStateOf("") }
-
-    // Mutable list of playlists to allow adding new user-created playlists dynamically
-    val playlists = remember {
-        mutableStateListOf(
-            PlaylistUiModel("Favorite Tracks", "18 Tracks", Icons.Default.FavoriteBorder),
-            PlaylistUiModel("Recently Played", "11 Tracks", Icons.Default.History),
-            PlaylistUiModel("Recently added", "15 Tracks", Icons.Default.LibraryAdd),
-            PlaylistUiModel("Most played", "28 Tracks", Icons.Default.TrendingUp),
-            PlaylistUiModel("Downloaded Tracks", "42 Tracks", Icons.Default.Download)
-        )
-    }
-
-    // Main container with deep blue gradient background
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -150,13 +184,13 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Playlist(${playlists.size})",
+                            text = "Playlist(${uiState.playlists.size})",
                             color = Color.White,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
                         )
-                        // Button to trigger the playlist creation dialog
-                        IconButton(onClick = { showCreateDialog = true }) {
+                        // Button to trigger the playlist creation dialog in ViewModel
+                        IconButton(onClick = onAddPlaylistClick) {
                             Icon(
                                 imageVector = Icons.Default.AddCircle,
                                 contentDescription = "Add Playlist",
@@ -167,8 +201,8 @@ fun HomeScreen(
                     }
                 }
 
-                // Dynamic list of playlist cards
-                items(playlists) { playlist ->
+                // Dynamic list of playlist cards from ViewModel state
+                items(uiState.playlists) { playlist ->
                     PlaylistCard(
                         title = playlist.title,
                         subtitle = playlist.subtitle,
@@ -183,45 +217,30 @@ fun HomeScreen(
             BottomPlayerBar()
         }
 
-        // Dialog for creating a new custom playlist
-        if (showCreateDialog) {
+        // Dialog for creating a new custom playlist (Controlled by ViewModel state)
+        if (uiState.isCreateDialogVisible) {
             AlertDialog(
-                onDismissRequest = { showCreateDialog = false },
+                onDismissRequest = onDismissDialog,
                 title = { Text(text = "Create New Playlist") },
                 text = {
                     Column {
                         Text(text = "Enter a name for your new playlist:")
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
-                            value = newPlaylistName,
-                            onValueChange = { newPlaylistName = it },
+                            value = uiState.newPlaylistName,
+                            onValueChange = onPlaylistNameChanged,
                             singleLine = true,
                             placeholder = { Text("Playlist Name") }
                         )
                     }
                 },
                 confirmButton = {
-                    TextButton(
-                        onClick = {
-                            if (newPlaylistName.isNotBlank()) {
-                                // Add the new custom playlist to the top or bottom of the list
-                                playlists.add(
-                                    PlaylistUiModel(
-                                        title = newPlaylistName,
-                                        subtitle = "0 Tracks",
-                                        icon = Icons.Default.QueueMusic
-                                    )
-                                )
-                                newPlaylistName = ""
-                                showCreateDialog = false
-                            }
-                        }
-                    ) {
+                    TextButton(onClick = onConfirmCreate) {
                         Text("Create")
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = { showCreateDialog = false }) {
+                    TextButton(onClick = onDismissDialog) {
                         Text("Cancel")
                     }
                 }
@@ -231,10 +250,26 @@ fun HomeScreen(
 }
 
 /**
- * Preview function for Android Studio UI inspection.
+ * Preview function for Android Studio UI inspection using dummy state.
  */
 @Preview(showBackground = true, backgroundColor = 0xFF1B2F5E)
 @Composable
 fun HomeScreenPreview() {
-    HomeScreen()
+    HomeScreen(
+        uiState = HomeUiState(
+            playlists = listOf(
+                PlaylistUiModel("Recently Added", "11 Tracks", Icons.Default.History),
+                PlaylistUiModel("Recently Played", "11 Tracks", Icons.Default.History),
+                PlaylistUiModel("Most Played", "11 Tracks", Icons.Default.History),
+                PlaylistUiModel("Favorite Tracks", "18 Tracks", Icons.Default.FavoriteBorder)
+            )
+        ),
+        onPlaylistClick = {},
+        onSearchClick = {},
+        onSongClick = {},
+        onAddPlaylistClick = {},
+        onDismissDialog = {},
+        onPlaylistNameChanged = {},
+        onConfirmCreate = {}
+    )
 }

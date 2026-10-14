@@ -33,11 +33,14 @@ fun HomeRoute(
 
     // Pass state and action callbacks down to the stateless UI screen
     HomeScreen(
-//        uiState = uiState,
-//        onPlaylistClick = { viewModel.onPlaylistClicked(it) },
-//        onSearchClick = { viewModel.onSearchClicked() },
-//        onSongClick = { viewModel.onSongPlayClicked(it) },
-//        onCreatePlaylist = { viewModel.createNewPlaylist(it) },
+        uiState = uiState,
+        onPlaylistClick = { viewModel.onPlaylistClicked(it) },
+        onSearchClick = { viewModel.onSearchClicked() },
+        onSongClick = { viewModel.onSongPlayClicked(it) },
+        onAddPlaylistClick = { viewModel.onAddPlaylistClicked() },
+        onDismissDialog = { viewModel.onDismissCreateDialog() },
+        onPlaylistNameChanged = { viewModel.onNewPlaylistNameChanged(it) },
+        onConfirmCreate = { viewModel.confirmCreatePlaylist() },
         modifier = modifier
     )
 }

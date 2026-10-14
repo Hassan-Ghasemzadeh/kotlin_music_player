@@ -6,7 +6,9 @@ import com.sftwr.cleandevelopment.musicplayer.home.presentation.PlaylistUiModel
 data class HomeUiState(
     val playlists: List<PlaylistUiModel> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val isCreateDialogVisible: Boolean = false,
+    val newPlaylistName: String = ""
 )
 
 // Represents one-time UI events like navigation or showing a snackbar

@@ -62,4 +62,28 @@ class HomeViewModel @Inject constructor(
             // Logic to add playlist via domain layer
         }
     }
+
+    fun onAddPlaylistClicked() {
+        _uiState.value = _uiState.value.copy(isCreateDialogVisible = true)
+    }
+
+    fun onDismissCreateDialog() {
+        _uiState.value = _uiState.value.copy(
+            isCreateDialogVisible = false,
+            newPlaylistName = ""
+        )
+    }
+
+    fun onNewPlaylistNameChanged(name: String) {
+        _uiState.value = _uiState.value.copy(newPlaylistName = name)
+    }
+
+    fun confirmCreatePlaylist() {
+        val currentName = _uiState.value.newPlaylistName
+        if (currentName.isNotBlank()) {
+            viewModelScope.launch {
+                onDismissCreateDialog()
+            }
+        }
+    }
 }
