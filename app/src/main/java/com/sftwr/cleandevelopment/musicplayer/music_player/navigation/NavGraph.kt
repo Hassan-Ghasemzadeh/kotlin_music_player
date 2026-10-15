@@ -40,9 +40,6 @@ fun AppNavGraph(
         )
         // Tracks graph
         tracksGraph(
-            onSongClick = { songId ->
-                navController.navigate(PlayerRouteKey(songId))
-            },
             onBackClick = {
                 navController.popBackStack()
             },

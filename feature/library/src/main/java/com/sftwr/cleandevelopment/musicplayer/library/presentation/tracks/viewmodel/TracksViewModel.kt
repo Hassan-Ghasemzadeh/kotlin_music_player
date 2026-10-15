@@ -3,6 +3,7 @@ package com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewm
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sftwr.cleandevelopment.musicplayer.library.core.PlayerManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class TracksViewModel @Inject constructor(
-    // TODO: Inject your GetSongsUseCase here from :core:domain
+    private val playerManager: PlayerManager,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TracksUiState())
@@ -47,9 +48,21 @@ class TracksViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Called when a song item is clicked in the list.
+     */
     fun onSongClicked(songId: String) {
         viewModelScope.launch {
-            _uiEvent.send(TracksUiEvent.NavigateToPlayer(songId))
+            // Find the song by id from current list
+            val selectedSong = _uiState.value.songs.find { it.id == songId }
+
+            selectedSong?.let { song ->
+                // 1. Update global player manager state
+                playerManager.playSong(song)
+
+                // 2. (Optional) If you also want to navigate to full Player screen, trigger event:
+                _uiEvent.send(TracksUiEvent.NavigateToPlayer(songId))
+            }
         }
     }
 

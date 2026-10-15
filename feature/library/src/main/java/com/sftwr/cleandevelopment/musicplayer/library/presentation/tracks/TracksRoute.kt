@@ -14,9 +14,7 @@ fun TracksRoute(
     viewModel: TracksViewModel = hiltViewModel(),
     onNavigateToPlayer: (String) -> Unit,
     onNavigateToSearch: () -> Unit,
-    onSongClick: (String) -> Unit,
     onBackClick: () -> Unit,
-    onSearchClick: () -> Unit,
 ) {
     // Collect UI state safely with lifecycle awareness
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -26,15 +24,15 @@ fun TracksRoute(
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
                 is TracksUiEvent.NavigateToPlayer -> onNavigateToPlayer
-                is TracksUiEvent.NavigateToSearch -> onSearchClick
+                is TracksUiEvent.NavigateToSearch -> onNavigateToSearch
             }
         }
     }
     // Pass state and action callbacks down to the stateless UI screen
     TracksScreen(
         songs = uiState.songs,
-        onSongClick = onSongClick,
+        onSongClick = { songId -> viewModel.onSongClicked(songId) },
         onBackClick = onBackClick,
-        onSearchClick = onSearchClick
+        onSearchClick = onNavigateToSearch
     )
 }

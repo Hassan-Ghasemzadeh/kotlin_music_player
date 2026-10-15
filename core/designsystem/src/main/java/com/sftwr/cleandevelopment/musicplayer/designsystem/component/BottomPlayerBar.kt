@@ -1,6 +1,7 @@
 package com.sftwr.cleandevelopment.musicplayer.designsystem.component
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,12 +35,20 @@ import androidx.compose.ui.unit.sp
  * Bottom mini player bar displaying currently playing track and controls.
  */
 @Composable
-fun BottomPlayerBar() {
+fun BottomPlayerBar(
+    songTitle: String,
+    artistName: String,
+    isPlaying: Boolean,
+    onPlayPauseClick: () -> Unit,
+    onPlayerClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     GlassCard(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 15.dp)
             .height(72.dp)
+            .clickable(onClick = onPlayerClick)
     ) {
         Row(
             modifier = Modifier
@@ -68,12 +77,21 @@ fun BottomPlayerBar() {
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
-                    Text(
-                        text = "Roya",
-                        color = Color.White,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Column {
+                        Text(
+                            text = songTitle,
+                            color = Color.White,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = artistName,
+                            color = Color.White,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Light
+                        )
+                    }
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = "Change song by swipe",
@@ -86,7 +104,7 @@ fun BottomPlayerBar() {
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { /* Play/Pause action */ }) {
+                IconButton(onClick = onPlayPauseClick) {
                     Icon(
                         imageVector = Icons.Default.PlayArrow,
                         contentDescription = "Play",

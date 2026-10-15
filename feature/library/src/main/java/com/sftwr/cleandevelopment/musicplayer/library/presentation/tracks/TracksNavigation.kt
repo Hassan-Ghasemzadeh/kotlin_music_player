@@ -13,7 +13,6 @@ data object TracksRouteKey
  * without exposing internal ViewModels or UI components to the :app module.
  */
 fun NavGraphBuilder.tracksGraph(
-    onSongClick: (String) -> Unit,
     onNavigateToPlayer: (String) -> Unit,
     onNavigateToSearch: () -> Unit,
     onBackClick: () -> Unit,
@@ -22,11 +21,9 @@ fun NavGraphBuilder.tracksGraph(
     composable<TracksRouteKey> {
 
         TracksRoute(
-            onSongClick = onSongClick,
             onBackClick = onBackClick,
-            onSearchClick = onSearchClick,
-            onNavigateToPlayer = onNavigateToPlayer,
             onNavigateToSearch = onNavigateToSearch,
+            onNavigateToPlayer = onNavigateToPlayer,
         )
     }
 }
