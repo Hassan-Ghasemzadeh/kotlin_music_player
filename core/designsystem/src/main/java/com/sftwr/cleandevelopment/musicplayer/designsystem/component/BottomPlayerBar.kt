@@ -1,4 +1,4 @@
-package com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components
+package com.sftwr.cleandevelopment.musicplayer.designsystem.component
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -28,7 +28,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
 
 
 /**

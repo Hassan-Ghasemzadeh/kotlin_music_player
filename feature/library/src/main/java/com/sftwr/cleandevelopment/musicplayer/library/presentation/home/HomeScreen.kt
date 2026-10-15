@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -226,7 +227,7 @@ fun HomeScreenPreview() {
                 PlaylistUiModel(
                     "Most Played",
                     "11 Tracks",
-                    Icons.Default.TrendingUp
+                    Icons.AutoMirrored.Filled.TrendingUp
                 ),       // یا Star
                 PlaylistUiModel(
                     "Favorite Tracks",
