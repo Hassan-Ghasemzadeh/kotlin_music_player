@@ -9,6 +9,8 @@ import androidx.navigation.toRoute
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.HomeRouteKey
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.PlayerRouteKey
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.homeGraph
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.TracksRouteKey
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.tracksGraph
 
 @Composable
 fun AppNavGraph(
@@ -30,6 +32,26 @@ fun AppNavGraph(
             },
             onNavigateToSearch = {
 
+            },
+            onNavigateToTracks = {
+                // Navigate to Tracks screen when card is clicked
+                navController.navigate(TracksRouteKey)
+            }
+        )
+        // Tracks graph
+        tracksGraph(
+            onSongClick = { songId ->
+                navController.navigate(PlayerRouteKey(songId))
+            },
+            onBackClick = {
+                navController.popBackStack()
+            },
+            onSearchClick = {
+
+            },
+            onNavigateToSearch = {},
+            onNavigateToPlayer = { songId ->
+                navController.navigate(PlayerRouteKey(songId))
             }
         )
         composable<PlayerRouteKey> { backStackEntry ->

@@ -19,6 +19,7 @@ fun NavGraphBuilder.homeGraph(
     onNavigateToPlayer: (String) -> Unit,
     onNavigateToSearch: () -> Unit,
     onOpenPlaylist: (String) -> Unit,
+    onNavigateToTracks: () -> Unit,
 ) {
     composable<HomeRouteKey> {
 
@@ -26,6 +27,7 @@ fun NavGraphBuilder.homeGraph(
             onNavigateToPlayer = onNavigateToPlayer,
             onNavigateToSearch = onNavigateToSearch,
             onOpenPlaylist = onOpenPlaylist,
+            onNavigateToTracks = onNavigateToTracks
         )
     }
 }

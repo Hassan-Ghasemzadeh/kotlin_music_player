@@ -1,6 +1,7 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -40,6 +41,7 @@ fun HomeScreen(
     uiState: HomeUiState,
     onPlaylistClick: (String) -> Unit,
     onSearchClick: () -> Unit,
+    onNavigateToTracks: () -> Unit,
     onSongClick: (String) -> Unit,
     onAddPlaylistClick: () -> Unit,
     onDismissDialog: () -> Unit,
@@ -87,7 +89,9 @@ fun HomeScreen(
                             title = "TRACKS",
                             subtitle = "(51)",
                             icon = Icons.Default.MusicNote,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable(onClick = onNavigateToTracks)
                         )
                         LibraryCard(
                             title = "ALBUMS",
@@ -234,6 +238,7 @@ fun HomeScreenPreview() {
         onPlaylistClick = {},
         onSearchClick = {},
         onSongClick = {},
+        onNavigateToTracks = {},
         onAddPlaylistClick = {},
         onDismissDialog = {},
         onPlaylistNameChanged = {},

@@ -15,6 +15,7 @@ fun HomeRoute(
     viewModel: HomeViewModel = hiltViewModel(),
     onNavigateToPlayer: (String) -> Unit,
     onNavigateToSearch: () -> Unit,
+    onNavigateToTracks: () -> Unit,
     onOpenPlaylist: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -42,6 +43,7 @@ fun HomeRoute(
         onDismissDialog = { viewModel.onDismissCreateDialog() },
         onPlaylistNameChanged = { viewModel.onNewPlaylistNameChanged(it) },
         onConfirmCreate = { viewModel.confirmCreatePlaylist() },
+        onNavigateToTracks = onNavigateToTracks,
         modifier = modifier
     )
 }
