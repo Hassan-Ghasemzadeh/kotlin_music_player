@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
@@ -27,6 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -77,26 +79,19 @@ fun BottomPlayerBar(
                 }
                 Spacer(modifier = Modifier.width(12.dp))
                 Column {
-                    Column {
-                        Text(
-                            text = songTitle,
-                            color = Color.White,
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = artistName,
-                            color = Color.White,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Light
-                        )
-                    }
+                    Text(
+                        text = songTitle,
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold, maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                    )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Change song by swipe",
-                        color = Color.White.copy(alpha = 0.6f),
-                        fontSize = 12.sp
+                        text = artistName,
+                        color = Color.White,
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Light
                     )
                 }
             }
@@ -106,7 +101,7 @@ fun BottomPlayerBar(
             ) {
                 IconButton(onClick = onPlayPauseClick) {
                     Icon(
-                        imageVector = Icons.Default.PlayArrow,
+                        imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                         contentDescription = "Play",
                         tint = Color.White,
                         modifier = Modifier.size(28.dp)
