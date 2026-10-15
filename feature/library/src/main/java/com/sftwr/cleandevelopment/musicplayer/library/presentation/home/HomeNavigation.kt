@@ -1,10 +1,7 @@
-package com.sftwr.cleandevelopment.musicplayer.home
+package com.sftwr.cleandevelopment.musicplayer.library.presentation.home
 
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.sftwr.cleandevelopment.musicplayer.home.presentation.HomeRoute
-import com.sftwr.cleandevelopment.musicplayer.home.presentation.viewmodel.HomeViewModel
 import kotlinx.serialization.Serializable
 
 // Define type-safe route keys for home feature

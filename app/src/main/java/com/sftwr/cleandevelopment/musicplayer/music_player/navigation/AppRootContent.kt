@@ -7,7 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.sftwr.cleandevelopment.musicplayer.home.presentation.components.BottomPlayerBar
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components.BottomPlayerBar
 import androidx.compose.ui.graphics.Color
 
 @Composable

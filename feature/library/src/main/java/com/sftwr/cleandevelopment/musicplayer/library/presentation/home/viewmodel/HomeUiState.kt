@@ -1,6 +1,6 @@
-package com.sftwr.cleandevelopment.musicplayer.home.presentation.viewmodel
+package com.sftwr.cleandevelopment.musicplayer.library.presentation.home.viewmodel
 
-import com.sftwr.cleandevelopment.musicplayer.home.presentation.PlaylistUiModel
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.PlaylistUiModel
 
 // Represents the current UI state of the home screen
 data class HomeUiState(

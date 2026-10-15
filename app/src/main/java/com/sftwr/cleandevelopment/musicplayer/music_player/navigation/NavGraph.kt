@@ -6,9 +6,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.sftwr.cleandevelopment.musicplayer.home.HomeRouteKey
-import com.sftwr.cleandevelopment.musicplayer.home.PlayerRouteKey
-import com.sftwr.cleandevelopment.musicplayer.home.homeGraph
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.HomeRouteKey
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.PlayerRouteKey
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.homeGraph
 
 @Composable
 fun AppNavGraph(

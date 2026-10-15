@@ -1,4 +1,4 @@
-package com.sftwr.cleandevelopment.musicplayer.home.presentation.viewmodel
+package com.sftwr.cleandevelopment.musicplayer.library.presentation.home.viewmodel
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Favorite
@@ -8,7 +8,7 @@ import androidx.compose.material.icons.filled.QueueMusic
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sftwr.cleandevelopment.musicplayer.home.presentation.PlaylistUiModel
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.PlaylistUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
