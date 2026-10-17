@@ -32,7 +32,8 @@ fun AppRootContent(
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val showBottomBar = currentRoute != "SearchRouteKey" && currentRoute != "PlayerRouteKey"
+    val showBottomBar = currentRoute?.contains("SearchRouteKey") == false &&
+            currentRoute?.contains("PlayerRouteKey") == false
 
     Box(
         modifier = Modifier

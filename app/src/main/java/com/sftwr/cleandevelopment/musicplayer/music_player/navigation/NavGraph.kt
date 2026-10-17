@@ -9,6 +9,7 @@ import androidx.navigation.toRoute
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.HomeRouteKey
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.PlayerRouteKey
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.homeGraph
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.PlayerScreen
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.TracksRouteKey
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.tracksGraph
 
@@ -55,7 +56,7 @@ fun AppNavGraph(
             val playerRoute: PlayerRouteKey = backStackEntry.toRoute()
             val songId = playerRoute.songId
 
-            // PlayerScreen(songId = songId)
+            PlayerScreen(songId = songId.toLong(), onBackClick = {})
         }
 
     }
