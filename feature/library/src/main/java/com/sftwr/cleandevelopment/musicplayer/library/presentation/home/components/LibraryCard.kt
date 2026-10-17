@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
+import com.sftwr.cleandevelopment.musicplayer.library.core.util.neonBorder
 
 
 /**
@@ -30,8 +32,9 @@ fun LibraryCard(
     icon: ImageVector,
     modifier: Modifier = Modifier
 ) {
+    val cardShape = RoundedCornerShape(24.dp)
     GlassCard(
-        modifier = modifier.height(130.dp)
+        modifier = modifier.neonBorder(shape = cardShape).height(130.dp)
     ) {
         Column(
             modifier = Modifier
@@ -43,7 +46,7 @@ fun LibraryCard(
             Icon(
                 imageVector = icon,
                 contentDescription = title,
-                tint = Color.White.copy(alpha = 0.9f),
+                tint = Color(0xFF00CFFF),
                 modifier = Modifier.size(36.dp)
             )
             Spacer(modifier = Modifier.height(12.dp))

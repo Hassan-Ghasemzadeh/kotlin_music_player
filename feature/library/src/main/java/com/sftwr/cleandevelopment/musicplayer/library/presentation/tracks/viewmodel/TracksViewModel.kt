@@ -3,7 +3,7 @@ package com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewm
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.sftwr.cleandevelopment.musicplayer.library.core.PlayerManager
+import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow

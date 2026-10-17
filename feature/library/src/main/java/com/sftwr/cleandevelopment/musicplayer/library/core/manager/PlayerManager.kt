@@ -1,4 +1,4 @@
-package com.sftwr.cleandevelopment.musicplayer.library.core
+package com.sftwr.cleandevelopment.musicplayer.library.core.manager
 
 
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
