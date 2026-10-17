@@ -2,7 +2,11 @@ package com.sftwr.cleandevelopment.musicplayer.music_player.navigation
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -12,6 +16,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.BottomPlayerBar
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.PlayerRouteKey
@@ -32,11 +37,14 @@ fun AppRootContent(
 
     Box(
         modifier = Modifier
-            .background(Color(0xFF122144))
-            .systemBarsPadding(),
+            .background(Color(0xFF0F0B21))
+            .fillMaxSize(),
         contentAlignment = Alignment.BottomCenter
     ) {
         AppNavGraph(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding(),
             navController = navController,
         )
         if (showBottomBar && currentSong != null) {
@@ -52,6 +60,8 @@ fun AppRootContent(
                 },
                 modifier = Modifier
                     .fillMaxWidth()
+                    .navigationBarsPadding()
+                    .padding(bottom = 5.dp)
             )
         }
     }

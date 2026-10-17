@@ -1,11 +1,11 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.home.viewmodel
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.LibraryAdd
-import androidx.compose.material.icons.filled.QueueMusic
-import androidx.compose.material.icons.filled.TrendingUp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.PlaylistUiModel
@@ -41,7 +41,9 @@ class HomeViewModel @Inject constructor(
                 playlists = listOf(
                     PlaylistUiModel("Recently Added", "11 Tracks", Icons.Default.LibraryAdd),
                     PlaylistUiModel("Recently Played", "11 Tracks", Icons.Default.History),
-                    PlaylistUiModel("Most Played", "11 Tracks", Icons.Default.TrendingUp),
+                    PlaylistUiModel("Most Played", "11 Tracks",
+                        Icons.AutoMirrored.Filled.TrendingUp
+                    ),
                     PlaylistUiModel("Favorite Tracks", "18 Tracks", Icons.Default.Favorite)
                 )
             )
@@ -87,7 +89,7 @@ class HomeViewModel @Inject constructor(
             val newPlaylist = PlaylistUiModel(
                 title = currentName,
                 subtitle = "0 Tracks",
-                icon = Icons.Default.QueueMusic
+                icon = Icons.AutoMirrored.Filled.QueueMusic
             )
 
             val updatedPlaylists = _uiState.value.playlists + newPlaylist
