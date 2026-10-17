@@ -43,6 +43,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect // اصلاح شده از LaunchedFunction
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -54,13 +55,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
 
 @Composable
 fun PlayerScreen(
     songId: Long,
     onBackClick: () -> Unit,
 ) {
-    var currentPosition by remember { mutableStateOf(45000L) }
+    var currentPosition by remember { mutableLongStateOf(45000L) }
     val totalDuration = 210000L
     var isPlaying by remember { mutableStateOf(true) }
 
@@ -71,10 +73,8 @@ fun PlayerScreen(
     LaunchedEffect(isPlaying) {
         if (isPlaying) {
             rotation.animateTo(
-                targetValue = 360f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(12000, easing = LinearEasing),
-                    repeatMode = RepeatMode.Restart
+                targetValue = 360f, animationSpec = infiniteRepeatable(
+                    animation = tween(12000, easing = LinearEasing), repeatMode = RepeatMode.Restart
                 )
             )
         }
@@ -82,9 +82,7 @@ fun PlayerScreen(
 
     val backgroundGradient = Brush.verticalGradient(
         colors = listOf(
-            Color(0xFF0F0B21),
-            Color(0xFF181035),
-            Color(0xFF2C1454)
+            Color(0xFF0F0B21), Color(0xFF181035), Color(0xFF2C1454)
         )
     )
 
@@ -113,13 +111,9 @@ fun PlayerScreen(
                 )
             }
             Text(
-                text = "درحال پخش",
-                style = MaterialTheme.typography.titleMedium.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White.copy(alpha = 0.9f)
-                ),
-                textAlign = TextAlign.Center,
-                modifier = Modifier.weight(1f)
+                text = "درحال پخش", style = MaterialTheme.typography.titleMedium.copy(
+                    fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.9f)
+                ), textAlign = TextAlign.Center, modifier = Modifier.weight(1f)
             )
             Spacer(modifier = Modifier.width(48.dp))
         }
@@ -130,15 +124,13 @@ fun PlayerScreen(
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(1f),
-            contentAlignment = Alignment.Center
+                .weight(1f), contentAlignment = Alignment.Center
         ) {
             Canvas(modifier = Modifier.size(300.dp)) {
                 drawCircle(
                     brush = Brush.radialGradient(
                         colors = listOf(Color(0xFF6200EE).copy(alpha = 0.3f), Color.Transparent),
-                    ),
-                    radius = size.width * 0.45f
+                    ), radius = size.width * 0.45f
                 )
             }
 
@@ -147,11 +139,9 @@ fun PlayerScreen(
                 modifier = Modifier
                     .size(240.dp)
                     .border(
-                        width = 3.dp,
-                        brush = Brush.sweepGradient(
+                        width = 3.dp, brush = Brush.sweepGradient(
                             colors = listOf(Color(0xFF00CFFF), Color(0xFF6200EE), Color(0xFF00CFFF))
-                        ),
-                        shape = CircleShape
+                        ), shape = CircleShape
                     )
                     .rotate(rotation.value),
                 colors = CardDefaults.cardColors(containerColor = Color(0xFF1A1635)),
@@ -173,29 +163,20 @@ fun PlayerScreen(
 
         // اطلاعات آهنگ
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.fillMaxWidth()
+            horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = songTitle,
-                style = MaterialTheme.typography.headlineSmall.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    textAlign = TextAlign.Center
-                ),
-                maxLines = 1,
-                modifier = Modifier.padding(horizontal = 24.dp)
+                text = songTitle, style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center
+                ), maxLines = 1, modifier = Modifier.padding(horizontal = 24.dp)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = artistName,
-                style = MaterialTheme.typography.titleMedium.copy(
+                text = artistName, style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Normal,
                     color = Color.White.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center
-                ),
-                maxLines = 1,
-                modifier = Modifier.padding(horizontal = 24.dp)
+                ), maxLines = 1, modifier = Modifier.padding(horizontal = 24.dp)
             )
         }
 
@@ -209,11 +190,11 @@ fun PlayerScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = formatTime(currentPosition),
+                    text = currentPosition.formatTime(),
                     style = MaterialTheme.typography.labelSmall.copy(color = Color.White.copy(alpha = 0.6f))
                 )
                 Text(
-                    text = formatTime(totalDuration),
+                    text = totalDuration.formatTime(),
                     style = MaterialTheme.typography.labelSmall.copy(color = Color.White.copy(alpha = 0.6f))
                 )
             }
@@ -259,8 +240,7 @@ fun PlayerScreen(
                     elevation = CardDefaults.cardElevation(8.dp),
                     modifier = Modifier
                         .size(72.dp)
-                        .clickable { isPlaying = !isPlaying }
-                ) {
+                        .clickable { isPlaying = !isPlaying }) {
                     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                         Icon(
                             imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
@@ -288,11 +268,4 @@ fun PlayerScreen(
             }
         }
     }
-}
-
-fun formatTime(ms: Long): String {
-    val totalSeconds = ms / 1000
-    val minutes = totalSeconds / 60
-    val remainingSeconds = totalSeconds % 60
-    return String.format("%02d:%02d", minutes, remainingSeconds)
 }
