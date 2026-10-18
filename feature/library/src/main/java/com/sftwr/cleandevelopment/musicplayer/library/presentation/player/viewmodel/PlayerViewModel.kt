@@ -11,11 +11,13 @@ import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCa
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
@@ -62,7 +64,7 @@ class PlayerViewModel @Inject constructor(
                 if (exoPlayer.isPlaying) {
                     _currentPosition.value = exoPlayer.currentPosition
                 }
-                kotlinx.coroutines.delay(500L) // هر نیم ثانیه یک‌بار پوزیشن را آپدیت می‌کند
+                delay(500L.milliseconds)
             }
         }
     }

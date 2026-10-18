@@ -57,7 +57,6 @@ fun AppNavGraph(
             val songId = playerRoute.songId
 
             PlayerScreen(
-                songId = songId.toLong(),
                 onBackClick = {
                     navController.popBackStack()
                 },

@@ -72,7 +72,6 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun PlayerScreen(
     viewModel: PlayerViewModel = hiltViewModel(),
-    songId: Long,
     onBackClick: () -> Unit,
 ) {
     val isPlaying by viewModel.isPlaying.collectAsState()

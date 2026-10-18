@@ -90,7 +90,7 @@ class PlayerManager @Inject constructor(
         _currentSong.value = song
         activeQueue = listOf(song) // اگر تک آهنگ بود، صف را روی همین یکی تنظیم می‌کنیم
 
-        val audioUri = Uri.parse(song.uri)
+        val audioUri = song.uri.toUri()
         val mediaItem = MediaItem.fromUri(audioUri)
 
         exoPlayer.setMediaItem(mediaItem)
