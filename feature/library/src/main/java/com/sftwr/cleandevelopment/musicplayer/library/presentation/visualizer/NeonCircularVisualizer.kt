@@ -17,6 +17,7 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -27,9 +28,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -45,7 +49,14 @@ fun NeonCircularVisualizer(
     size: Dp = 260.dp
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "rotation")
-
+    val context = LocalContext.current
+    val albumArtBytes = remember(albumArtUrl) {
+        if (!albumArtUrl.isNullOrBlank()) {
+            albumArtUrl.extractAlbumArt() // <--- استفاده از اکستنشن فانکشن
+        } else {
+            null
+        }
+    }
     val rotationAngle by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
@@ -73,9 +84,9 @@ fun NeonCircularVisualizer(
                 .background(Color(0xFF1D1838)),
             contentAlignment = Alignment.Center
         ) {
-            if (!albumArtUrl.isNullOrBlank()) {
+            if (albumArtBytes != null) {
                 AsyncImage(
-                    model = albumArtUrl,
+                    model = albumArtBytes,
                     contentDescription = "Album Cover",
                     contentScale = ContentScale.Crop,
                     modifier = Modifier.fillMaxSize()
@@ -112,7 +123,8 @@ fun NeonCircularVisualizer(
             when (type) {
                 CircularVisualizerType.NEON_FREQUENCY_BARS -> {
                     for (i in 0 until pointsCount) {
-                        val angle = (2 * PI * i / pointsCount) + Math.toRadians(rotationAngle.toDouble())
+                        val angle =
+                            (2 * PI * i / pointsCount) + Math.toRadians(rotationAngle.toDouble())
                         val amp = if (i < fftData.size) fftData[i] else 0.2f
                         val barLen = 20f + (amp * 90f)
                         val start = Offset(
@@ -138,8 +150,12 @@ fun NeonCircularVisualizer(
                     for (i in 0..pointsCount) {
                         val angle = (2 * PI * (i % pointsCount) / pointsCount)
                         val amp = if (i < fftData.size) fftData[i] else 0.2f
-                        val r1 = (baseRadius + 8f) + (amp * 45f * sin(angle * 4 + Math.toRadians(rotationAngle.toDouble()))).toFloat()
-                        val r2 = (baseRadius + 8f) + (amp * 45f * cos(angle * 4 - Math.toRadians(rotationAngle.toDouble()))).toFloat()
+                        val r1 = (baseRadius + 8f) + (amp * 45f * sin(
+                            angle * 4 + Math.toRadians(rotationAngle.toDouble())
+                        )).toFloat()
+                        val r2 = (baseRadius + 8f) + (amp * 45f * cos(
+                            angle * 4 - Math.toRadians(rotationAngle.toDouble())
+                        )).toFloat()
 
                         val x1 = (center.x + r1 * cos(angle)).toFloat()
                         val y1 = (center.y + r1 * sin(angle)).toFloat()
@@ -161,7 +177,8 @@ fun NeonCircularVisualizer(
                 CircularVisualizerType.NEON_POLYGON_RING -> {
                     val points = mutableListOf<Offset>()
                     for (i in 0 until pointsCount) {
-                        val angle = (2 * PI * i / pointsCount) + Math.toRadians(rotationAngle.toDouble())
+                        val angle =
+                            (2 * PI * i / pointsCount) + Math.toRadians(rotationAngle.toDouble())
                         val amp = if (i < fftData.size) fftData[i] else 0.2f
                         val r = baseRadius + 12f + (amp * 45f)
                         points.add(
@@ -195,7 +212,8 @@ fun NeonCircularVisualizer(
 
                 CircularVisualizerType.NEON_STARBURST_SPIKES -> {
                     for (i in 0 until pointsCount) {
-                        val angle = (2 * PI * i / pointsCount) + Math.toRadians(rotationAngle.toDouble())
+                        val angle =
+                            (2 * PI * i / pointsCount) + Math.toRadians(rotationAngle.toDouble())
                         val amp = if (i < fftData.size) fftData[i] else 0.2f
                         val spikeLen = 15f + (amp * 70f)
                         val start = Offset(
@@ -247,7 +265,8 @@ fun NeonCircularVisualizer(
 
                 CircularVisualizerType.NEON_CRYSTAL_MATRIX -> {
                     for (i in 0 until pointsCount step 2) {
-                        val angle = (2 * PI * i / pointsCount) + Math.toRadians(rotationAngle.toDouble())
+                        val angle =
+                            (2 * PI * i / pointsCount) + Math.toRadians(rotationAngle.toDouble())
                         val amp = if (i < fftData.size) fftData[i] else 0.2f
                         val r = baseRadius + 15f + (amp * 40f)
                         val x = (center.x + r * cos(angle)).toFloat()
@@ -266,7 +285,8 @@ fun NeonCircularVisualizer(
                     for (i in 0..360) {
                         val angle = Math.toRadians(i.toDouble())
                         val amp = fftData.getOrElse(i % pointsCount) { 0.2f }
-                        val r = baseRadius + 12f + (sin(angle * petals).toFloat() * (15f + amp * 35f))
+                        val r =
+                            baseRadius + 12f + (sin(angle * petals).toFloat() * (15f + amp * 35f))
                         val x = (center.x + r * cos(angle)).toFloat()
                         val y = (center.y + r * sin(angle)).toFloat()
                         if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
@@ -277,7 +297,8 @@ fun NeonCircularVisualizer(
                 CircularVisualizerType.NEON_SINGULARITY_VORTEX -> {
                     val path = Path()
                     for (i in 0 until pointsCount) {
-                        val angle = (2 * PI * i / pointsCount) - Math.toRadians(rotationAngle.toDouble() * 1.5)
+                        val angle =
+                            (2 * PI * i / pointsCount) - Math.toRadians(rotationAngle.toDouble() * 1.5)
                         val amp = if (i < fftData.size) fftData[i] else 0.2f
                         val r = baseRadius + 5f + ((1f - amp) * 30f)
                         val x = (center.x + r * cos(angle)).toFloat()
@@ -316,8 +337,11 @@ fun NeonCircularVisualizer(
                         val y1 = (center.y + r1 * sin(angle)).toFloat()
                         val x2 = (center.x + r2 * cos(angle + PI)).toFloat()
                         val y2 = (center.y + r2 * sin(angle + PI)).toFloat()
-                        if (i == 0) { path1.moveTo(x1, y1); path2.moveTo(x2, y2) }
-                        else { path1.lineTo(x1, y1); path2.lineTo(x2, y2) }
+                        if (i == 0) {
+                            path1.moveTo(x1, y1); path2.moveTo(x2, y2)
+                        } else {
+                            path1.lineTo(x1, y1); path2.lineTo(x2, y2)
+                        }
                     }
                     drawPath(path1, neonCyan, style = Stroke(width = 2f))
                     drawPath(path2, neonPink, style = Stroke(width = 2f))
@@ -328,7 +352,9 @@ fun NeonCircularVisualizer(
                         val avgAmp = fftData.average().toFloat()
                         val radius = baseRadius + (r * 18f) + (avgAmp * 25f * r)
                         drawCircle(
-                            color = if (r % 2 == 0) neonCyan.copy(alpha = 0.7f) else neonPurple.copy(alpha = 0.7f),
+                            color = if (r % 2 == 0) neonCyan.copy(alpha = 0.7f) else neonPurple.copy(
+                                alpha = 0.7f
+                            ),
                             radius = radius,
                             center = center,
                             style = Stroke(width = (5 - r).toFloat())
@@ -342,12 +368,22 @@ fun NeonCircularVisualizer(
                         val angle = (2 * PI * i / 16) + Math.toRadians(rotationAngle.toDouble())
                         val amp = fftData.getOrElse(i * 4) { 0.2f }
                         val r = baseRadius + 20f + (amp * 40f)
-                        points.add(Offset((center.x + r * cos(angle)).toFloat(), (center.y + r * sin(angle)).toFloat()))
+                        points.add(
+                            Offset(
+                                (center.x + r * cos(angle)).toFloat(),
+                                (center.y + r * sin(angle)).toFloat()
+                            )
+                        )
                     }
                     for (i in points.indices) {
                         for (j in i + 1 until points.size) {
                             if ((i - j) % 3 == 0) {
-                                drawLine(neonCyan.copy(alpha = 0.4f), points[i], points[j], strokeWidth = 1f)
+                                drawLine(
+                                    neonCyan.copy(alpha = 0.4f),
+                                    points[i],
+                                    points[j],
+                                    strokeWidth = 1f
+                                )
                             }
                         }
                     }
@@ -356,9 +392,11 @@ fun NeonCircularVisualizer(
                 CircularVisualizerType.NEON_PLASMA_STORM -> {
                     val path = Path()
                     for (i in 0..180) {
-                        val angle = Math.toRadians(i * 2.0) + Math.toRadians(rotationAngle.toDouble())
+                        val angle =
+                            Math.toRadians(i * 2.0) + Math.toRadians(rotationAngle.toDouble())
                         val amp = fftData.getOrElse(i % pointsCount) { 0.2f }
-                        val noise = sin(i.toDouble() * 0.5 + rotationAngle.toDouble() * 0.1).toFloat()
+                        val noise =
+                            sin(i.toDouble() * 0.5 + rotationAngle.toDouble() * 0.1).toFloat()
                         val r = baseRadius + 10f + (amp * kotlin.math.abs(noise) * 55f)
                         val x = (center.x + r * cos(angle)).toFloat()
                         val y = (center.y + r * sin(angle)).toFloat()
@@ -384,8 +422,14 @@ fun NeonCircularVisualizer(
                     for (i in 0 until 12) {
                         val angle = (2 * PI * i / 12) + Math.toRadians(rotationAngle.toDouble())
                         val amp = fftData.getOrElse(i * 5) { 0.2f }
-                        val start = Offset((center.x + baseRadius * cos(angle)).toFloat(), (center.y + baseRadius * sin(angle)).toFloat())
-                        val end = Offset((center.x + (baseRadius + 30f + amp * 40f) * cos(angle)).toFloat(), (center.y + (baseRadius + 30f + amp * 40f) * sin(angle)).toFloat())
+                        val start = Offset(
+                            (center.x + baseRadius * cos(angle)).toFloat(),
+                            (center.y + baseRadius * sin(angle)).toFloat()
+                        )
+                        val end = Offset(
+                            (center.x + (baseRadius + 30f + amp * 40f) * cos(angle)).toFloat(),
+                            (center.y + (baseRadius + 30f + amp * 40f) * sin(angle)).toFloat()
+                        )
                         drawLine(neonGreen, start, end, strokeWidth = 2f)
                     }
                 }
@@ -395,7 +439,8 @@ fun NeonCircularVisualizer(
                     for (i in 0..pointsCount) {
                         val angle = (2 * PI * i / pointsCount)
                         val amp = fftData[i % pointsCount]
-                        val r = baseRadius + 12f + (sin(angle * 3 + Math.toRadians(rotationAngle.toDouble())) * amp * 35f)
+                        val r =
+                            baseRadius + 12f + (sin(angle * 3 + Math.toRadians(rotationAngle.toDouble())) * amp * 35f)
                         val x = (center.x + r * cos(angle)).toFloat()
                         val y = (center.y + r * sin(angle)).toFloat()
                         if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)

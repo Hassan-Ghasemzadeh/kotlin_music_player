@@ -1,6 +1,7 @@
 package com.sftwr.cleandevelopment.musicplayer.library.core.util
 
 
+import android.media.MediaMetadataRetriever
 import java.util.Locale
 
 // تبدیل به Extension Function روی نوع داده Long
@@ -25,5 +26,18 @@ fun String.toMillis(): Float {
         }
     } catch (e: Exception) {
         0f
+    }
+}
+fun String.extractAlbumArt(): ByteArray? {
+    val retriever = MediaMetadataRetriever()
+    return try {
+        retriever.setDataSource(this)
+        retriever.embeddedPicture
+    } catch (e: Exception) {
+        null
+    } finally {
+        try {
+            retriever.release()
+        } catch (_: Exception) {}
     }
 }

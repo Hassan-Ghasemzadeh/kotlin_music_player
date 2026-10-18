@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
+import androidx.core.net.toUri
 
 class MusicRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
@@ -70,7 +71,7 @@ class MusicRepositoryImpl @Inject constructor(
                     )
 
                     val albumArtUri = ContentUris.withAppendedId(
-                        android.net.Uri.parse("content://media/external/audio/albumart"),
+                        "content://media/external/audio/albumart".toUri(),
                         albumId
                     ).toString()
 

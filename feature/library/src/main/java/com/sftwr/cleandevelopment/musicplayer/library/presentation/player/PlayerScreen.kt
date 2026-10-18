@@ -190,7 +190,7 @@ fun PlayerScreen(
             NeonCircularVisualizer(
                 type = CircularVisualizerType.NEON_FREQUENCY_BARS,
                 fftData = fftData,
-                albumArtUrl = null, // در اینجا آدرس کاور آهنگ واقعی از دستگاه قرار می‌گیرد
+                albumArtUrl = songState?.uri,
                 isPlaying = isPlaying,
                 size = 280.dp
             )
@@ -238,7 +238,7 @@ fun PlayerScreen(
             Slider(
                 value = currentPosition.toFloat(),
                 onValueChange = {
-                     viewModel.seekTo(it.toLong())
+                    viewModel.seekTo(it.toLong())
                 },
                 valueRange = 0f..totalDuration.toMillis(),
                 colors = SliderDefaults.colors(

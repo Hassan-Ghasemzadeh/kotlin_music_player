@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -18,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.PlayerRouteKey
 
 @Composable
@@ -34,7 +36,9 @@ fun AppRootContent(
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomBar = currentRoute?.contains("SearchRouteKey") == false &&
             currentRoute?.contains("PlayerRouteKey") == false
-
+    val artUri = remember(currentSong?.uri) {
+        currentSong?.uri?.extractAlbumArt()
+    }
     Box(
         modifier = Modifier
             .background(Color(0xFF0F0B21))
@@ -52,6 +56,7 @@ fun AppRootContent(
             BottomPlayerBar(
                 songTitle = currentSong!!.title,
                 artistName = currentSong!!.artist,
+                artUri = artUri,
                 isPlaying = isPlaying,
                 onPlayPauseClick = { playerManager.togglePlayPause() },
                 onPlayerClick = {
