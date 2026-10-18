@@ -1,6 +1,5 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks
 
-import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -50,12 +49,12 @@ data class SongUiModel(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TracksScreen(
+    modifier: Modifier = Modifier,
     songs: List<SongUiModel>,
     isLoading: Boolean = false,
     onSongClick: (String) -> Unit,
     onBackClick: () -> Unit,
     onSearchClick: () -> Unit,
-    modifier: Modifier = Modifier,
     viewModel: TracksViewModel = hiltViewModel(),
 ) {
     // Main container with dark vertical gradient background matching the home screen
