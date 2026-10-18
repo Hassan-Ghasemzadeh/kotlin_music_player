@@ -31,12 +31,17 @@ import com.sftwr.cleandevelopment.musicplayer.library.core.util.neonBorder
 import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.AudioVisualizerManager
 import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.CircularVisualizerType
 
+/**
+ * VisualizerSelectorScreen displays a grid of all available circular visualizer types
+ * with live real-time previews for user selection.
+ */
 @Composable
 fun VisualizerSelectorScreen(
     audioVisualizerManager: AudioVisualizerManager,
     isPlaying: Boolean,
     onSelectType: (CircularVisualizerType) -> Unit
 ) {
+    // Collecting real-time FFT frequency data from the visualizer manager
     val fftData by audioVisualizerManager.fftData.collectAsState()
     val types = CircularVisualizerType.entries.toTypedArray()
 
@@ -46,6 +51,7 @@ fun VisualizerSelectorScreen(
             .background(Color(0xFF0F0B21))
             .padding(12.dp)
     ) {
+        // Screen Header Title
         Text(
             text = "SELECT VISUALIZER",
             style = MaterialTheme.typography.titleMedium.copy(
@@ -55,6 +61,7 @@ fun VisualizerSelectorScreen(
             modifier = Modifier.padding(vertical = 12.dp)
         )
 
+        // Grid layout showing preview cards for each visualizer style
         LazyVerticalGrid(
             columns = GridCells.Fixed(3),
             horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -69,7 +76,8 @@ fun VisualizerSelectorScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(180.dp)
-                        .neonBorder(shape = cardShape)
+                        .neonBorder(shape = cardShape),
+                    onClick = { onSelectType(itemType) }
                 ) {
                     Column(
                         modifier = Modifier
@@ -78,6 +86,7 @@ fun VisualizerSelectorScreen(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
+                        // Live mini circular visualizer preview for the card
                         NeonCircularVisualizer(
                             type = itemType,
                             fftData = fftData,
@@ -88,6 +97,7 @@ fun VisualizerSelectorScreen(
 
                         Spacer(modifier = Modifier.height(4.dp))
 
+                        // Visualizer style title label
                         Text(
                             text = itemType.title,
                             style = MaterialTheme.typography.labelSmall.copy(

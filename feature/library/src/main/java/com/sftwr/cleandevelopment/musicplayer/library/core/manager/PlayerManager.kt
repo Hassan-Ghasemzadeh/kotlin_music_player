@@ -25,7 +25,7 @@ class PlayerManager @Inject constructor(
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
-    // لیست صف پخش داخلی برای ردیابی آهنگ‌ها
+    // Internal active queue list for tracking songs
     private var activeQueue: List<SongUiModel> = emptyList()
 
     init {
@@ -34,7 +34,7 @@ class PlayerManager @Inject constructor(
                 _isPlaying.value = isPlayingState
             }
 
-            // وقتی آهنگ به صورت خودکار یا دستی عوض می‌شود، این متد صدا زده می‌شود
+            // Triggered when media item transitions automatically or manually
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 val currentIndex = exoPlayer.currentMediaItemIndex
                 if (currentIndex in activeQueue.indices) {
@@ -61,7 +61,7 @@ class PlayerManager @Inject constructor(
     }
 
     /**
-     * تنظیم کل صف پخشی (به جای setPlaylist از این نام واضح‌تر استفاده شد)
+     * Set the entire playback queue
      */
     fun setQueue(songs: List<SongUiModel>, startIndex: Int = 0) {
         activeQueue = songs
@@ -88,7 +88,7 @@ class PlayerManager @Inject constructor(
      */
     fun playSong(song: SongUiModel) {
         _currentSong.value = song
-        activeQueue = listOf(song) // اگر تک آهنگ بود، صف را روی همین یکی تنظیم می‌کنیم
+        activeQueue = listOf(song) // Fallback queue for a single song
 
         val audioUri = song.uri.toUri()
         val mediaItem = MediaItem.fromUri(audioUri)

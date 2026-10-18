@@ -1,6 +1,5 @@
 package com.sftwr.cleandevelopment.musicplayer.library.di
 
-
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.MusicRepository
 import com.sftwr.cleandevelopment.musicplayer.library.data.repository.MusicRepositoryImpl
 import dagger.Binds
@@ -13,6 +12,9 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 abstract class RepositoryModule {
 
+    /**
+     * Binds the implementation of MusicRepository to its interface.
+     */
     @Binds
     @Singleton
     abstract fun bindMusicRepository(

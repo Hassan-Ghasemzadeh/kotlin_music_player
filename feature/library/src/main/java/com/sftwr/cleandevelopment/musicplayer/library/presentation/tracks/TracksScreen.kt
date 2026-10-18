@@ -124,7 +124,7 @@ fun TracksScreen(
                     contentAlignment = Alignment.Center,
                 ) {
                     when {
-                        // ۱. حالت لودینگ
+                        // 1. Loading state
                         isLoading -> {
                             Box(
                                 modifier = Modifier.fillMaxSize(),
@@ -136,7 +136,7 @@ fun TracksScreen(
                             }
                         }
 
-                        // ۲. حالت خالی بودن لیست
+                        // 2. Empty list state
                         songs.isEmpty() -> {
                             Column(
                                 modifier = Modifier
@@ -154,14 +154,14 @@ fun TracksScreen(
                                 )
                                 Spacer(modifier = Modifier.height(16.dp))
                                 Text(
-                                    text = "هیچ آهنگی روی دستگاه پیدا نشد!",
+                                    text = "No songs found on the device!",
                                     style = MaterialTheme.typography.titleMedium,
                                     color = Color.White,
                                     textAlign = TextAlign.Center
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "برای به‌روزرسانی صفحه را به پایین بکشید یا فایل‌های جدید اضافه کنید.",
+                                    text = "Pull down to refresh or add new audio files.",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = Color.White.copy(alpha = 0.6f),
                                     textAlign = TextAlign.Center
@@ -214,8 +214,8 @@ fun TrackItem(
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.weight(1f)
-            ) {// Album art or track icon placeholder
-                // داخل آیتم LazyColumn
+            ) {
+                // Extract embedded album art bytes for the current track
                 val context = LocalContext.current
                 val albumArtBytes = remember(song.uri) {
                     song.uri.extractAlbumArt()
@@ -231,7 +231,7 @@ fun TrackItem(
                             .clip(RoundedCornerShape(12.dp))
                     )
                 } else {
-                    // همان باکس و آیکون پیش‌فرض خودتان
+                    // Fallback placeholder box and music note icon when no album art is available
                     Box(
                         modifier = Modifier
                             .size(50.dp)

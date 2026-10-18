@@ -1,16 +1,18 @@
 package com.sftwr.cleandevelopment.musicplayer.library.core.util
 
-
 import android.media.MediaMetadataRetriever
 import java.util.Locale
 
-// تبدیل به Extension Function روی نوع داده Long
+/**
+ * Extension function to format milliseconds (Long) into a readable time string (e.g. "03:20").
+ */
 fun Long.formatTime(): String {
     val totalSeconds = this / 1000
     val minutes = totalSeconds / 60
     val remainingSeconds = totalSeconds % 60
     return String.format(Locale.getDefault(), "%02d:%02d", minutes, remainingSeconds)
 }
+
 /**
  * Extension function to convert a formatted time string (e.g. "03:20") into milliseconds as a Float.
  */
@@ -28,6 +30,10 @@ fun String.toMillis(): Float {
         0f
     }
 }
+
+/**
+ * Extension function on file path (String) to extract embedded album art as a ByteArray.
+ */
 fun String.extractAlbumArt(): ByteArray? {
     val retriever = MediaMetadataRetriever()
     return try {

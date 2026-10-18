@@ -39,6 +39,9 @@ import kotlin.math.cos
 import kotlin.math.sin
 import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.CircularVisualizerType
 
+/**
+ * NeonCircularVisualizer renders complex audio frequency visualizer effects around a vinyl-like album art container.
+ */
 @Composable
 fun NeonCircularVisualizer(
     type: CircularVisualizerType,
@@ -50,13 +53,17 @@ fun NeonCircularVisualizer(
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "rotation")
     val context = LocalContext.current
+
+    // Extract embedded album art bytes from the audio file path
     val albumArtBytes = remember(albumArtUrl) {
         if (!albumArtUrl.isNullOrBlank()) {
-            albumArtUrl.extractAlbumArt() // <--- استفاده از اکستنشن فانکشن
+            albumArtUrl.extractAlbumArt()
         } else {
             null
         }
     }
+
+    // Rotation animation for the vinyl-like album art disc
     val rotationAngle by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 360f,
@@ -75,7 +82,7 @@ fun NeonCircularVisualizer(
         modifier = modifier.size(size),
         contentAlignment = Alignment.Center
     ) {
-        // لایه عکس کاور یا آیکون همراه با چرخش و افکت انعکاس نور (شبیه صفحه گرامافون)
+        // Rotating album art or fallback icon layer resembling a gramophone record
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -94,14 +101,14 @@ fun NeonCircularVisualizer(
             } else {
                 Icon(
                     imageVector = Icons.Default.MusicNote,
-                    contentDescription = "آلبوم",
+                    contentDescription = "Album Art Placeholder",
                     tint = Color.White.copy(alpha = 0.8f),
                     modifier = Modifier.size(80.dp)
                 )
             }
         }
 
-        // حاشیه نئونی گرادینتی دور دایره (ثابت)
+        // Static gradient neon border wrapping the circular container
         Box(
             modifier = Modifier
                 .fillMaxSize()
@@ -114,7 +121,7 @@ fun NeonCircularVisualizer(
                 )
         )
 
-        // رسم افکت‌های ویژوالایزر فرکانسی روی بوم (Canvas)
+        // Canvas drawing area for rendering various audio frequency visualizer effects
         Canvas(modifier = Modifier.fillMaxSize()) {
             val center = Offset(size.toPx() / 2, size.toPx() / 2)
             val baseRadius = (size.toPx() / 2) - 3f

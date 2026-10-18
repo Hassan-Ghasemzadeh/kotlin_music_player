@@ -34,7 +34,7 @@ class TracksViewModel @Inject constructor(
     }
 
     /**
-     * دریافت لیست واقعی آهنگ‌ها از UseCase و تبدیل به SongUiModel
+     * Fetches actual device songs from the UseCase and maps them to SongUiModel.
      */
     private fun loadTracks() {
         viewModelScope.launch {
@@ -59,13 +59,15 @@ class TracksViewModel @Inject constructor(
         }
     }
 
-
+    /**
+     * Handles track selection, sets the playback queue, and triggers navigation to the player.
+     */
     fun onSongClicked(songId: String) {
         val songs = _uiState.value.songs
         val index = songs.indexOfFirst { it.id == songId }
 
         if (index != -1) {
-            // ارسال کل لیست به همراه ایندکس آهنگ انتخابی به پلیر
+            // Send the entire playlist along with the selected song index to the player manager
             playerManager.setQueue(songs, startIndex = index)
 
             viewModelScope.launch {
@@ -79,6 +81,10 @@ class TracksViewModel @Inject constructor(
             _uiEvent.send(TracksUiEvent.NavigateToSearch)
         }
     }
+
+    /**
+     * Refreshes the track list from device storage.
+     */
     fun refreshTracks() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isRefreshing = true)
@@ -96,13 +102,16 @@ class TracksViewModel @Inject constructor(
 
                 _uiState.value = _uiState.value.copy(
                     songs = songUiModels,
-                    isRefreshing = false // غیرفعال کردن حالت رفرش پس از دریافت داده‌ها
+                    isRefreshing = false // Disable refreshing state after receiving data
                 )
             }
         }
     }
 }
 
+/**
+ * UI events emitted from TracksViewModel for one-time actions like navigation.
+ */
 sealed interface TracksUiEvent {
     data class NavigateToPlayer(val songId: String) : TracksUiEvent
     object NavigateToSearch : TracksUiEvent

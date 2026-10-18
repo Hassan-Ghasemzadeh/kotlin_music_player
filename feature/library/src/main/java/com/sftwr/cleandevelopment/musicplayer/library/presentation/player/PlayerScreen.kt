@@ -75,6 +75,7 @@ fun PlayerScreen(
     viewModel: PlayerViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
 ) {
+    // Collecting player state flows from ViewModel
     val isPlaying by viewModel.isPlaying.collectAsState()
     val currentPosition by viewModel.currentPosition.collectAsState()
     val isShuffleEnabled by viewModel.isShuffleEnabled.collectAsState()
@@ -82,13 +83,13 @@ fun PlayerScreen(
     val songState by viewModel.currentSong.collectAsState()
 
     val totalDuration = songState?.duration ?: ""
-    val songTitle = songState?.title ?: "بدون عنوان"
-    val artistName = songState?.artist ?: "هنرمند ناشناس"
+    val songTitle = songState?.title ?: "Unknown Title"
+    val artistName = songState?.artist ?: "Unknown Artist"
 
     val context = LocalContext.current
     val visualizerManager = remember { AudioVisualizerManager() }
 
-    // ۱. بررسی مجوز RECORD_AUDIO برای ویژوالایزر
+    // 1. Check RECORD_AUDIO permission for the audio visualizer
     var hasAudioPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -114,15 +115,13 @@ fun PlayerScreen(
         if (!hasAudioPermission) {
             permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
         }
-        // دستور به ویومدل برای بارگذاری و پخش آهنگ بر اساس songId دریافتی
-        // viewModel.loadSong(songId)
     }
 
-    // ۲. اتصال ویژوالایزر به سشن واقعی پلیر اصلی
+    // 2. Bind the visualizer to the active player session
     LaunchedEffect(isPlaying, hasAudioPermission) {
         if (isPlaying && hasAudioPermission) {
             delay(350.milliseconds)
-            val sessionId = viewModel.audioSessionId // از ویومدل گرفته می‌شود
+            val sessionId = viewModel.audioSessionId
             Log.d("VisualizerDebug", "Active Session ID: $sessionId")
 
             if (sessionId > 0) {
@@ -135,6 +134,7 @@ fun PlayerScreen(
 
     val fftData by visualizerManager.fftData.collectAsState()
 
+    // Ensure visualizer resources are released when leaving the screen
     DisposableEffect(Unit) {
         onDispose {
             visualizerManager.stopListening()
@@ -156,7 +156,7 @@ fun PlayerScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // هدر صفحه
+        // Screen Header / Top Bar
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -166,13 +166,13 @@ fun PlayerScreen(
             IconButton(onClick = onBackClick) {
                 Icon(
                     imageVector = Icons.Default.KeyboardArrowDown,
-                    contentDescription = "بازگشت",
+                    contentDescription = "Back",
                     tint = Color.White.copy(alpha = 0.8f),
                     modifier = Modifier.size(28.dp)
                 )
             }
             Text(
-                text = "درحال پخش", style = MaterialTheme.typography.titleMedium.copy(
+                text = "Now Playing", style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.9f)
                 ), textAlign = TextAlign.Center, modifier = Modifier.weight(1f)
             )
@@ -181,7 +181,7 @@ fun PlayerScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // ویژوالایزر نئونی و کاور آلبوم
+        // Neon Visualizer and Album Art Container
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -199,7 +199,7 @@ fun PlayerScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // اطلاعات آهنگ
+        // Track Information (Title & Artist)
         Column(
             horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()
         ) {
@@ -220,7 +220,7 @@ fun PlayerScreen(
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // کنترلرها و اسلایدر
+        // Playback Controls & Timeline Slider
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -236,15 +236,15 @@ fun PlayerScreen(
                     style = MaterialTheme.typography.labelSmall.copy(color = Color.White.copy(alpha = 0.6f))
                 )
             }
+
+            // Custom modern slim slider
             Slider(
                 value = currentPosition.toFloat(),
                 onValueChange = {
                     viewModel.seekTo(it.toLong())
                 },
                 valueRange = 0f..(if (totalDuration.toMillis() > 0f) totalDuration.toMillis() else 1f),
-                // شخصی‌سازی کامل ظاهر اسلایدر با کامپوز
                 thumb = {
-                    // ساخت یک Thumb بسیار کوچک‌تر و ظریف‌تر (مثلاً سایز 12dp به جای پیش‌فرض بزرگ)
                     Box(
                         modifier = Modifier
                             .size(12.dp)
@@ -252,7 +252,6 @@ fun PlayerScreen(
                     )
                 },
                 track = { sliderState ->
-                    // استفاده از Track اختصاصی با ارتفاع کمتر (مثلاً 4dp)
                     SliderDefaults.Track(
                         colors = SliderDefaults.colors(
                             activeTrackColor = Color(0xFF6200EE),
@@ -260,7 +259,7 @@ fun PlayerScreen(
                         ),
                         enabled = true,
                         sliderState = sliderState,
-                        modifier = Modifier.height(4.dp) // <--- نازک و ظریف کردن خط اسلایدر
+                        modifier = Modifier.height(4.dp)
                     )
                 },
                 modifier = Modifier
@@ -270,6 +269,7 @@ fun PlayerScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
+            // Playback Actions Row (Shuffle, Previous, Play/Pause, Next, Repeat)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround,
@@ -278,14 +278,14 @@ fun PlayerScreen(
                 IconButton(onClick = { viewModel.toggleShuffle() }) {
                     Icon(
                         imageVector = Icons.Default.Shuffle,
-                        contentDescription = "پخش تصادفی",
+                        contentDescription = "Shuffle",
                         tint = if (isShuffleEnabled) Color(0xFF00D2FF) else Color.White.copy(alpha = 0.6f)
                     )
                 }
                 IconButton(onClick = { viewModel.skipPrevious() }) {
                     Icon(
                         imageVector = Icons.Default.SkipPrevious,
-                        contentDescription = "آهنگ قبلی",
+                        contentDescription = "Previous Track",
                         tint = Color.White,
                         modifier = Modifier.size(36.dp)
                     )
@@ -302,7 +302,7 @@ fun PlayerScreen(
                     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                         Icon(
                             imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = if (isPlaying) "توقف" else "پخش",
+                            contentDescription = if (isPlaying) "Pause" else "Play",
                             tint = Color.White,
                             modifier = Modifier.size(40.dp)
                         )
@@ -311,7 +311,7 @@ fun PlayerScreen(
                 IconButton(onClick = { viewModel.skipNext() }) {
                     Icon(
                         imageVector = Icons.Default.SkipNext,
-                        contentDescription = "آهنگ بعدی",
+                        contentDescription = "Next Track",
                         tint = Color.White,
                         modifier = Modifier.size(36.dp)
                     )
@@ -322,7 +322,7 @@ fun PlayerScreen(
                             RepeatMode.ONE -> Icons.Default.RepeatOne
                             else -> Icons.Default.Repeat
                         },
-                        contentDescription = "تکرار",
+                        contentDescription = "Repeat",
                         tint = when (repeatMode) {
                             RepeatMode.OFF -> Color.White.copy(alpha = 0.6f)
                             else -> Color(0xFF00D2FF)

@@ -15,6 +15,9 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object MediaModule {
 
+    /**
+     * Provides standard audio attributes configured for music playback.
+     */
     @Provides
     @Singleton
     fun provideAudioAttributes(): AudioAttributes =
@@ -23,6 +26,9 @@ object MediaModule {
             .setUsage(C.USAGE_MEDIA)
             .build()
 
+    /**
+     * Provides a singleton instance of ExoPlayer configured with audio attributes and focus handling.
+     */
     @Provides
     @Singleton
     fun provideExoPlayer(

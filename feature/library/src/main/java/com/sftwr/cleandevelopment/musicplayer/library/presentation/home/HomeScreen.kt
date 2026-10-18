@@ -245,7 +245,7 @@ fun HomeScreenPreview() {
                     "Favorite Tracks",
                     "18 Tracks",
                     Icons.Default.Favorite
-                )      // قلب توپر برای علاقه‌مندی‌ها
+                )
             )
         ),
         onPlaylistClick = {},

@@ -13,6 +13,10 @@ class AudioVisualizerManager {
 
     private var visualizer: Visualizer? = null
 
+    /**
+     * Starts listening to audio frequency data from the given audio session ID.
+     * Requires the RECORD_AUDIO permission.
+     */
     fun startListening(audioSessionId: Int) {
         if (audioSessionId <= 0) {
             Log.w("VisualizerDebug", "Skipping: Invalid audioSessionId ($audioSessionId)")
@@ -22,7 +26,6 @@ class AudioVisualizerManager {
         stopListening()
 
         try {
-            // کلاس Visualizer با داشتن مجوز RECORD_AUDIO به سشن صوتی پلیر متصل می‌شود
             val viz = Visualizer(audioSessionId).apply {
                 enabled = false
                 captureSize = Visualizer.getCaptureSizeRange()[1]
@@ -68,6 +71,9 @@ class AudioVisualizerManager {
         }
     }
 
+    /**
+     * Stops the visualizer and releases its resources, resetting the FFT data state.
+     */
     fun stopListening() {
         try {
             visualizer?.let {

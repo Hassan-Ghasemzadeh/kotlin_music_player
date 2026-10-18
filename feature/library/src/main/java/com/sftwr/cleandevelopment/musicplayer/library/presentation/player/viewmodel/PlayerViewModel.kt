@@ -35,18 +35,18 @@ class PlayerViewModel @Inject constructor(
             0
         }
 
-    // وضعیت‌ها اکنون مستقیماً از PlayerManager یا Stateهای متصل تغذیه می‌شوند
+    // States are directly driven by PlayerManager or connected StateFlows
     val isPlaying: StateFlow<Boolean> = playerManager.isPlaying
     val currentSong: StateFlow<SongUiModel?> = playerManager.currentSong
 
     private val _currentPosition = MutableStateFlow(0L)
     val currentPosition: StateFlow<Long> = _currentPosition.asStateFlow()
 
-    // لیست آهنگ‌های دستگاه
+    // List of device songs
     private val _songs = MutableStateFlow<List<Song>>(emptyList())
     val songs: StateFlow<List<Song>> = _songs.asStateFlow()
 
-    // وضعیت‌های شافل و ریپیت
+    // Shuffle and repeat states
     private val _isShuffleEnabled = MutableStateFlow(false)
     val isShuffleEnabled: StateFlow<Boolean> = _isShuffleEnabled.asStateFlow()
 
@@ -57,7 +57,10 @@ class PlayerViewModel @Inject constructor(
         loadDeviceSongs()
         startPositionUpdater()
     }
-    // تابع برای به‌روزرسانی مداوم پوزیشن آهنگ در حال پخش
+
+    /**
+     * Periodically updates the playback position of the currently playing track.
+     */
     private fun startPositionUpdater() {
         viewModelScope.launch {
             while (true) {
@@ -68,6 +71,10 @@ class PlayerViewModel @Inject constructor(
             }
         }
     }
+
+    /**
+     * Loads local audio tracks from device storage using the use case.
+     */
     private fun loadDeviceSongs() {
         viewModelScope.launch {
             getDeviceSongsUseCase().collect { deviceSongs ->
@@ -125,4 +132,7 @@ class PlayerViewModel @Inject constructor(
     }
 }
 
+/**
+ * Playback repeat modes for the media player.
+ */
 enum class RepeatMode { OFF, ALL, ONE }
