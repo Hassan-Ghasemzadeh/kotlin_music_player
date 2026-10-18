@@ -116,15 +116,20 @@ fun TracksScreen(
             ) {
                 Box(
                     modifier = Modifier
-                        .fillMaxWidth()
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
                 ) {
                     when {
                         // ۱. حالت لودینگ
                         isLoading -> {
-                            CircularProgressIndicator(
-                                modifier = Modifier.align(Alignment.Center),
-                                color = Color(0xFF00D2FF)
-                            )
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    color = Color(0xFF00D2FF)
+                                )
+                            }
                         }
 
                         // ۲. حالت خالی بودن لیست
