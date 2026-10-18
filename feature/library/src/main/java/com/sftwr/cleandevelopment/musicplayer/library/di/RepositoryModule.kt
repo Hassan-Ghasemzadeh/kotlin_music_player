@@ -1,7 +1,7 @@
 package com.sftwr.cleandevelopment.musicplayer.library.di
 
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.MusicRepository
-import com.sftwr.cleandevelopment.musicplayer.library.data.repository.MusicRepositoryImpl
+import com.sftwr.cleandevelopment.musicplayer.data.repository.MusicRepositoryImpl
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn

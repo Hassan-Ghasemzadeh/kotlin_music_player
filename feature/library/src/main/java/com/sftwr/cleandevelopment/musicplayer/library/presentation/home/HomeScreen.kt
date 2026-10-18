@@ -99,10 +99,11 @@ fun HomeScreen(
                                 .weight(1f)
                                 .clickable(
                                     onClick = {
-                                        if (!permissionState.status.isGranted) {
+                                        if (permissionState.status.isGranted) {
+                                            onNavigateToTracks()
+                                        } else {
                                             permissionState.launchPermissionRequest()
                                         }
-                                        onNavigateToTracks()
                                     },
                                 )
                         )

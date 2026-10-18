@@ -1,7 +1,8 @@
-package com.sftwr.cleandevelopment.musicplayer.library.data.repository
+package com.sftwr.cleandevelopment.musicplayer.data.repository
 
 import android.content.ContentUris
 import android.content.Context
+import android.database.ContentObserver
 import android.provider.MediaStore
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.MusicRepository
@@ -18,6 +19,9 @@ class MusicRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context
 ) : MusicRepository {
 
+    /**
+     * Observes device audio files from MediaStore and emits an updated list of songs reactively.
+     */
     override fun getDeviceSongs(): Flow<List<Song>> = callbackFlow {
         val songs = mutableListOf<Song>()
         val collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
@@ -33,7 +37,7 @@ class MusicRepositoryImpl @Inject constructor(
             MediaStore.Audio.Media.DATA
         )
 
-        // فیلتر کردن فایل‌های صوتی واقعی (حذف صداهای ضبط شده کوتاه یا نوتیفیکیشن‌ها در صورت تمایل)
+        // Filter out actual music files (excluding short recordings, ringtones, or notifications)
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
         val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
 
@@ -94,14 +98,14 @@ class MusicRepositoryImpl @Inject constructor(
             trySend(songs)
         }
 
-        // بارگذاری اولیه
+        // Initial loading of songs
         fetchSongs()
 
-        // ثبت ContentObserver برای شنیدن تغییرات MediaStore (مثل دانلود آهنگ جدید)
-        val observer = object : android.database.ContentObserver(null) {
+        // Register a ContentObserver to listen for MediaStore changes (e.g. downloaded new songs)
+        val observer = object : ContentObserver(null) {
             override fun onChange(selfChange: Boolean) {
                 super.onChange(selfChange)
-                fetchSongs() // با هر تغییر یا دانلود جدید، لیست مجدداً خوانده می‌شود
+                fetchSongs() // Re-query songs whenever media store content changes or new files are added
             }
         }
 
@@ -111,7 +115,7 @@ class MusicRepositoryImpl @Inject constructor(
             observer
         )
 
-        // پاکسازی ناظر هنگام بسته شدن جریان
+        // Unregister the observer when the flow is closed
         awaitClose {
             context.contentResolver.unregisterContentObserver(observer)
         }

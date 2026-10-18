@@ -2,15 +2,18 @@ package com.sftwr.cleandevelopment.musicplayer.domain.model
 
 import android.net.Uri
 
+/**
+ * Domain model representing an audio track item retrieved from device storage.
+ */
 data class Song(
-    val id: Long,                   // شناسه یکتای فایل در MediaStore (ضروری برای لود آهنگ)
-    val title: String,              // عنوان آهنگ
-    val artist: String,             // نام خواننده/هنرمند
-    val album: String,              // نام آلبوم
-    val albumId: Long,              // شناسه آلبوم (برای استخراج کاور واقعی از ContentResolver)
-    val contentUri: Uri,            // آدرس Uri مستقیم برای دادن به ExoPlayer جهت پخش
-    val albumArtUri: String? = null,// آدرس URI یا URL کاور آلبوم (امکان null بودن در صورت نداشتن عکس)
-    val duration: Long = 0L,        // مدت زمان آهنگ به میلی‌ثانیه
-    val size: Long = 0L,            // حجم فایل به بایت
-    val path: String = ""           // مسیر کامل فایل در حافظه (برای مدیریت فیلترها یا پوشه‌ها)
+    val id: Long,                   // Unique file identifier in MediaStore (required for loading track)
+    val title: String,              // Song title
+    val artist: String,             // Artist name
+    val album: String,              // Album title
+    val albumId: Long,              // Album identifier (used to fetch official cover art via ContentResolver)
+    val contentUri: Uri,            // Direct Uri used by ExoPlayer for audio playback
+    val albumArtUri: String? = null,// Album art Uri or URL string (nullable if cover image is missing)
+    val duration: Long = 0L,        // Song duration in milliseconds
+    val size: Long = 0L,            // File size in bytes
+    val path: String = ""           // Full absolute path on device storage (useful for folder or filter management)
 )
