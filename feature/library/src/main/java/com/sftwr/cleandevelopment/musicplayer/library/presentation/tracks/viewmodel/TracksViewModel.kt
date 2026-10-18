@@ -79,6 +79,28 @@ class TracksViewModel @Inject constructor(
             _uiEvent.send(TracksUiEvent.NavigateToSearch)
         }
     }
+    fun refreshTracks() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isRefreshing = true)
+
+            getDeviceSongsUseCase().collect { domainSongs ->
+                val songUiModels = domainSongs.map { song ->
+                    SongUiModel(
+                        id = song.id.toString(),
+                        title = song.title,
+                        artist = song.artist,
+                        duration = song.duration.formatTime(),
+                        uri = song.path
+                    )
+                }
+
+                _uiState.value = _uiState.value.copy(
+                    songs = songUiModels,
+                    isRefreshing = false // غیرفعال کردن حالت رفرش پس از دریافت داده‌ها
+                )
+            }
+        }
+    }
 }
 
 sealed interface TracksUiEvent {

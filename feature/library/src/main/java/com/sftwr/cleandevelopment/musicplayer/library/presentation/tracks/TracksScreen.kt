@@ -6,7 +6,9 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
@@ -14,7 +16,9 @@ import androidx.compose.material.icons.filled.MusicOff
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,6 +30,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.TracksViewModel
 
 /**
  * UI Model representing a song item in the tracks list.
@@ -41,6 +47,7 @@ data class SongUiModel(
 /**
  * TracksScreen displays the list of all available audio tracks with a glassmorphic design.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TracksScreen(
     songs: List<SongUiModel>,
@@ -48,7 +55,8 @@ fun TracksScreen(
     onSongClick: (String) -> Unit,
     onBackClick: () -> Unit,
     onSearchClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: TracksViewModel = hiltViewModel(),
 ) {
     // Main container with dark vertical gradient background matching the home screen
     Box(
@@ -101,63 +109,68 @@ fun TracksScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // مدیریت وضعیت‌ها بدون به هم خوردن استایل و گرادیانت
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(1f)
+            PullToRefreshBox(
+                isRefreshing = viewModel.uiState.collectAsState().value.isRefreshing,
+                onRefresh = { viewModel.refreshTracks() },
+                modifier = Modifier.fillMaxSize()
             ) {
-                when {
-                    // ۱. حالت لودینگ
-                    isLoading -> {
-                        CircularProgressIndicator(
-                            modifier = Modifier.align(Alignment.Center),
-                            color = Color(0xFF00D2FF)
-                        )
-                    }
-
-                    // ۲. حالت خالی بودن لیست
-                    songs.isEmpty() -> {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.Center
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.MusicOff,
-                                contentDescription = null,
-                                modifier = Modifier.size(64.dp),
-                                tint = Color.White.copy(alpha = 0.4f)
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "هیچ آهنگی روی دستگاه پیدا نشد!",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = Color.White,
-                                textAlign = TextAlign.Center
-                            )
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Text(
-                                text = "لطفاً مطمئن شوید فایل صوتی روی حافظه گوشی دارید یا دسترسی‌های لازم را داده‌اید.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = Color.White.copy(alpha = 0.6f),
-                                textAlign = TextAlign.Center
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                ) {
+                    when {
+                        // ۱. حالت لودینگ
+                        isLoading -> {
+                            CircularProgressIndicator(
+                                modifier = Modifier.align(Alignment.Center),
+                                color = Color(0xFF00D2FF)
                             )
                         }
-                    }
 
-                    else -> {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            items(songs) { song ->
-                                TrackItem(
-                                    song = song,
-                                    onClick = { onSongClick(song.id) }
+                        // ۲. حالت خالی بودن لیست
+                        songs.isEmpty() -> {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .verticalScroll(rememberScrollState())
+                                    .padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.MusicOff,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(64.dp),
+                                    tint = Color.White.copy(alpha = 0.4f)
                                 )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = "هیچ آهنگی روی دستگاه پیدا نشد!",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = Color.White,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "برای به‌روزرسانی صفحه را به پایین بکشید یا فایل‌های جدید اضافه کنید.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.White.copy(alpha = 0.6f),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+
+                        else -> {
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                items(songs) { song ->
+                                    TrackItem(
+                                        song = song,
+                                        onClick = { onSongClick(song.id) }
+                                    )
+                                }
                             }
                         }
                     }

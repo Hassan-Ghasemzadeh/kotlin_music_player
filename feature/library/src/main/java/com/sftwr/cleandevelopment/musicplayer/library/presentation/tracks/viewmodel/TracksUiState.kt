@@ -8,5 +8,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUi
  */
 data class TracksUiState(
     val songs: List<SongUiModel> = emptyList(),
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val isRefreshing: Boolean = false,
+    val errorMessage: String? = null
 )

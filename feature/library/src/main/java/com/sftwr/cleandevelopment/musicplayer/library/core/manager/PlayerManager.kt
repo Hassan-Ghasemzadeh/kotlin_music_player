@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
+import androidx.core.net.toUri
 
 @Singleton
 class PlayerManager @Inject constructor(
@@ -67,7 +68,7 @@ class PlayerManager @Inject constructor(
 
         val mediaItems = songs.map { song ->
             MediaItem.Builder()
-                .setUri(Uri.parse(song.uri))
+                .setUri(song.uri.toUri())
                 .setMediaId(song.id)
                 .build()
         }
