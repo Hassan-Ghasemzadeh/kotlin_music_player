@@ -26,6 +26,7 @@ android {
 
 dependencies {
     implementation(project(":core:model"))
+    implementation(project(":core:data"))
     implementation(project(":core:domain"))
     implementation(project(":core:designsystem"))
     implementation(libs.androidx.appcompat)
@@ -40,6 +41,7 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
     implementation(libs.androidx.compose.material.icons.extended)
+    implementation(libs.accompanist.permissions)
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
@@ -49,8 +51,8 @@ dependencies {
 
     implementation(libs.coil.compose)
 
-    implementation("androidx.media3:media3-exoplayer:1.4.1")
-    implementation("androidx.media3:media3-common:1.4.1")
+    implementation(libs.androidx.media3.exoplayer)
+    implementation(libs.androidx.media3.common)
 
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)

@@ -1,5 +1,6 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks
 
+import android.net.Uri
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -9,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material.icons.filled.MusicOff
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
@@ -19,6 +21,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -30,7 +34,8 @@ data class SongUiModel(
     val id: String,
     val title: String,
     val artist: String,
-    val duration: String
+    val duration: String,
+    val uri: String,
 )
 
 /**
@@ -39,6 +44,7 @@ data class SongUiModel(
 @Composable
 fun TracksScreen(
     songs: List<SongUiModel>,
+    isLoading: Boolean = false,
     onSongClick: (String) -> Unit,
     onBackClick: () -> Unit,
     onSearchClick: () -> Unit,
@@ -95,18 +101,66 @@ fun TracksScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Scrollable list of songs using LazyColumn for high performance
-            LazyColumn(
+            // مدیریت وضعیت‌ها بدون به هم خوردن استایل و گرادیانت
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
-                verticalArrangement = Arrangement.spacedBy(10.dp)
+                    .weight(1f)
             ) {
-                items(songs) { song ->
-                    TrackItem(
-                        song = song,
-                        onClick = { onSongClick(song.id) }
-                    )
+                when {
+                    // ۱. حالت لودینگ
+                    isLoading -> {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center),
+                            color = Color(0xFF00D2FF)
+                        )
+                    }
+
+                    // ۲. حالت خالی بودن لیست
+                    songs.isEmpty() -> {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.MusicOff,
+                                contentDescription = null,
+                                modifier = Modifier.size(64.dp),
+                                tint = Color.White.copy(alpha = 0.4f)
+                            )
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Text(
+                                text = "هیچ آهنگی روی دستگاه پیدا نشد!",
+                                style = MaterialTheme.typography.titleMedium,
+                                color = Color.White,
+                                textAlign = TextAlign.Center
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "لطفاً مطمئن شوید فایل صوتی روی حافظه گوشی دارید یا دسترسی‌های لازم را داده‌اید.",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = Color.White.copy(alpha = 0.6f),
+                                textAlign = TextAlign.Center
+                            )
+                        }
+                    }
+
+                    else -> {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(songs) { song ->
+                                TrackItem(
+                                    song = song,
+                                    onClick = { onSongClick(song.id) }
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -164,14 +218,16 @@ fun TrackItem(
                         color = Color.White,
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold,
-                        maxLines = 1
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = song.artist,
                         color = Color.White.copy(alpha = 0.6f),
                         fontSize = 13.sp,
-                        maxLines = 1
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
@@ -212,11 +268,8 @@ fun TrackItem(
 fun TracksScreenPreview() {
     TracksScreen(
         songs = listOf(
-            SongUiModel("1", "Nightfall Melody", "Aria & The Echoes", "3:45"),
-            SongUiModel("2", "Midnight Drive", "Synthetics", "4:12"),
-            SongUiModel("3", "Lost in Memories", "Roya", "3:08"),
-            SongUiModel("4", "Silent Waves", "Ocean Breeze", "5:20")
         ),
+        isLoading = false,
         onSongClick = {},
         onBackClick = {},
         onSearchClick = {}

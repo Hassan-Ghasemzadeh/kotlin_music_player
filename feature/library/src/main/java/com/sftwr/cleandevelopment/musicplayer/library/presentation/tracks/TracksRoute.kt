@@ -31,6 +31,7 @@ fun TracksRoute(
     // Pass state and action callbacks down to the stateless UI screen
     TracksScreen(
         songs = uiState.songs,
+        isLoading = uiState.isLoading, // اضافه شده
         onSongClick = { songId -> viewModel.onSongClicked(songId) },
         onBackClick = onBackClick,
         onSearchClick = onNavigateToSearch

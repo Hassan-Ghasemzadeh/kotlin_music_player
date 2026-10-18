@@ -1,9 +1,12 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel
 
-import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
+import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,11 +14,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
 class TracksViewModel @Inject constructor(
-    private val playerManager: PlayerManager,
+    private val getDeviceSongsUseCase: GetDeviceSongsUseCase,
+    private val playerManager: PlayerManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(TracksUiState())
@@ -29,38 +34,41 @@ class TracksViewModel @Inject constructor(
     }
 
     /**
-     * Fetch songs from the repository/usecase and update UI state.
+     * دریافت لیست واقعی آهنگ‌ها از UseCase و تبدیل به SongUiModel
      */
     private fun loadTracks() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
-            // TODO: Replace with actual data from use case
-            val fetchedSongs = listOf(
-                SongUiModel("1", "Nightfall Melody", "Aria & The Echoes", "3:45"),
-                SongUiModel("2", "Midnight Drive", "Synthetics", "4:12")
-            )
+            getDeviceSongsUseCase().collect { domainSongs ->
+                val songUiModels = domainSongs.map { song ->
+                    SongUiModel(
+                        id = song.id.toString(),
+                        title = song.title,
+                        artist = song.artist,
+                        duration = song.duration.formatTime(),
+                        uri = song.path
+                    )
+                }
 
-            _uiState.value = _uiState.value.copy(
-                songs = fetchedSongs,
-                isLoading = false
-            )
+                _uiState.value = _uiState.value.copy(
+                    songs = songUiModels,
+                    isLoading = false
+                )
+            }
         }
     }
 
-    /**
-     * Called when a song item is clicked in the list.
-     */
+
     fun onSongClicked(songId: String) {
-        viewModelScope.launch {
-            // Find the song by id from current list
-            val selectedSong = _uiState.value.songs.find { it.id == songId }
+        val songs = _uiState.value.songs
+        val index = songs.indexOfFirst { it.id == songId }
 
-            selectedSong?.let { song ->
-                // 1. Update global player manager state
-                playerManager.playSong(song)
+        if (index != -1) {
+            // ارسال کل لیست به همراه ایندکس آهنگ انتخابی به پلیر
+            playerManager.setQueue(songs, startIndex = index)
 
-                // 2. (Optional) If you also want to navigate to full Player screen, trigger event:
+            viewModelScope.launch {
                 _uiEvent.send(TracksUiEvent.NavigateToPlayer(songId))
             }
         }

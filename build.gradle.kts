@@ -8,3 +8,18 @@ plugins {
     alias(libs.plugins.hilt) apply false
     alias(libs.plugins.kotlin.serialization) apply false
 }
+
+subprojects {
+    configurations.all {
+        resolutionStrategy {
+            force("androidx.lifecycle:lifecycle-common-java8:2.8.7")
+            force("androidx.lifecycle:lifecycle-common:2.8.7")
+            force("androidx.lifecycle:lifecycle-runtime-ktx:2.8.7")
+            force("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
+            force("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+            force("androidx.navigation:navigation-compose:2.8.7")
+            force("androidx.navigation:navigation-common:2.8.7")
+            force("androidx.navigation:navigation-runtime:2.8.7")
+        }
+    }
+}

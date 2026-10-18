@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Repeat
+import androidx.compose.material.icons.filled.RepeatOne
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
@@ -43,7 +44,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -59,11 +59,14 @@ import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.media3.common.util.UnstableApi
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
+import com.sftwr.cleandevelopment.musicplayer.library.core.util.toMillis
 import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.AudioVisualizerManager
 import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.CircularVisualizerType
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.viewmodel.PlayerViewModel
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.viewmodel.RepeatMode
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.visualizer.NeonCircularVisualizer
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(UnstableApi::class)
 @Composable
@@ -72,19 +75,15 @@ fun PlayerScreen(
     songId: Long,
     onBackClick: () -> Unit,
 ) {
-    // گرفتن اطلاعات و وضعیت‌ها از ViewModel واقعی
-    // (بسته به پیاده‌سازی ویومدل شما، نام این متغیرها ممکن است کمی متفاوت باشد)
-    // val songState by viewModel.currentSong.collectAsState()
-    // val isPlaying by viewModel.isPlaying.collectAsState()
-    // val currentPosition by viewModel.currentPosition.collectAsState()
-    // val totalDuration = songState?.duration ?: 0L
+    val isPlaying by viewModel.isPlaying.collectAsState()
+    val currentPosition by viewModel.currentPosition.collectAsState()
+    val isShuffleEnabled by viewModel.isShuffleEnabled.collectAsState()
+    val repeatMode by viewModel.repeatMode.collectAsState()
+    val songState by viewModel.currentSong.collectAsState()
 
-    // مقادیر موقت برای ساختار UI تا زمان اتصال کامل ویومدل
-    var currentPosition by remember { mutableLongStateOf(0L) }
-    val totalDuration = 210000L
-    val songTitle = "آهنگ شماره $songId"
-    val artistName = "هنرمند دستگاه"
-    var isPlaying by remember { mutableStateOf(true) }
+    val totalDuration = songState?.duration ?: ""
+    val songTitle = songState?.title ?: "بدون عنوان"
+    val artistName = songState?.artist ?: "هنرمند ناشناس"
 
     val context = LocalContext.current
     val visualizerManager = remember { AudioVisualizerManager() }
@@ -122,7 +121,7 @@ fun PlayerScreen(
     // ۲. اتصال ویژوالایزر به سشن واقعی پلیر اصلی
     LaunchedEffect(isPlaying, hasAudioPermission) {
         if (isPlaying && hasAudioPermission) {
-            delay(350)
+            delay(350.milliseconds)
             val sessionId = viewModel.audioSessionId // از ویومدل گرفته می‌شود
             Log.d("VisualizerDebug", "Active Session ID: $sessionId")
 
@@ -233,17 +232,16 @@ fun PlayerScreen(
                     style = MaterialTheme.typography.labelSmall.copy(color = Color.White.copy(alpha = 0.6f))
                 )
                 Text(
-                    text = totalDuration.formatTime(),
+                    text = totalDuration,
                     style = MaterialTheme.typography.labelSmall.copy(color = Color.White.copy(alpha = 0.6f))
                 )
             }
             Slider(
                 value = currentPosition.toFloat(),
                 onValueChange = {
-                    // viewModel.seekTo(it.toLong())
-                    currentPosition = it.toLong()
+                     viewModel.seekTo(it.toLong())
                 },
-                valueRange = 0f..totalDuration.toFloat(),
+                valueRange = 0f..totalDuration.toMillis(),
                 colors = SliderDefaults.colors(
                     thumbColor = Color(0xFF6200EE),
                     activeTrackColor = Color(0xFF6200EE),
@@ -261,14 +259,14 @@ fun PlayerScreen(
                 horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = { /* viewModel.toggleShuffle() */ }) {
+                IconButton(onClick = { viewModel.toggleShuffle() }) {
                     Icon(
                         imageVector = Icons.Default.Shuffle,
                         contentDescription = "پخش تصادفی",
-                        tint = Color.White.copy(alpha = 0.6f)
+                        tint = if (isShuffleEnabled) Color(0xFF00D2FF) else Color.White.copy(alpha = 0.6f)
                     )
                 }
-                IconButton(onClick = { /* viewModel.skipPrevious() */ }) {
+                IconButton(onClick = { viewModel.skipPrevious() }) {
                     Icon(
                         imageVector = Icons.Default.SkipPrevious,
                         contentDescription = "آهنگ قبلی",
@@ -283,8 +281,7 @@ fun PlayerScreen(
                     modifier = Modifier
                         .size(72.dp)
                         .clickable {
-                            isPlaying = !isPlaying
-                            // viewModel.togglePlayPause()
+                            viewModel.togglePlayPause()
                         }) {
                     Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
                         Icon(
@@ -295,7 +292,7 @@ fun PlayerScreen(
                         )
                     }
                 }
-                IconButton(onClick = { /* viewModel.skipNext() */ }) {
+                IconButton(onClick = { viewModel.skipNext() }) {
                     Icon(
                         imageVector = Icons.Default.SkipNext,
                         contentDescription = "آهنگ بعدی",
@@ -303,11 +300,17 @@ fun PlayerScreen(
                         modifier = Modifier.size(36.dp)
                     )
                 }
-                IconButton(onClick = { /* viewModel.toggleRepeat() */ }) {
+                IconButton(onClick = { viewModel.toggleRepeat() }) {
                     Icon(
-                        imageVector = Icons.Default.Repeat,
+                        imageVector = when (repeatMode) {
+                            RepeatMode.ONE -> Icons.Default.RepeatOne
+                            else -> Icons.Default.Repeat
+                        },
                         contentDescription = "تکرار",
-                        tint = Color.White.copy(alpha = 0.6f)
+                        tint = when (repeatMode) {
+                            RepeatMode.OFF -> Color.White.copy(alpha = 0.6f)
+                            else -> Color(0xFF00D2FF)
+                        }
                     )
                 }
             }

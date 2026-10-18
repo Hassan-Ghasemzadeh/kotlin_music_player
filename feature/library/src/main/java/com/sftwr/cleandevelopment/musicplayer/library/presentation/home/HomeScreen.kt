@@ -19,6 +19,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.google.accompanist.permissions.ExperimentalPermissionsApi
+import com.google.accompanist.permissions.isGranted
+import com.sftwr.cleandevelopment.musicplayer.library.core.permissions.rememberAudioPermissionState
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components.LibraryCard
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components.PlaylistCard
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components.TopBarSection
@@ -37,6 +40,7 @@ data class PlaylistUiModel(
  * MusicPlayerScreen featuring library grid, dynamic custom playlists creation,
  * and a bottom music player bar (Stateless UI Component).
  */
+@OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun HomeScreen(
     uiState: HomeUiState,
@@ -50,6 +54,7 @@ fun HomeScreen(
     onConfirmCreate: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val permissionState = rememberAudioPermissionState()
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -92,7 +97,14 @@ fun HomeScreen(
                             icon = Icons.Default.MusicNote,
                             modifier = Modifier
                                 .weight(1f)
-                                .clickable(onClick = onNavigateToTracks)
+                                .clickable(
+                                    onClick = {
+                                        if (!permissionState.status.isGranted) {
+                                            permissionState.launchPermissionRequest()
+                                        }
+                                        onNavigateToTracks()
+                                    },
+                                )
                         )
                         LibraryCard(
                             title = "ALBUMS",
