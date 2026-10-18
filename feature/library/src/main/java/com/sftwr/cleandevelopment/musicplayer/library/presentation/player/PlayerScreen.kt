@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -68,7 +69,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.visualizer.Ne
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
-@OptIn(UnstableApi::class)
+@kotlin.OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerScreen(
     viewModel: PlayerViewModel = hiltViewModel(),
@@ -240,12 +241,28 @@ fun PlayerScreen(
                 onValueChange = {
                     viewModel.seekTo(it.toLong())
                 },
-                valueRange = 0f..totalDuration.toMillis(),
-                colors = SliderDefaults.colors(
-                    thumbColor = Color(0xFF6200EE),
-                    activeTrackColor = Color(0xFF6200EE),
-                    inactiveTrackColor = Color(0x33A855F7)
-                ),
+                valueRange = 0f..(if (totalDuration.toMillis() > 0f) totalDuration.toMillis() else 1f),
+                // شخصی‌سازی کامل ظاهر اسلایدر با کامپوز
+                thumb = {
+                    // ساخت یک Thumb بسیار کوچک‌تر و ظریف‌تر (مثلاً سایز 12dp به جای پیش‌فرض بزرگ)
+                    Box(
+                        modifier = Modifier
+                            .size(12.dp)
+                            .background(Color(0xFF6200EE), CircleShape)
+                    )
+                },
+                track = { sliderState ->
+                    // استفاده از Track اختصاصی با ارتفاع کمتر (مثلاً 4dp)
+                    SliderDefaults.Track(
+                        colors = SliderDefaults.colors(
+                            activeTrackColor = Color(0xFF6200EE),
+                            inactiveTrackColor = Color(0x33A855F7)
+                        ),
+                        enabled = true,
+                        sliderState = sliderState,
+                        modifier = Modifier.height(4.dp) // <--- نازک و ظریف کردن خط اسلایدر
+                    )
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(vertical = 4.dp)
