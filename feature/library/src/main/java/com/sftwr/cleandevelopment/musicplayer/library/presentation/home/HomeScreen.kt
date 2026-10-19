@@ -22,6 +22,7 @@ import androidx.compose.ui.unit.sp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.sftwr.cleandevelopment.musicplayer.library.core.permissions.rememberAudioPermissionState
+import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components.LibraryCard
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components.PlaylistCard
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components.TopBarSection
@@ -55,6 +56,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier
 ) {
     val permissionState = rememberAudioPermissionState()
+    val bottomPadding = rememberPlayerAwareBottomPadding()
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -83,7 +85,10 @@ fun HomeScreen(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(
+                    bottom = bottomPadding
+                )
             ) {
                 // First Row of Library Grid (Tracks, Albums, Artists)
                 item {

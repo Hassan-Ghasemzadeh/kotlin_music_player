@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
+import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.TracksViewModel
 
 /**
@@ -170,9 +171,11 @@ fun TracksScreen(
                         }
 
                         else -> {
+                            val bottomPadding = rememberPlayerAwareBottomPadding()
                             LazyColumn(
                                 modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                                verticalArrangement = Arrangement.spacedBy(10.dp),
+                                contentPadding = PaddingValues(bottom = bottomPadding)
                             ) {
                                 items(songs) { song ->
                                     TrackItem(
