@@ -115,6 +115,12 @@ fun PlayerScreen(
         if (!hasAudioPermission) {
             permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
         }
+        songState?.let { song ->
+            Log.d("AlbumArtDebug", "Song Title: ${song.title}")
+            Log.d("AlbumArtDebug", "Song URI / Path: ${song.uri}")
+            // اگر در مدل شما فیلد دیگری برای آلبوم آرت هست:
+            // Log.d("AlbumArtDebug", "Album Art Uri: ${song.albumArtUri}")
+        }
     }
 
     // 2. Bind the visualizer to the active player session

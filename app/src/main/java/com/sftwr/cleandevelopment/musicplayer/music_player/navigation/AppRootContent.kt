@@ -16,7 +16,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.BottomPlayerBar
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
@@ -36,8 +38,10 @@ fun AppRootContent(
     val currentRoute = navBackStackEntry?.destination?.route
     val showBottomBar = currentRoute?.contains("SearchRouteKey") == false &&
             currentRoute?.contains("PlayerRouteKey") == false
+    val context = LocalContext.current
+
     val artUri = remember(currentSong?.uri) {
-        currentSong?.uri?.extractAlbumArt()
+        currentSong?.uri?.toUri()?.extractAlbumArt(context = context)
     }
     Box(
         modifier = Modifier

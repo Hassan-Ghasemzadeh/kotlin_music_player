@@ -8,7 +8,8 @@ data class HomeUiState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val isCreateDialogVisible: Boolean = false,
-    val newPlaylistName: String = ""
+    val newPlaylistName: String = "",
+    val tracksCount: String="",
 )
 
 // Represents one-time UI events like navigation or showing a snackbar

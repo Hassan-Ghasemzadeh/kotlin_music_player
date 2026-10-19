@@ -1,6 +1,11 @@
 package com.sftwr.cleandevelopment.musicplayer.library.core.util
 
+import android.content.Context
+import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
+import android.net.Uri
+import android.util.Log
 import java.util.Locale
 
 /**
@@ -28,22 +33,5 @@ fun String.toMillis(): Float {
         }
     } catch (e: Exception) {
         0f
-    }
-}
-
-/**
- * Extension function on file path (String) to extract embedded album art as a ByteArray.
- */
-fun String.extractAlbumArt(): ByteArray? {
-    val retriever = MediaMetadataRetriever()
-    return try {
-        retriever.setDataSource(this)
-        retriever.embeddedPicture
-    } catch (e: Exception) {
-        null
-    } finally {
-        try {
-            retriever.release()
-        } catch (_: Exception) {}
     }
 }

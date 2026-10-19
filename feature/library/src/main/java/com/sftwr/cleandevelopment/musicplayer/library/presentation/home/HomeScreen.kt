@@ -44,16 +44,10 @@ data class PlaylistUiModel(
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun HomeScreen(
+    modifier: Modifier = Modifier,
     uiState: HomeUiState,
-    onPlaylistClick: (String) -> Unit,
-    onSearchClick: () -> Unit,
-    onNavigateToTracks: () -> Unit,
-    onSongClick: (String) -> Unit,
-    onAddPlaylistClick: () -> Unit,
-    onDismissDialog: () -> Unit,
-    onPlaylistNameChanged: (String) -> Unit,
-    onConfirmCreate: () -> Unit,
-    modifier: Modifier = Modifier
+    actions: HomeActions,
+    tracksCount: String,
 ) {
     val permissionState = rememberAudioPermissionState()
     val bottomPadding = rememberPlayerAwareBottomPadding()
@@ -98,14 +92,14 @@ fun HomeScreen(
                     ) {
                         LibraryCard(
                             title = "TRACKS",
-                            subtitle = "(51)",
+                            subtitle = "($tracksCount)",
                             icon = Icons.Default.MusicNote,
                             modifier = Modifier
                                 .weight(1f)
                                 .clickable(
                                     onClick = {
                                         if (permissionState.status.isGranted) {
-                                            onNavigateToTracks()
+                                            actions.onNavigateToTracks()
                                         } else {
                                             permissionState.launchPermissionRequest()
                                         }
@@ -169,7 +163,7 @@ fun HomeScreen(
                             fontWeight = FontWeight.Bold
                         )
                         // Button to trigger the playlist creation dialog in ViewModel
-                        IconButton(onClick = onAddPlaylistClick) {
+                        IconButton(onClick = actions.onAddPlaylistClick) {
                             Icon(
                                 imageVector = Icons.Default.AddCircle,
                                 contentDescription = "Add Playlist",
@@ -194,7 +188,7 @@ fun HomeScreen(
         // Dialog for creating a new custom playlist (Controlled by ViewModel state)
         if (uiState.isCreateDialogVisible) {
             AlertDialog(
-                onDismissRequest = onDismissDialog,
+                onDismissRequest = actions.onDismissDialog,
                 title = { Text(text = "Create New Playlist") },
                 text = {
                     Column {
@@ -202,65 +196,23 @@ fun HomeScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
                             value = uiState.newPlaylistName,
-                            onValueChange = onPlaylistNameChanged,
+                            onValueChange = actions.onPlaylistNameChanged,
                             singleLine = true,
                             placeholder = { Text("Playlist Name") }
                         )
                     }
                 },
                 confirmButton = {
-                    TextButton(onClick = onConfirmCreate) {
+                    TextButton(onClick = actions.onConfirmCreate) {
                         Text("Create")
                     }
                 },
                 dismissButton = {
-                    TextButton(onClick = onDismissDialog) {
+                    TextButton(onClick = actions.onDismissDialog) {
                         Text("Cancel")
                     }
                 }
             )
         }
     }
-}
-
-/**
- * Preview function for Android Studio UI inspection using dummy state.
- */
-@Preview(showBackground = true, backgroundColor = 0xFF1B2F5E)
-@Composable
-fun HomeScreenPreview() {
-    HomeScreen(
-        uiState = HomeUiState(
-            playlists = listOf(
-                PlaylistUiModel(
-                    "Recently Added",
-                    "11 Tracks",
-                    Icons.Default.LibraryAdd
-                ),     // یا FiberNew
-                PlaylistUiModel(
-                    "Recently Played",
-                    "11 Tracks",
-                    Icons.Default.History
-                ),      // یا Schedule
-                PlaylistUiModel(
-                    "Most Played",
-                    "11 Tracks",
-                    Icons.AutoMirrored.Filled.TrendingUp
-                ),       // یا Star
-                PlaylistUiModel(
-                    "Favorite Tracks",
-                    "18 Tracks",
-                    Icons.Default.Favorite
-                )
-            )
-        ),
-        onPlaylistClick = {},
-        onSearchClick = {},
-        onSongClick = {},
-        onNavigateToTracks = {},
-        onAddPlaylistClick = {},
-        onDismissDialog = {},
-        onPlaylistNameChanged = {},
-        onConfirmCreate = {}
-    )
 }

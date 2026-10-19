@@ -22,6 +22,8 @@ fun HomeRoute(
     // Collect UI state safely with lifecycle awareness
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    val trackCount by viewModel.trackCount.collectAsStateWithLifecycle()
+
     // Handle one-time UI events (Navigation side-effects)
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collectLatest { event ->
@@ -36,14 +38,17 @@ fun HomeRoute(
     // Pass state and action callbacks down to the stateless UI screen
     HomeScreen(
         uiState = uiState,
-        onPlaylistClick = { viewModel.onPlaylistClicked(it) },
-        onSearchClick = { viewModel.onSearchClicked() },
-        onSongClick = { viewModel.onSongPlayClicked(it) },
-        onAddPlaylistClick = { viewModel.onAddPlaylistClicked() },
-        onDismissDialog = { viewModel.onDismissCreateDialog() },
-        onPlaylistNameChanged = { viewModel.onNewPlaylistNameChanged(it) },
-        onConfirmCreate = { viewModel.confirmCreatePlaylist() },
-        onNavigateToTracks = onNavigateToTracks,
-        modifier = modifier
+        actions = HomeActions(
+            onPlaylistClick = { viewModel.onPlaylistClicked(it) },
+            onSearchClick = { viewModel.onSearchClicked() },
+            onSongClick = { viewModel.onSongPlayClicked(it) },
+            onAddPlaylistClick = { viewModel.onAddPlaylistClicked() },
+            onDismissDialog = { viewModel.onDismissCreateDialog() },
+            onPlaylistNameChanged = { viewModel.onNewPlaylistNameChanged(it) },
+            onConfirmCreate = { viewModel.confirmCreatePlaylist() },
+            onNavigateToTracks = onNavigateToTracks,
+        ),
+        modifier = modifier,
+        tracksCount = trackCount.toString(),
     )
 }

@@ -32,6 +32,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
@@ -70,9 +71,7 @@ fun TracksScreen(
             .background(
                 Brush.verticalGradient(
                     colors = listOf(
-                        Color(0xFF0F0B21),
-                        Color(0xFF181035),
-                        Color(0xFF2C1454)
+                        Color(0xFF0F0B21), Color(0xFF181035), Color(0xFF2C1454)
                     )
                 )
             )
@@ -120,8 +119,7 @@ fun TracksScreen(
                 modifier = Modifier.fillMaxSize()
             ) {
                 Box(
-                    modifier = Modifier
-                        .fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth(),
                     contentAlignment = Alignment.Center,
                 ) {
                     when {
@@ -179,9 +177,7 @@ fun TracksScreen(
                             ) {
                                 items(songs) { song ->
                                     TrackItem(
-                                        song = song,
-                                        onClick = { onSongClick(song.id) }
-                                    )
+                                        song = song, onClick = { onSongClick(song.id) })
                                 }
                             }
                         }
@@ -197,8 +193,7 @@ fun TracksScreen(
  */
 @Composable
 fun TrackItem(
-    song: SongUiModel,
-    onClick: () -> Unit
+    song: SongUiModel, onClick: () -> Unit
 ) {
     Surface(
         onClick = onClick,
@@ -215,13 +210,12 @@ fun TrackItem(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+                verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)
             ) {
                 // Extract embedded album art bytes for the current track
                 val context = LocalContext.current
                 val albumArtBytes = remember(song.uri) {
-                    song.uri.extractAlbumArt()
+                    song.uri.toUri().extractAlbumArt(context)
                 }
 
                 if (albumArtBytes != null) {
@@ -279,17 +273,14 @@ fun TrackItem(
             ) {
                 // Song duration text
                 Text(
-                    text = song.duration,
-                    color = Color.White.copy(alpha = 0.5f),
-                    fontSize = 12.sp
+                    text = song.duration, color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
                 // More options menu button
                 IconButton(
-                    onClick = { /* Handle track options menu */ },
-                    modifier = Modifier.size(32.dp)
+                    onClick = { /* Handle track options menu */ }, modifier = Modifier.size(32.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.MoreVert,
@@ -310,10 +301,5 @@ fun TrackItem(
 fun TracksScreenPreview() {
     TracksScreen(
         songs = listOf(
-        ),
-        isLoading = false,
-        onSongClick = {},
-        onBackClick = {},
-        onSearchClick = {}
-    )
+    ), isLoading = false, onSongClick = {}, onBackClick = {}, onSearchClick = {})
 }

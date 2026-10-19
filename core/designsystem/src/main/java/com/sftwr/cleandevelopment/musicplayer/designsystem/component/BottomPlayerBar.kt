@@ -1,5 +1,6 @@
 package com.sftwr.cleandevelopment.musicplayer.designsystem.component
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -44,7 +45,7 @@ import coil.compose.AsyncImage
  */
 @Composable
 fun BottomPlayerBar(
-    artUri: ByteArray?,
+    artUri: Bitmap?,
     songTitle: String,
     artistName: String,
     isPlaying: Boolean,

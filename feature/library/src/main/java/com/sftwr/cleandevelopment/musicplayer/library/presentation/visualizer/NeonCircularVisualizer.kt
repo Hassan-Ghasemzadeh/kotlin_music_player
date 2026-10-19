@@ -31,6 +31,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
@@ -57,7 +58,7 @@ fun NeonCircularVisualizer(
     // Extract embedded album art bytes from the audio file path
     val albumArtBytes = remember(albumArtUrl) {
         if (!albumArtUrl.isNullOrBlank()) {
-            albumArtUrl.extractAlbumArt()
+            albumArtUrl.toUri().extractAlbumArt(context)
         } else {
             null
         }
