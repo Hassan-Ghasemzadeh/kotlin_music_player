@@ -29,7 +29,7 @@ fun TracksRoute(
                 is TracksUiEvent.NavigateToPlayer -> onNavigateToPlayer
                 is TracksUiEvent.NavigateToSearch -> onNavigateToSearch()
                 is TracksUiEvent.DeleteSong -> {
-                    Toast.makeText(context, "message", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context, event.message, Toast.LENGTH_SHORT).show()
                 }
             }
         }
