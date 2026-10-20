@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 import androidx.core.net.toUri
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.DeleteSongUseCase
 
 @Singleton
@@ -77,17 +78,17 @@ class PlayerManager @Inject constructor(
         activeQueue = emptyList()
     }
 
-    suspend fun deleteSong(songId: Long): Boolean {
-        val isDeleted = deleteSongUseCase(songId)
+    suspend fun deleteSong(songId: Long): DeleteResult {
+        val result = deleteSongUseCase(songId)
 
-        if (isDeleted) {
+        if (result is DeleteResult.Success) {
             val currentPlayingId = currentSong.value?.id
             if (currentPlayingId == songId.toString()) {
                 stopPlayback()
             }
         }
 
-        return isDeleted
+        return result
     }
 
     fun playNext() {

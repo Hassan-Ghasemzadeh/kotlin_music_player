@@ -3,6 +3,7 @@ package com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewm
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
@@ -28,9 +29,28 @@ class TracksViewModel @Inject constructor(
 
     private val _uiEvent = Channel<TracksUiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
+    private val _deleteEvent = Channel<PlayerUiEvent>()
+    val deleteEvent = _deleteEvent.receiveAsFlow()
 
     init {
         loadTracks()
+    }
+
+    private var pendingDeleteSongId: Long? = null
+
+    fun deleteCurrentOrSelectedSong(songId: Long) {
+        pendingDeleteSongId = songId
+        viewModelScope.launch {
+            val result = playerManager.deleteSong(songId)
+            handleDeleteResult(result)
+        }
+    }
+
+    fun retryDeleteAfterPermission() {
+        pendingDeleteSongId?.let { id ->
+            deleteCurrentOrSelectedSong(id)
+            pendingDeleteSongId = null
+        }
     }
 
     /**
@@ -82,13 +102,21 @@ class TracksViewModel @Inject constructor(
         }
     }
 
-    fun deleteCurrentOrSelectedSong(songId: Long) {
+    private fun handleDeleteResult(result: DeleteResult) {
         viewModelScope.launch {
-            val success = playerManager.deleteSong(songId)
-            if (success) {
-                _uiEvent.send(TracksUiEvent.DeleteSong("آهنگ با موفقیت حذف شد"))
-            } else {
-                _uiEvent.send(TracksUiEvent.DeleteSong("خطا در حذف آهنگ"))
+            when (result) {
+                is DeleteResult.Success -> {
+                    _deleteEvent.send(PlayerUiEvent.ShowToast("آهنگ با موفقیت حذف شد"))
+                    //loadTracks()
+                }
+
+                is DeleteResult.RequiresPermission -> {
+                    _deleteEvent.send(PlayerUiEvent.ShowDeletePermissionDialog(result.intentSender))
+                }
+
+                is DeleteResult.Error -> {
+                    _deleteEvent.send(PlayerUiEvent.ShowToast("خطا در حذف آهنگ"))
+                }
             }
         }
     }
@@ -126,5 +154,11 @@ class TracksViewModel @Inject constructor(
 sealed interface TracksUiEvent {
     data class NavigateToPlayer(val songId: String) : TracksUiEvent
     object NavigateToSearch : TracksUiEvent
-    data class DeleteSong(val message: String) : TracksUiEvent
+}
+
+sealed interface PlayerUiEvent {
+    data class ShowDeletePermissionDialog(val intentSender: android.content.IntentSender) :
+        PlayerUiEvent
+
+    data class ShowToast(val message: String) : PlayerUiEvent
 }

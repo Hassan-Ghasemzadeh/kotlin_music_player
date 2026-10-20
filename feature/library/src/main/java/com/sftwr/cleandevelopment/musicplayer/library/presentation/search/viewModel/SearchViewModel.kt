@@ -2,13 +2,14 @@ package com.sftwr.cleandevelopment.musicplayer.library.presentation.search.viewM
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.SearchSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.SearchUiState
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
-import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.TracksUiEvent
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.PlayerUiEvent
 // import com.sftwr.cleandevelopment.musicplayer.library.domain.usecase.SearchSongsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -32,9 +33,31 @@ class SearchViewModel @Inject constructor(
 
     private val _uiEvent = Channel<SearchUiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
+    private val _deleteEvent = Channel<SearchPlayerUiEvent>()
+    val deleteEvent = _deleteEvent.receiveAsFlow()
 
     init {
         loadTracks()
+    }
+
+    private var pendingDeleteSongId: Long? = null
+    private var pendingDeleteSongStringId: String? =
+        null // ذخیره به صورت استرینگ برای مقایسه راحت‌تر
+
+    fun deleteCurrentOrSelectedSong(songId: Long) {
+        pendingDeleteSongId = songId
+        pendingDeleteSongStringId = songId.toString() // ذخیره دقیق استرینگ آیدی
+        viewModelScope.launch {
+            val result = playerManager.deleteSong(songId)
+            handleDeleteResult(result)
+        }
+    }
+
+    fun retryDeleteAfterPermission() {
+        pendingDeleteSongId?.let { id ->
+            deleteCurrentOrSelectedSong(id)
+            pendingDeleteSongId = null
+        }
     }
 
     /**
@@ -63,13 +86,35 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    fun deleteCurrentOrSelectedSong(songId: Long) {
+    private fun handleDeleteResult(result: DeleteResult) {
         viewModelScope.launch {
-            val success = playerManager.deleteSong(songId)
-            if (success) {
-                _uiEvent.send(SearchUiEvent.DeleteSong("آهنگ با موفقیت حذف شد"))
-            } else {
-                _uiEvent.send(SearchUiEvent.DeleteSong("خطا در حذف آهنگ"))
+            when (result) {
+                is DeleteResult.Success -> {
+                    _deleteEvent.send(SearchPlayerUiEvent.ShowToast("آهنگ با موفقیت حذف شد"))
+                    _uiState.update { currentState ->
+                        val updatedResults =
+                            currentState.searchResults.filter { it.id != pendingDeleteSongId?.toString() }
+                        currentState.copy(searchResults = updatedResults)
+                    }
+
+                    _uiState.update { currentState ->
+                        val targetId = pendingDeleteSongStringId
+                        val updatedResults = currentState.searchResults.filter { it.id != targetId }
+                        currentState.copy(searchResults = updatedResults)
+                    }
+
+                    // پاکسازی متغیرهای موقت
+                    pendingDeleteSongId = null
+                    pendingDeleteSongStringId = null
+                }
+
+                is DeleteResult.RequiresPermission -> {
+                    _deleteEvent.send(SearchPlayerUiEvent.ShowDeletePermissionDialog(result.intentSender))
+                }
+
+                is DeleteResult.Error -> {
+                    _deleteEvent.send(SearchPlayerUiEvent.ShowToast("خطا در حذف آهنگ"))
+                }
             }
         }
     }
@@ -173,4 +218,11 @@ class SearchViewModel @Inject constructor(
  */
 sealed interface SearchUiEvent {
     data class DeleteSong(val message: String) : SearchUiEvent
+}
+
+sealed interface SearchPlayerUiEvent {
+    data class ShowDeletePermissionDialog(val intentSender: android.content.IntentSender) :
+        SearchPlayerUiEvent
+
+    data class ShowToast(val message: String) : SearchPlayerUiEvent
 }

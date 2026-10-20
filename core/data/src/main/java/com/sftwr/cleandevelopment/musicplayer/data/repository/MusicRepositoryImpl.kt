@@ -16,6 +16,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 import androidx.core.net.toUri
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
 import kotlinx.coroutines.withContext
 
 class MusicRepositoryImpl @Inject constructor(
@@ -141,7 +142,6 @@ class MusicRepositoryImpl @Inject constructor(
             MediaStore.Audio.Media.DATA
         )
 
-        // فیلتر هم‌زمان روی موزیک بودن و تطابق عنوان یا خواننده با عبارت جستجوشده
         val selection =
             "${MediaStore.Audio.Media.IS_MUSIC} != 0 AND (${MediaStore.Audio.Media.TITLE} LIKE ? OR ${MediaStore.Audio.Media.ARTIST} LIKE ?)"
         val selectionArgs = arrayOf("%$query%", "%$query%")
@@ -208,7 +208,7 @@ class MusicRepositoryImpl @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    override suspend fun deleteSong(songId: Long): Boolean {
+    override suspend fun deleteSong(songId: Long): DeleteResult {
         return withContext(Dispatchers.IO) {
             try {
                 val uri = ContentUris.withAppendedId(
@@ -217,19 +217,17 @@ class MusicRepositoryImpl @Inject constructor(
                 )
 
                 val rowsDeleted = context.contentResolver.delete(uri, null, null)
-                rowsDeleted > 0
+                android.util.Log.d("DeleteDebug", "Target ID: $songId, Rows Deleted: $rowsDeleted")
+                if (rowsDeleted > 0) DeleteResult.Success else DeleteResult.Error
             } catch (e: android.app.RecoverableSecurityException) {
-                // در اندروید ۱۰ به بالا، این استثنا پرتاب می‌شود تا از کاربر تاییدیه بگیریم
-                val intentSender = e.userAction.actionIntent.intentSender
-                // نکته: برای پرتاب این IntentSender و گرفتن نتیجه، باید آن را به Activity ارسال کنید
-                // (در ادامه توضیح داده می‌شود که چطور این Intent را به UI بفرستید)
-                false
+                // Android 10: access permission from user
+                DeleteResult.RequiresPermission(e.userAction.actionIntent.intentSender)
             } catch (e: SecurityException) {
                 e.printStackTrace()
-                false
+                DeleteResult.Error
             } catch (e: Exception) {
                 e.printStackTrace()
-                false
+                DeleteResult.Error
             }
         }
     }

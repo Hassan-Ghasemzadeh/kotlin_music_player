@@ -10,5 +10,10 @@ interface MusicRepository {
      * Searches for songs matching the given query string.
      */
     suspend fun searchSongs(query: String): List<Song>
-    suspend fun deleteSong(songId: Long): Boolean
+    suspend fun deleteSong(songId: Long): DeleteResult
+}
+sealed interface DeleteResult {
+    data object Success : DeleteResult
+    data class RequiresPermission(val intentSender: android.content.IntentSender) : DeleteResult
+    data object Error : DeleteResult
 }
