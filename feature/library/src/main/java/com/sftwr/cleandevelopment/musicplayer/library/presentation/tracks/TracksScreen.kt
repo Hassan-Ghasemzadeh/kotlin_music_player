@@ -18,7 +18,10 @@ import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,6 +40,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.SongDropdownMenu
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.TracksViewModel
 
 /**
@@ -64,6 +68,9 @@ fun TracksScreen(
     onSearchClick: () -> Unit,
     viewModel: TracksViewModel = hiltViewModel(),
 ) {
+    // Track which song's options menu is currently expanded
+    var expandedSongId by remember { mutableStateOf<String?>(null) }
+
     // Main container with dark vertical gradient background matching the home screen
     Box(
         modifier = modifier
@@ -168,6 +175,7 @@ fun TracksScreen(
                             }
                         }
 
+                        // 3. Populated list state
                         else -> {
                             val bottomPadding = rememberPlayerAwareBottomPadding()
                             LazyColumn(
@@ -175,9 +183,21 @@ fun TracksScreen(
                                 verticalArrangement = Arrangement.spacedBy(10.dp),
                                 contentPadding = PaddingValues(bottom = bottomPadding)
                             ) {
-                                items(songs) { song ->
+                                items(songs, key = { it.id }) { song ->
+                                    val isMenuExpanded = expandedSongId == song.id
                                     TrackItem(
-                                        song = song, onClick = { onSongClick(song.id) })
+                                        song = song,
+                                        onClick = {
+                                            onSongClick(song.id)
+                                        },
+                                        isMenuExpanded = isMenuExpanded,
+                                        onMenuClick = {
+                                            expandedSongId = song.id
+                                        },
+                                        onDismissMenu = {
+                                            expandedSongId = null
+                                        }
+                                    )
                                 }
                             }
                         }
@@ -193,7 +213,11 @@ fun TracksScreen(
  */
 @Composable
 fun TrackItem(
-    song: SongUiModel, onClick: () -> Unit
+    song: SongUiModel,
+    onClick: () -> Unit,
+    isMenuExpanded: Boolean,
+    onMenuClick: () -> Unit,
+    onDismissMenu: () -> Unit,
 ) {
     Surface(
         onClick = onClick,
@@ -210,7 +234,8 @@ fun TrackItem(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
             ) {
                 // Extract embedded album art bytes for the current track
                 val context = LocalContext.current
@@ -248,7 +273,7 @@ fun TrackItem(
                 Spacer(modifier = Modifier.width(14.dp))
 
                 // Track title and artist name
-                Column {
+                Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = song.title,
                         color = Color.White,
@@ -273,19 +298,49 @@ fun TrackItem(
             ) {
                 // Song duration text
                 Text(
-                    text = song.duration, color = Color.White.copy(alpha = 0.5f), fontSize = 12.sp
+                    text = song.duration,
+                    color = Color.White.copy(alpha = 0.5f),
+                    fontSize = 12.sp
                 )
 
                 Spacer(modifier = Modifier.width(8.dp))
 
-                // More options menu button
-                IconButton(
-                    onClick = { /* Handle track options menu */ }, modifier = Modifier.size(32.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.MoreVert,
-                        contentDescription = "Options",
-                        tint = Color.White.copy(alpha = 0.7f)
+                // Box to anchor the Dropdown Menu correctly to the more-vert button
+                Box {
+                    // More options menu button
+                    IconButton(
+                        onClick = onMenuClick,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MoreVert,
+                            contentDescription = "Options",
+                            tint = Color.White.copy(alpha = 0.7f)
+                        )
+                    }
+
+                    // Dropdown Menu anchored to this item
+                    SongDropdownMenu(
+                        expanded = isMenuExpanded,
+                        onDismissRequest = onDismissMenu,
+                        onPlayNext = {
+                            // TODO: Handle Play Next
+                        },
+                        onAddToPlaylist = {
+                            // TODO: Handle Add to Playlist
+                        },
+                        onFavoriteClick = {
+                            // TODO: Handle Favorite
+                        },
+                        onInfoClick = {
+                            // TODO: Handle Info
+                        },
+                        onTagEditClick = {
+                            // TODO: Handle Tag Edit
+                        },
+                        onDeleteClick = {
+                            // TODO: Handle Delete
+                        }
                     )
                 }
             }
@@ -301,5 +356,17 @@ fun TrackItem(
 fun TracksScreenPreview() {
     TracksScreen(
         songs = listOf(
-    ), isLoading = false, onSongClick = {}, onBackClick = {}, onSearchClick = {})
+            SongUiModel(
+                id = "1",
+                title = "Golaye Kaghazi",
+                artist = "Masoud Bakhtiari",
+                duration = "05:51",
+                uri = ""
+            )
+        ),
+        isLoading = false,
+        onSongClick = {},
+        onBackClick = {},
+        onSearchClick = {}
+    )
 }
