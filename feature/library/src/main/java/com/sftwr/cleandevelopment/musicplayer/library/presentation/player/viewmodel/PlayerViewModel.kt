@@ -88,17 +88,11 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun skipNext() {
-        if (exoPlayer.hasNextMediaItem()) {
-            exoPlayer.seekToNextMediaItem()
-            exoPlayer.play()
-        }
+        playerManager.playNext()
     }
 
     fun skipPrevious() {
-        if (exoPlayer.hasPreviousMediaItem()) {
-            exoPlayer.seekToPreviousMediaItem()
-            exoPlayer.play()
-        }
+        playerManager.playPrevious()
     }
 
     fun toggleShuffle() {
@@ -127,7 +121,7 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun seekTo(position: Long) {
-        exoPlayer.seekTo(position)
+        playerManager.seekTo(position)
         _currentPosition.value = position
     }
 }

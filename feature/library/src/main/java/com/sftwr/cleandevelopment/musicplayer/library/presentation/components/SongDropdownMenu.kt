@@ -8,7 +8,9 @@ import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 // Model representing a single menu item
@@ -22,7 +24,6 @@ data class SongMenuItem(
 fun SongDropdownMenu(
     expanded: Boolean,
     onDismissRequest: () -> Unit,
-    onPlayNext: () -> Unit,
     onAddToPlaylist: () -> Unit,
     onFavoriteClick: () -> Unit,
     onInfoClick: () -> Unit,
@@ -30,7 +31,6 @@ fun SongDropdownMenu(
     onDeleteClick: () -> Unit
 ) {
     val menuItems = listOf(
-        SongMenuItem("پخش بعدی", Icons.Default.PlayArrow, onPlayNext),
         SongMenuItem("افزودن به لیست پخش", Icons.AutoMirrored.Filled.PlaylistAdd, onAddToPlaylist),
         SongMenuItem("افزودن به علاقه‌مندی‌ها", Icons.Default.FavoriteBorder, onFavoriteClick),
         SongMenuItem("مشاهده اطلاعات آهنگ", Icons.Default.Info, onInfoClick),
@@ -41,9 +41,10 @@ fun SongDropdownMenu(
     DropdownMenu(
         expanded = expanded,
         onDismissRequest = onDismissRequest,
+        containerColor = Color.Transparent,
         modifier = Modifier
             .background(
-                color = MaterialTheme.colorScheme.surfaceVariant,
+                color = Color(0xFF0F0B21),
                 shape = RoundedCornerShape(16.dp)
             )
     ) {
@@ -53,14 +54,14 @@ fun SongDropdownMenu(
                     Text(
                         text = item.title,
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = Color.White,
                     )
                 },
                 leadingIcon = {
                     Icon(
                         imageVector = item.icon,
                         contentDescription = item.title,
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = Color.White
                     )
                 },
                 onClick = {

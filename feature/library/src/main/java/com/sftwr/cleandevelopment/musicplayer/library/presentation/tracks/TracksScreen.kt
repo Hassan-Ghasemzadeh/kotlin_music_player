@@ -196,6 +196,9 @@ fun TracksScreen(
                                         },
                                         onDismissMenu = {
                                             expandedSongId = null
+                                        },
+                                        onDeleteClick = {
+                                            viewModel.deleteCurrentOrSelectedSong(song.id.toLong())
                                         }
                                     )
                                 }
@@ -218,6 +221,7 @@ fun TrackItem(
     isMenuExpanded: Boolean,
     onMenuClick: () -> Unit,
     onDismissMenu: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
     Surface(
         onClick = onClick,
@@ -323,9 +327,6 @@ fun TrackItem(
                     SongDropdownMenu(
                         expanded = isMenuExpanded,
                         onDismissRequest = onDismissMenu,
-                        onPlayNext = {
-                            // TODO: Handle Play Next
-                        },
                         onAddToPlaylist = {
                             // TODO: Handle Add to Playlist
                         },
@@ -338,9 +339,7 @@ fun TrackItem(
                         onTagEditClick = {
                             // TODO: Handle Tag Edit
                         },
-                        onDeleteClick = {
-                            // TODO: Handle Delete
-                        }
+                        onDeleteClick = onDeleteClick,
                     )
                 }
             }

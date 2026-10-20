@@ -22,6 +22,7 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
+import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
@@ -45,11 +46,15 @@ import coil.compose.AsyncImage
  */
 @Composable
 fun BottomPlayerBar(
+    hasNext: Boolean = true,
+    hasPrevious: Boolean = true,
     artUri: Bitmap?,
     songTitle: String,
     artistName: String,
     isPlaying: Boolean,
     onPlayPauseClick: () -> Unit,
+    onNextClick: () -> Unit,
+    onPreviousClick: () -> Unit,
     onPlayerClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -62,13 +67,10 @@ fun BottomPlayerBar(
             .padding(horizontal = 12.dp, vertical = 8.dp)
             .clickable(onClick = onPlayerClick)
             .border(
-                width = 1.dp,
-                color = Color(0x33A855F7),
-                shape = RoundedCornerShape(16.dp)
+                width = 1.dp, color = Color(0x33A855F7), shape = RoundedCornerShape(16.dp)
             )
             .background(
-                color = Color(0xEE1D1435),
-                shape = RoundedCornerShape(16.dp)
+                color = Color(0xEE1D1435), shape = RoundedCornerShape(16.dp)
             )
     ) {
         Row(
@@ -79,8 +81,7 @@ fun BottomPlayerBar(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.weight(1f)
+                verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)
             ) {
                 // Album art placeholder
                 Box(
@@ -103,8 +104,7 @@ fun BottomPlayerBar(
                             modifier = Modifier
                                 .size(48.dp)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(Color.DarkGray),
-                            contentAlignment = Alignment.Center
+                                .background(Color.DarkGray), contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.MusicNote,
@@ -129,7 +129,8 @@ fun BottomPlayerBar(
                         text = artistName,
                         color = Color.White,
                         fontSize = 12.sp,
-                        fontWeight = FontWeight.Light
+                        fontWeight = FontWeight.Light,
+                        overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
@@ -137,19 +138,29 @@ fun BottomPlayerBar(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                IconButton(enabled = hasPrevious, onClick = onPreviousClick) {
+                    Icon(
+                        imageVector = Icons.Default.SkipPrevious,
+                        contentDescription = "Previous",
+                        tint = Color.White.copy(alpha = if (hasPrevious) 1f else 0.3f), // کم‌رنگ شدن در حالت غیرفعال
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+
                 IconButton(onClick = onPlayPauseClick) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = "Play",
+                        contentDescription = "Play/Pause",
                         tint = Color.White,
                         modifier = Modifier.size(28.dp)
                     )
                 }
-                IconButton(onClick = { /* Next track action */ }) {
+
+                IconButton(enabled = hasNext, onClick = onNextClick) {
                     Icon(
                         imageVector = Icons.Default.SkipNext,
                         contentDescription = "Next",
-                        tint = Color.White,
+                        tint = Color.White.copy(alpha = if (hasNext) 1f else 0.3f), // کم‌رنگ شدن در حالت غیرفعال
                         modifier = Modifier.size(28.dp)
                     )
                 }

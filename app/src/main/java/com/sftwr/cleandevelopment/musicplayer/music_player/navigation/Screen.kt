@@ -10,6 +10,9 @@ sealed interface Screen {
     @Serializable
     data class Player(val songId: String, val songTitle: String) : Screen
 
+    @Serializable
+    object Search : Screen
+
     @kotlinx.serialization.Serializable
     data object Settings : Screen
 }

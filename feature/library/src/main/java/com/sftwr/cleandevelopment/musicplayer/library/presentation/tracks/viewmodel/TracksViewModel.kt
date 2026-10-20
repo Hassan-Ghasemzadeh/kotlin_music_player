@@ -82,6 +82,17 @@ class TracksViewModel @Inject constructor(
         }
     }
 
+    fun deleteCurrentOrSelectedSong(songId: Long) {
+        viewModelScope.launch {
+            val success = playerManager.deleteSong(songId)
+            if (success) {
+                _uiEvent.send(TracksUiEvent.DeleteSong("آهنگ با موفقیت حذف شد"))
+            } else {
+                _uiEvent.send(TracksUiEvent.DeleteSong("خطا در حذف آهنگ"))
+            }
+        }
+    }
+
     /**
      * Refreshes the track list from device storage.
      */
@@ -115,4 +126,5 @@ class TracksViewModel @Inject constructor(
 sealed interface TracksUiEvent {
     data class NavigateToPlayer(val songId: String) : TracksUiEvent
     object NavigateToSearch : TracksUiEvent
+    data class DeleteSong(val message: String) : TracksUiEvent
 }

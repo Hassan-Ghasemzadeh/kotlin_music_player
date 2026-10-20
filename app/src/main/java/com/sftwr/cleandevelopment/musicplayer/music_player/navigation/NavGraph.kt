@@ -10,6 +10,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.HomeRout
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.PlayerRouteKey
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.homeGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.PlayerScreen
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.SearchRoute
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.TracksRouteKey
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.tracksGraph
 
@@ -32,7 +33,7 @@ fun AppNavGraph(
 
             },
             onNavigateToSearch = {
-
+                navController.navigate(Screen.Search)
             },
             onNavigateToTracks = {
                 // Navigate to Tracks screen when card is clicked
@@ -44,14 +45,23 @@ fun AppNavGraph(
             onBackClick = {
                 navController.popBackStack()
             },
-            onSearchClick = {
-
+            onNavigateToSearch = {
+                navController.navigate(Screen.Search)
             },
-            onNavigateToSearch = {},
             onNavigateToPlayer = { songId ->
                 navController.navigate(PlayerRouteKey(songId))
             }
         )
+        composable<Screen.Search> {
+            SearchRoute(
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onNavigateToPlayer = { songId ->
+                    navController.navigate(PlayerRouteKey(songId))
+                }
+            )
+        }
         composable<PlayerRouteKey> { backStackEntry ->
             val playerRoute: PlayerRouteKey = backStackEntry.toRoute()
             val songId = playerRoute.songId

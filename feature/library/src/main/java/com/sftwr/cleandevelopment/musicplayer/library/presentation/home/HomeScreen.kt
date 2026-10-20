@@ -70,7 +70,9 @@ fun HomeScreen(
                 .padding(16.dp)
         ) {
             // Top App Bar with Menu, Title, and Search icons
-            TopBarSection()
+            TopBarSection(
+                onSearchClick = actions.onSearchClick
+            )
 
             Spacer(modifier = Modifier.height(16.dp))
 

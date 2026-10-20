@@ -36,8 +36,7 @@ fun AppRootContent(
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val showBottomBar = currentRoute?.contains("SearchRouteKey") == false &&
-            currentRoute?.contains("PlayerRouteKey") == false
+    val showBottomBar = currentRoute?.contains("PlayerRouteKey") == false
     val context = LocalContext.current
 
     val artUri = remember(currentSong?.uri) {
@@ -58,6 +57,8 @@ fun AppRootContent(
         if (showBottomBar && currentSong != null) {
             // Only show if a song is selected/playing
             BottomPlayerBar(
+                hasNext = playerManager.hasNext,
+                hasPrevious = playerManager.hasPrevious,
                 songTitle = currentSong!!.title,
                 artistName = currentSong!!.artist,
                 artUri = artUri,
@@ -66,6 +67,12 @@ fun AppRootContent(
                 onPlayerClick = {
                     // Navigate to full player screen if needed
                     navController.navigate(PlayerRouteKey(currentSong!!.id))
+                },
+                onNextClick = {
+                    playerManager.playNext()
+                },
+                onPreviousClick = {
+                    playerManager.playPrevious()
                 },
                 modifier = Modifier
                     .fillMaxWidth()

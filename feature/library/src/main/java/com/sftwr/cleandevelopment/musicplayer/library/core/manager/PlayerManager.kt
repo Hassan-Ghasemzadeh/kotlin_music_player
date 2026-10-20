@@ -11,10 +11,12 @@ import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
 import androidx.core.net.toUri
+import com.sftwr.cleandevelopment.musicplayer.domain.usecase.DeleteSongUseCase
 
 @Singleton
 class PlayerManager @Inject constructor(
     val exoPlayer: ExoPlayer,
+    private val deleteSongUseCase: DeleteSongUseCase,
 ) {
 
     // Currently playing song state
@@ -27,6 +29,10 @@ class PlayerManager @Inject constructor(
 
     // Internal active queue list for tracking songs
     private var activeQueue: List<SongUiModel> = emptyList()
+    val hasNext: Boolean
+        get() = exoPlayer.hasNextMediaItem()
+    val hasPrevious: Boolean
+        get() = exoPlayer.hasPreviousMediaItem()
 
     init {
         exoPlayer.addListener(object : Player.Listener {
@@ -58,6 +64,48 @@ class PlayerManager @Inject constructor(
             exoPlayer.seekTo(0)
             exoPlayer.pause()
         }
+    }
+
+    /**
+     * Stop playback, clear media items, and reset current song state.
+     */
+    fun stopPlayback() {
+        exoPlayer.stop()
+        exoPlayer.clearMediaItems()
+        _currentSong.value = null
+        _isPlaying.value = false
+        activeQueue = emptyList()
+    }
+
+    suspend fun deleteSong(songId: Long): Boolean {
+        val isDeleted = deleteSongUseCase(songId)
+
+        if (isDeleted) {
+            val currentPlayingId = currentSong.value?.id
+            if (currentPlayingId == songId.toString()) {
+                stopPlayback()
+            }
+        }
+
+        return isDeleted
+    }
+
+    fun playNext() {
+        if (exoPlayer.hasNextMediaItem()) {
+            exoPlayer.seekToNextMediaItem()
+            exoPlayer.play()
+        }
+    }
+
+    fun playPrevious() {
+        if (exoPlayer.hasPreviousMediaItem()) {
+            exoPlayer.seekToPreviousMediaItem()
+            exoPlayer.play()
+        }
+    }
+
+    fun seekTo(position: Long) {
+        exoPlayer.seekTo(position)
     }
 
     /**

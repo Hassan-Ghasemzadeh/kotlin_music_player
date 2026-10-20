@@ -26,7 +26,9 @@ import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
  * Top bar component containing navigation menu, title, and search action.
  */
 @Composable
-fun TopBarSection() {
+fun TopBarSection(
+    onSearchClick: () -> Unit = {}
+) {
     GlassCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -52,7 +54,7 @@ fun TopBarSection() {
                 fontSize = 18.sp,
                 fontWeight = FontWeight.Bold
             )
-            IconButton(onClick = { /* Handle search click */ }) {
+            IconButton(onClick = onSearchClick) {
                 Icon(
                     imageVector = Icons.Default.Search,
                     contentDescription = "Search",

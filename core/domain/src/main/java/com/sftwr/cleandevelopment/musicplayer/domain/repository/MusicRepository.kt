@@ -6,4 +6,9 @@ import kotlinx.coroutines.flow.Flow
 
 interface MusicRepository {
     fun getDeviceSongs(): Flow<List<Song>>
+    /**
+     * Searches for songs matching the given query string.
+     */
+    suspend fun searchSongs(query: String): List<Song>
+    suspend fun deleteSong(songId: Long): Boolean
 }

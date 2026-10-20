@@ -1,8 +1,10 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks
 
+import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.TracksUiEvent
@@ -16,6 +18,7 @@ fun TracksRoute(
     onNavigateToSearch: () -> Unit,
     onBackClick: () -> Unit,
 ) {
+    val context = LocalContext.current
     // Collect UI state safely with lifecycle awareness
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -24,7 +27,10 @@ fun TracksRoute(
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
                 is TracksUiEvent.NavigateToPlayer -> onNavigateToPlayer
-                is TracksUiEvent.NavigateToSearch -> onNavigateToSearch
+                is TracksUiEvent.NavigateToSearch -> onNavigateToSearch()
+                is TracksUiEvent.DeleteSong -> {
+                    Toast.makeText(context, "message", Toast.LENGTH_SHORT).show()
+                }
             }
         }
     }
