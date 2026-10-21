@@ -5,6 +5,8 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 
 
 /**
@@ -24,6 +26,52 @@ fun Uri.extractAlbumArt(context: Context): Bitmap? {
         }
     } catch (e: Exception) {
         null
+    } finally {
+        try {
+            retriever.release()
+        } catch (_: Exception) {
+        }
+    }
+}
+
+fun String.extractAlbumArt(): ByteArray? {
+    val retriever = MediaMetadataRetriever()
+    return try {
+        retriever.setDataSource(this)
+        retriever.embeddedPicture
+    } catch (e: Exception) {
+        null
+    } finally {
+        try {
+            retriever.release()
+        } catch (ignored: Exception) {
+        }
+    }
+}
+
+
+data class SongExtraMetadata(
+    val genre: String?,
+    val year: String?,
+    val bitrate: String?,
+    val sampleRate: String?,
+    val mimeType: String?
+)
+
+@RequiresApi(Build.VERSION_CODES.S)
+fun String.extractExtraMetadata(): SongExtraMetadata {
+    val retriever = MediaMetadataRetriever()
+    return try {
+        retriever.setDataSource(this)
+        SongExtraMetadata(
+            genre = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE),
+            year = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_YEAR),
+            bitrate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE),
+            sampleRate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_SAMPLERATE),
+            mimeType = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE)
+        )
+    } catch (e: Exception) {
+        SongExtraMetadata(null, null, null, null, null)
     } finally {
         try {
             retriever.release()

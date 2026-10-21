@@ -66,6 +66,7 @@ fun TracksScreen(
     onSongClick: (String) -> Unit,
     onBackClick: () -> Unit,
     onSearchClick: () -> Unit,
+    onInfoClick: (Long) -> Unit,
     viewModel: TracksViewModel = hiltViewModel(),
 ) {
     // Track which song's options menu is currently expanded
@@ -199,7 +200,10 @@ fun TracksScreen(
                                         },
                                         onDeleteClick = {
                                             viewModel.deleteCurrentOrSelectedSong(song.id.toLong())
-                                        }
+                                        },
+                                        onInfoClick = {
+                                            song.id.toLongOrNull()?.let { id -> onInfoClick(id) }
+                                        },
                                     )
                                 }
                             }
@@ -221,7 +225,8 @@ fun TrackItem(
     isMenuExpanded: Boolean,
     onMenuClick: () -> Unit,
     onDismissMenu: () -> Unit,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    onInfoClick: () -> Unit
 ) {
     Surface(
         onClick = onClick,
@@ -333,9 +338,7 @@ fun TrackItem(
                         onFavoriteClick = {
                             // TODO: Handle Favorite
                         },
-                        onInfoClick = {
-                            // TODO: Handle Info
-                        },
+                        onInfoClick = onInfoClick,
                         onTagEditClick = {
                             // TODO: Handle Tag Edit
                         },
@@ -366,6 +369,7 @@ fun TracksScreenPreview() {
         isLoading = false,
         onSongClick = {},
         onBackClick = {},
-        onSearchClick = {}
+        onSearchClick = {},
+        onInfoClick = { _ -> },
     )
 }

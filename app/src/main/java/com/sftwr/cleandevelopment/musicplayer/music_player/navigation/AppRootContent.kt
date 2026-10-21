@@ -22,8 +22,10 @@ import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
-import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.PlayerRouteKey
+import com.sftwr.cleandevelopment.musicplayer.model.Screen
+import kotlinx.serialization.InternalSerializationApi
 
+@OptIn(InternalSerializationApi::class)
 @Composable
 fun AppRootContent(
     navController: NavHostController,
@@ -66,7 +68,7 @@ fun AppRootContent(
                 onPlayPauseClick = { playerManager.togglePlayPause() },
                 onPlayerClick = {
                     // Navigate to full player screen if needed
-                    navController.navigate(PlayerRouteKey(currentSong!!.id))
+                    navController.navigate(Screen.Player)
                 },
                 onNextClick = {
                     playerManager.playNext()

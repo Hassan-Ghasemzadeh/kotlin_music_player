@@ -6,13 +6,13 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.toRoute
-import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.HomeRouteKey
-import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.PlayerRouteKey
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.homeGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.PlayerScreen
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.SearchRoute
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.song_detail.SongDetailRoute
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.TracksRouteKey
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.tracksGraph
+import com.sftwr.cleandevelopment.musicplayer.model.Screen
 
 @Composable
 fun AppNavGraph(
@@ -21,13 +21,13 @@ fun AppNavGraph(
 ) {
     NavHost(
         navController = navController,
-        startDestination = HomeRouteKey,
+        startDestination = Screen.Home,
         modifier = modifier
     ) {
         // home main graph
         homeGraph(
-            onNavigateToPlayer = { songId ->
-                navController.navigate(PlayerRouteKey(songId))
+            onNavigateToPlayer = {
+                navController.navigate(Screen.Player)
             },
             onOpenPlaylist = {
 
@@ -49,7 +49,10 @@ fun AppNavGraph(
                 navController.navigate(Screen.Search)
             },
             onNavigateToPlayer = { songId ->
-                navController.navigate(PlayerRouteKey(songId))
+                navController.navigate(Screen.Player)
+            },
+            onInfoClick = { songId ->
+                navController.navigate(Screen.SongDetail(songId))
             }
         )
         composable<Screen.Search> {
@@ -57,16 +60,25 @@ fun AppNavGraph(
                 onNavigateBack = {
                     navController.popBackStack()
                 },
-                onNavigateToPlayer = { songId ->
-                    navController.navigate(PlayerRouteKey(songId))
+                onNavigateToPlayer = {
+                    navController.navigate(Screen.Player)
+                },
+                onInfoClick = { songId ->
+                    navController.navigate(Screen.SongDetail(songId))
                 }
             )
         }
-        composable<PlayerRouteKey> { backStackEntry ->
-            val playerRoute: PlayerRouteKey = backStackEntry.toRoute()
-            val songId = playerRoute.songId
+        composable<Screen.Player> {
 
             PlayerScreen(
+                onBackClick = {
+                    navController.popBackStack()
+                },
+            )
+        }
+        composable<Screen.SongDetail> {
+
+            SongDetailRoute(
                 onBackClick = {
                     navController.popBackStack()
                 },

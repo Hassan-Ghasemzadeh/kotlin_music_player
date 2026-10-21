@@ -102,6 +102,9 @@ fun SearchScreen(
                                     },
                                     onDeleteClick = {
                                         actions.onDeleteClick(song.id.toLong())
+                                    },
+                                    onInfoClick = {
+                                        song.id.toLongOrNull()?.let { id -> actions.onInfoClick(id) }
                                     }
                                 )
                             }

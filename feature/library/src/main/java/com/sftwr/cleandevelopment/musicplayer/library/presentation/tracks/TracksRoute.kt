@@ -21,6 +21,7 @@ fun TracksRoute(
     onNavigateToPlayer: (String) -> Unit,
     onNavigateToSearch: () -> Unit,
     onBackClick: () -> Unit,
+    onInfoClick: (Long) -> Unit,
 ) {
     val context = LocalContext.current
     // Collect UI state safely with lifecycle awareness
@@ -64,6 +65,7 @@ fun TracksRoute(
         isLoading = uiState.isLoading, // اضافه شده
         onSongClick = { songId -> viewModel.onSongClicked(songId) },
         onBackClick = onBackClick,
-        onSearchClick = onNavigateToSearch
+        onSearchClick = onNavigateToSearch,
+        onInfoClick = onInfoClick,
     )
 }
