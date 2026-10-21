@@ -38,7 +38,7 @@ fun AppRootContent(
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val showBottomBar = currentRoute?.contains("PlayerRouteKey") == false
+    val showBottomBar = currentRoute?.contains("Player") == false
     val context = LocalContext.current
 
     val artUri = remember(currentSong?.uri) {
