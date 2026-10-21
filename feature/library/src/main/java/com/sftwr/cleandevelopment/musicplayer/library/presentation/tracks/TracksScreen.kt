@@ -1,5 +1,6 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks
 
+import android.util.Log
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -42,6 +43,8 @@ import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.SongDropdownMenu
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.TracksViewModel
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.visualizer.AnimatedVisualizer
+import kotlin.toString
 
 /**
  * UI Model representing a song item in the tracks list.
@@ -69,6 +72,8 @@ fun TracksScreen(
     onInfoClick: (Long) -> Unit,
     viewModel: TracksViewModel = hiltViewModel(),
 ) {
+    val currentSong by viewModel.currentPlayingSong.collectAsState()
+    val isPlayingGlobal by viewModel.isPlayerPlaying.collectAsState()
     // Track which song's options menu is currently expanded
     var expandedSongId by remember { mutableStateOf<String?>(null) }
 
@@ -186,10 +191,15 @@ fun TracksScreen(
                             ) {
                                 items(songs, key = { it.id }) { song ->
                                     val isMenuExpanded = expandedSongId == song.id
+                                    val isThisSongPlaying = (currentSong?.id == song.id) && isPlayingGlobal
                                     TrackItem(
                                         song = song,
                                         onClick = {
                                             onSongClick(song.id)
+                                            Log.d(
+                                                "TracksScreen",
+                                                "clicked songId: ${song.id}, currentPlayingId: ${currentSong?.id}, isPlaying: $isThisSongPlaying"
+                                            )
                                         },
                                         isMenuExpanded = isMenuExpanded,
                                         onMenuClick = {
@@ -204,6 +214,7 @@ fun TracksScreen(
                                         onInfoClick = {
                                             song.id.toLongOrNull()?.let { id -> onInfoClick(id) }
                                         },
+                                        isPlaying = isThisSongPlaying
                                     )
                                 }
                             }
@@ -226,7 +237,8 @@ fun TrackItem(
     onMenuClick: () -> Unit,
     onDismissMenu: () -> Unit,
     onDeleteClick: () -> Unit,
-    onInfoClick: () -> Unit
+    onInfoClick: () -> Unit,
+    isPlaying: Boolean = false,
 ) {
     Surface(
         onClick = onClick,
@@ -305,12 +317,20 @@ fun TrackItem(
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Song duration text
-                Text(
-                    text = song.duration,
-                    color = Color.White.copy(alpha = 0.5f),
-                    fontSize = 12.sp
-                )
+                if (isPlaying) {
+                    AnimatedVisualizer(
+                        modifier = Modifier.size(24.dp, 14.dp),
+                        barCount = 3,
+                        barColor = Color(0xFF91D8FB)
+                    )
+                } else {
+                    // Song duration text
+                    Text(
+                        text = song.duration,
+                        color = Color.White.copy(alpha = 0.5f),
+                        fontSize = 12.sp
+                    )
+                }
 
                 Spacer(modifier = Modifier.width(8.dp))
 

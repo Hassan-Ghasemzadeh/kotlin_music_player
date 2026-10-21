@@ -137,10 +137,13 @@ class PlayerManager @Inject constructor(
      */
     fun playSong(song: SongUiModel) {
         _currentSong.value = song
-        activeQueue = listOf(song) // Fallback queue for a single song
+        activeQueue = listOf(song)
 
         val audioUri = song.uri.toUri()
-        val mediaItem = MediaItem.fromUri(audioUri)
+        val mediaItem = MediaItem.Builder()
+            .setUri(audioUri)
+            .setMediaId(song.id)
+            .build()
 
         exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()

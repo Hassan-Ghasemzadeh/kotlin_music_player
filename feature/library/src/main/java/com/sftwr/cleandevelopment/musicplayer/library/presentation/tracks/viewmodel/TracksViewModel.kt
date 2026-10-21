@@ -32,6 +32,10 @@ class TracksViewModel @Inject constructor(
     private val _deleteEvent = Channel<PlayerUiEvent>()
     val deleteEvent = _deleteEvent.receiveAsFlow()
 
+    val currentPlayingSong = playerManager.currentSong
+    val isPlayerPlaying = playerManager.isPlaying
+
+
     init {
         loadTracks()
     }
