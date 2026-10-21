@@ -4,9 +4,7 @@ package com.sftwr.cleandevelopment.musicplayer.library.presentation.search
 data class SearchActions(
     val onQueryChange: (String) -> Unit = {},
     val onClearQueryClick: () -> Unit = {},
-    val onFilterClick: () -> Unit = {},
     val onCancelClick: () -> Unit = {},
     val onDeleteClick: (id:Long) -> Unit,
     val onSongClick: (String) -> Unit = {},
-    val onSongMenuClick: (String) -> Unit = {}
 )

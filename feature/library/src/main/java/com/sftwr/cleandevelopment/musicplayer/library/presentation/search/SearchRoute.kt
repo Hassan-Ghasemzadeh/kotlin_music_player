@@ -53,12 +53,10 @@ fun SearchRoute(
         SearchActions(
             onQueryChange = { viewModel.onQueryChanged(it) },
             onClearQueryClick = { viewModel.onClearQuery() },
-            onFilterClick = { viewModel.onFilterClicked() },
             onCancelClick = onNavigateBack,
             onSongClick = { songId ->
                 viewModel.onSongClicked(songId)
             },
-            onSongMenuClick = { songId -> viewModel.onSongMenuClicked(songId) },
             onDeleteClick = { id ->
                 viewModel.deleteCurrentOrSelectedSong(songId = id)
             }

@@ -10,6 +10,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.SearchUiState
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.PlayerUiEvent
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.TracksUiEvent
 // import com.sftwr.cleandevelopment.musicplayer.library.domain.usecase.SearchSongsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
@@ -31,8 +32,6 @@ class SearchViewModel @Inject constructor(
     private val _uiState = MutableStateFlow(SearchUiState())
     val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
 
-    private val _uiEvent = Channel<SearchUiEvent>()
-    val uiEvent = _uiEvent.receiveAsFlow()
     private val _deleteEvent = Channel<SearchPlayerUiEvent>()
     val deleteEvent = _deleteEvent.receiveAsFlow()
 
@@ -103,7 +102,6 @@ class SearchViewModel @Inject constructor(
                         currentState.copy(searchResults = updatedResults)
                     }
 
-                    // پاکسازی متغیرهای موقت
                     pendingDeleteSongId = null
                     pendingDeleteSongStringId = null
                 }
@@ -146,29 +144,18 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Triggered when the filter button is clicked.
-     */
-    fun onFilterClicked() {
-        // TODO: Implement filter logic (e.g., filter by artist, album, etc.)
-    }
-
-    /**
-     * Triggered when the options menu for a specific song is clicked.
-     */
-    fun onSongMenuClicked(songId: String) {
-        // مدیریت باز و بسته شدن منو یا انتخاب آهنگ در صورت نیاز
-    }
 
     /**
      * Handles track selection, sets the playback queue, and triggers navigation to the player.
      */
     fun onSongClicked(songId: String) {
-        val songs = _uiState.value.songs
+        val songs = _uiState.value.searchResults
         val index = songs.indexOfFirst { it.id == songId }
-        val song = songs[index]
-        // Send the entire playlist along with the selected song index to the player manager
-        playerManager.playSong(song)
+
+        if (index != -1) {
+            // Send the entire playlist along with the selected song index to the player manager
+            playerManager.setQueue(songs, startIndex = index)
+        }
     }
 
     /**
@@ -211,13 +198,6 @@ class SearchViewModel @Inject constructor(
             }
         }
     }
-}
-
-/**
- * UI events emitted from TracksViewModel for one-time actions like navigation.
- */
-sealed interface SearchUiEvent {
-    data class DeleteSong(val message: String) : SearchUiEvent
 }
 
 sealed interface SearchPlayerUiEvent {

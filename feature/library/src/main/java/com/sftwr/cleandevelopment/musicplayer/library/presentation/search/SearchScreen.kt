@@ -47,7 +47,6 @@ fun SearchScreen(
                     query = uiState.query,
                     onQueryChange = actions.onQueryChange,
                     onClearQuery = actions.onClearQueryClick,
-                    onFilterClick = actions.onFilterClick,
                     onCancelClick = actions.onCancelClick
                 )
             }) { innerPadding ->

@@ -27,7 +27,6 @@ fun NeonSearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
     onClearQuery: () -> Unit,
-    onFilterClick: () -> Unit,
     onCancelClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -110,14 +109,6 @@ fun NeonSearchBar(
             }
         }
 
-        // Filter Button
-        IconButton(onClick = onFilterClick) {
-            Icon(
-                imageVector = Icons.Default.FilterList,
-                contentDescription = "Filter results",
-                tint = Color.White,
-            )
-        }
 
         // Cancel Button
         TextButton(onClick = onCancelClick) {
