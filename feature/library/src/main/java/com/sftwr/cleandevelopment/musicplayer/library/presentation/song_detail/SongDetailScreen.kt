@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.sftwr.cleandevelopment.musicplayer.home.R
+import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -117,12 +118,18 @@ fun SongDetailScreen(
                     }
                 }
             } else {
+                val playerBottomPadding = rememberPlayerAwareBottomPadding()
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
                         .padding(innerPadding)
                         .verticalScroll(rememberScrollState())
-                        .padding(horizontal = 20.dp, vertical = 10.dp),
+                        .padding(
+                            start = 20.dp,
+                            end = 20.dp,
+                            top = 10.dp,
+                            bottom = 10.dp + playerBottomPadding
+                        ),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
 
