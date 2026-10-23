@@ -104,8 +104,13 @@ fun SearchScreen(
                                         actions.onDeleteClick(song.id.toLong())
                                     },
                                     onInfoClick = {
-                                        song.id.toLongOrNull()?.let { id -> actions.onInfoClick(id) }
-                                    }
+                                        song.id.toLongOrNull()
+                                            ?.let { id -> actions.onInfoClick(id) }
+                                    },
+                                    onTagEditClick = {
+                                        song.id.toLongOrNull()
+                                            ?.let { id -> actions.onTagEditClick(id) }
+                                    },
                                 )
                             }
                         }

@@ -20,6 +20,7 @@ fun SearchRoute(
     onNavigateBack: () -> Unit,
     onNavigateToPlayer: (String) -> Unit,
     onInfoClick: (Long) -> Unit,
+    onTagEditClick: (Long) -> Unit,
     viewModel: SearchViewModel = hiltViewModel()
 ) {
     val context = LocalContext.current
@@ -61,7 +62,8 @@ fun SearchRoute(
             onDeleteClick = { id ->
                 viewModel.deleteCurrentOrSelectedSong(songId = id)
             },
-            onInfoClick = onInfoClick
+            onInfoClick = onInfoClick,
+            onTagEditClick = onTagEditClick,
         )
     }
 

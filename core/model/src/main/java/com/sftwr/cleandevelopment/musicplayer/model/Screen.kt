@@ -17,6 +17,10 @@ sealed interface Screen {
     @Serializable
     data class SongDetail(val songId: Long = -1L) : Screen
 
+    @OptIn(kotlinx.serialization.InternalSerializationApi::class)
+    @Serializable
+    data class EditTagScreen(val songId: Long = -1L) : Screen
+
     @Serializable
     data object Settings : Screen
 }

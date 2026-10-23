@@ -79,6 +79,7 @@ fun TracksScreen(
     onBackClick: () -> Unit,
     onSearchClick: () -> Unit,
     onInfoClick: (Long) -> Unit,
+    onTagEditClick: (Long) -> Unit,
     viewModel: TracksViewModel = hiltViewModel(),
 ) {
     val currentSong by viewModel.currentPlayingSong.collectAsState()
@@ -267,6 +268,12 @@ fun TracksScreen(
                                                 song.id.toLongOrNull()
                                                     ?.let { id -> onInfoClick(id) }
                                             },
+                                            onTagEditClick = {
+                                                song.id.toLongOrNull()
+                                                    ?.let { id ->
+                                                        onTagEditClick(id)
+                                                    }
+                                            },
                                             isPlaying = isThisSongPlaying
                                         )
                                     }
@@ -292,6 +299,7 @@ fun TrackItem(
     onDismissMenu: () -> Unit,
     onDeleteClick: () -> Unit,
     onInfoClick: () -> Unit,
+    onTagEditClick: () -> Unit,
     isPlaying: Boolean = false,
 ) {
     val borderColor = if (isPlaying) Color(0xFF91D8FB) else Color.White.copy(alpha = 0.12f)
@@ -406,7 +414,7 @@ fun TrackItem(
                         onAddToPlaylist = {},
                         onFavoriteClick = {},
                         onInfoClick = onInfoClick,
-                        onTagEditClick = {},
+                        onTagEditClick = onTagEditClick,
                         onDeleteClick = onDeleteClick,
                     )
                 }
@@ -432,6 +440,7 @@ fun TracksScreenPreview() {
         onSongClick = {},
         onBackClick = {},
         onSearchClick = {},
+        onTagEditClick = { },
         onInfoClick = { _ -> },
     )
 }

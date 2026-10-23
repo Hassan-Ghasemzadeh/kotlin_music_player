@@ -22,6 +22,7 @@ fun TracksRoute(
     onNavigateToSearch: () -> Unit,
     onBackClick: () -> Unit,
     onInfoClick: (Long) -> Unit,
+    onTagEditClick: (Long) -> Unit,
 ) {
     val context = LocalContext.current
     // Collect UI state safely with lifecycle awareness
@@ -67,5 +68,6 @@ fun TracksRoute(
         onBackClick = onBackClick,
         onSearchClick = onNavigateToSearch,
         onInfoClick = onInfoClick,
+        onTagEditClick = onTagEditClick,
     )
 }

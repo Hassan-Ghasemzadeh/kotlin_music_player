@@ -8,4 +8,5 @@ data class SearchActions(
     val onDeleteClick: (id: Long) -> Unit,
     val onSongClick: (String) -> Unit = {},
     val onInfoClick: (Long) -> Unit,
+    val onTagEditClick: (Long) -> Unit,
 )

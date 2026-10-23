@@ -1,11 +1,13 @@
 package com.sftwr.cleandevelopment.musicplayer.music_player.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.toRoute
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.edit.editTagScreenGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.homeGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.PlayerScreen
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.SearchRoute
@@ -14,6 +16,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.Tracks
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.tracksGraph
 import com.sftwr.cleandevelopment.musicplayer.model.Screen
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
@@ -53,6 +56,9 @@ fun AppNavGraph(
             },
             onInfoClick = { songId ->
                 navController.navigate(Screen.SongDetail(songId))
+            },
+            onTagEditClick = {
+                navController.navigate(Screen.EditTagScreen(it))
             }
         )
         composable<Screen.Search> {
@@ -65,6 +71,9 @@ fun AppNavGraph(
                 },
                 onInfoClick = { songId ->
                     navController.navigate(Screen.SongDetail(songId))
+                },
+                onTagEditClick = {
+                    navController.navigate(Screen.EditTagScreen(it))
                 }
             )
         }
@@ -84,6 +93,10 @@ fun AppNavGraph(
                 },
             )
         }
-
+        editTagScreenGraph(
+            onBackClick = {
+                navController.popBackStack()
+            },
+        )
     }
 }

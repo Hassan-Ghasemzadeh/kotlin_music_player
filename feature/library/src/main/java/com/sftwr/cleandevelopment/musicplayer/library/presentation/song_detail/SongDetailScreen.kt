@@ -213,19 +213,19 @@ fun SongDetailScreen(
                                 color = Color.White.copy(alpha = 0.1f),
                                 modifier = Modifier.padding(bottom = 12.dp)
                             )
-                            InfoRow(label = "نام آلبوم", value = songDetail.album)
+                            InfoRow(label = "آلبوم", value = songDetail.album)
                             InfoRow(label = "ژانر", value = songDetail.genre.ifEmpty { "نامشخص" })
                             InfoRow(
                                 label = "سال انتشار",
                                 value = songDetail.year.ifEmpty { "نامشخص" })
-                            InfoRow(label = "مدت زمان", value = songDetail.duration)
-                            InfoRow(label = "حجم فایل", value = songDetail.size)
-                            InfoRow(label = "فرمت فایل", value = songDetail.mimeType)
+                            InfoRow(label = "زمان", value = songDetail.duration)
+                            InfoRow(label = "حجم", value = songDetail.size)
+                            InfoRow(label = "فرمت", value = songDetail.mimeType)
                             InfoRow(
                                 label = "بیت‌ریت",
                                 value = if (songDetail.bitrate.isNotEmpty()) "${songDetail.bitrate} bps" else "نامشخص"
                             )
-                            InfoRow(label = "نرخ نمونه‌برداری", value = songDetail.sampleRate)
+                            InfoRow(label = "فرکانس", value = songDetail.sampleRate)
                             InfoRow(
                                 label = "مسیر ذخیره‌سازی",
                                 value = songDetail.path,
@@ -255,7 +255,9 @@ private fun InfoRow(
             text = "$label:",
             style = MaterialTheme.typography.labelMedium,
             color = Color.White.copy(alpha = 0.5f),
-            textAlign = TextAlign.Right
+            textAlign = TextAlign.Right,
+            maxLines = 1,
+            softWrap = false
         )
         Text(
             text = value,

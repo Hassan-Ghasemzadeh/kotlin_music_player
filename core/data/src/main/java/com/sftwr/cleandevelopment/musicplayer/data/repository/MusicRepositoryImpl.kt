@@ -1,6 +1,9 @@
 package com.sftwr.cleandevelopment.musicplayer.data.repository
 
+import android.app.Application
+import android.app.RecoverableSecurityException
 import android.content.ContentUris
+import android.content.ContentValues
 import android.content.Context
 import android.database.ContentObserver
 import android.os.Build
@@ -17,10 +20,15 @@ import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 import androidx.core.net.toUri
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.UpdateTagResult
 import kotlinx.coroutines.withContext
+import org.jaudiotagger.audio.AudioFileIO
+import org.jaudiotagger.tag.FieldKey
+import java.io.File
 
 class MusicRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+    @ApplicationContext private val context: Context,
+    private val application: Application,
 ) : MusicRepository {
 
     /**
@@ -223,12 +231,126 @@ class MusicRepositoryImpl @Inject constructor(
                 // Android 10: access permission from user
                 DeleteResult.RequiresPermission(e.userAction.actionIntent.intentSender)
             } catch (e: SecurityException) {
+                val uri = ContentUris.withAppendedId(
+                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+                    songId
+                )
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                    try {
+                        val pendingIntent = MediaStore.createDeleteRequest(
+                            application.contentResolver,
+                            listOf(uri)
+                        )
+                        return@withContext DeleteResult.RequiresPermission(pendingIntent.intentSender)
+                    } catch (_: Exception) {
+                        return@withContext DeleteResult.Error
+                    }
+                }
                 e.printStackTrace()
                 DeleteResult.Error
             } catch (e: Exception) {
                 e.printStackTrace()
                 DeleteResult.Error
             }
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.Q)
+    override suspend fun updateSongTags(
+        songId: Long,
+        title: String,
+        artist: String,
+        album: String,
+        year: String,
+        genre: String
+    ): UpdateTagResult = withContext(Dispatchers.IO) {
+        val contentResolver = application.contentResolver
+        val uri = ContentUris.withAppendedId(
+            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
+            songId
+        )
+
+        val tempFile = File(application.cacheDir, "temp_audio_$songId.mp3")
+
+        try {
+            val inputStream = contentResolver.openInputStream(uri)
+                ?: return@withContext UpdateTagResult.Error("امکان خواندن فایل وجود ندارد")
+
+            inputStream.use { input ->
+                tempFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+
+            val audioFile = AudioFileIO.read(tempFile)
+            val tag = audioFile.tag ?: audioFile.createDefaultTag()
+
+            val existingArtworks = tag.artworkList?.toList() ?: emptyList()
+
+            tag.setField(FieldKey.TITLE, title)
+            tag.setField(FieldKey.ARTIST, artist)
+            tag.setField(FieldKey.ALBUM, album)
+
+            if (year.isNotBlank() && year != "نامشخص") {
+                tag.setField(FieldKey.YEAR, year)
+            }
+            if (genre.isNotBlank() && genre != "نامشخص") {
+                tag.setField(FieldKey.GENRE, genre)
+            }
+
+            for (artwork in existingArtworks) {
+                tag.addField(artwork)
+            }
+
+            audioFile.commit()
+
+            val outputStream = contentResolver.openOutputStream(uri, "w")
+                ?: return@withContext UpdateTagResult.Error("امکان نوشتن روی فایل وجود ندارد")
+
+            outputStream.use { output ->
+                tempFile.inputStream().use { input ->
+                    input.copyTo(output)
+                }
+            }
+
+            val contentValues = ContentValues().apply {
+                put(MediaStore.Audio.Media.TITLE, title)
+                put(MediaStore.Audio.Media.ARTIST, artist)
+                put(MediaStore.Audio.Media.ALBUM, album)
+            }
+            contentResolver.update(uri, contentValues, null, null)
+            contentResolver.notifyChange(uri, null)
+
+            tempFile.delete()
+            UpdateTagResult.Success
+
+        } catch (e: RecoverableSecurityException) {
+            tempFile.delete()
+            val intentSender = e.userAction.actionIntent.intentSender
+            UpdateTagResult.RequiresPermission(intentSender)
+
+        } catch (e: SecurityException) {
+            tempFile.delete()
+            val uriTarget =
+                ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId)
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                try {
+                    val pendingIntent = MediaStore.createWriteRequest(
+                        application.contentResolver,
+                        listOf(uriTarget)
+                    )
+                    return@withContext UpdateTagResult.RequiresPermission(pendingIntent.intentSender)
+                } catch (ex: Exception) {
+                    return@withContext UpdateTagResult.Error(
+                        ex.localizedMessage ?: "خطا در درخواست مجوز"
+                    )
+                }
+            }
+            UpdateTagResult.Error(e.localizedMessage ?: "خطای دسترسی امنیتی")
+        } catch (e: Exception) {
+            tempFile.delete()
+            UpdateTagResult.Error(e.localizedMessage ?: "خطای ناشناخته رخ داد")
         }
     }
 }

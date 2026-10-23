@@ -16,7 +16,8 @@ fun NavGraphBuilder.tracksGraph(
     onNavigateToPlayer: (String) -> Unit,
     onNavigateToSearch: () -> Unit,
     onBackClick: () -> Unit,
-    onInfoClick: (Long) -> Unit
+    onInfoClick: (Long) -> Unit,
+    onTagEditClick: (Long) -> Unit,
 ) {
     composable<TracksRouteKey> {
 
@@ -25,6 +26,7 @@ fun NavGraphBuilder.tracksGraph(
             onNavigateToSearch = onNavigateToSearch,
             onNavigateToPlayer = onNavigateToPlayer,
             onInfoClick = onInfoClick,
+            onTagEditClick = onTagEditClick,
         )
     }
 }

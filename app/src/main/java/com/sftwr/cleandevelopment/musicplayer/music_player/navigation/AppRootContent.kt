@@ -1,5 +1,7 @@
 package com.sftwr.cleandevelopment.musicplayer.music_player.navigation
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -25,6 +27,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.model.Screen
 import kotlinx.serialization.InternalSerializationApi
 
+@RequiresApi(Build.VERSION_CODES.S)
 @OptIn(InternalSerializationApi::class)
 @Composable
 fun AppRootContent(
