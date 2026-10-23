@@ -48,6 +48,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.AlphabetIndexerBar
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.SongDropdownMenu
@@ -67,7 +68,7 @@ data class SongUiModel(
 )
 
 /**
- * TracksScreen displays the list of all available audio tracks with a glassmorphic design and floating action button.
+ * TracksScreen displays the list of all available audio tracks with a glassmorphic design, floating action button, and A-Z fast scroller.
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -89,6 +90,8 @@ fun TracksScreen(
     val coroutineScope = rememberCoroutineScope()
     // Track which song's options menu is currently expanded
     var expandedSongId by remember { mutableStateOf<String?>(null) }
+
+    val alphabet = remember { ('A'..'Z').map { it.toString() } }
 
     // Main container with dark vertical gradient background matching the home screen
     Scaffold(
@@ -232,51 +235,78 @@ fun TracksScreen(
                                 }
                             }
 
-                            // 3. Populated list state
+                            // 3. Populated list state with A-Z Fast Scroller
                             else -> {
                                 val bottomPadding = rememberPlayerAwareBottomPadding()
-                                LazyColumn(
-                                    state = listState,
-                                    modifier = Modifier.fillMaxSize(),
-                                    verticalArrangement = Arrangement.spacedBy(10.dp),
-                                    contentPadding = PaddingValues(bottom = bottomPadding)
-                                ) {
-                                    items(songs, key = { it.id }) { song ->
-                                        val isMenuExpanded = expandedSongId == song.id
-                                        val isThisSongPlaying =
-                                            (currentSong?.id == song.id) && isPlayingGlobal
-                                        TrackItem(
-                                            song = song,
-                                            onClick = {
-                                                onSongClick(song.id)
-                                                Log.d(
-                                                    "TracksScreen",
-                                                    "clicked songId: ${song.id}, currentPlayingId: ${currentSong?.id}, isPlaying: $isThisSongPlaying"
-                                                )
-                                            },
-                                            isMenuExpanded = isMenuExpanded,
-                                            onMenuClick = {
-                                                expandedSongId = song.id
-                                            },
-                                            onDismissMenu = {
-                                                expandedSongId = null
-                                            },
-                                            onDeleteClick = {
-                                                viewModel.deleteCurrentOrSelectedSong(song.id.toLong())
-                                            },
-                                            onInfoClick = {
-                                                song.id.toLongOrNull()
-                                                    ?.let { id -> onInfoClick(id) }
-                                            },
-                                            onTagEditClick = {
-                                                song.id.toLongOrNull()
-                                                    ?.let { id ->
-                                                        onTagEditClick(id)
-                                                    }
-                                            },
-                                            isPlaying = isThisSongPlaying
-                                        )
+
+                                Box(modifier = Modifier.fillMaxSize()) {
+                                    // LazyColumn با پدینگ سمت راست برای جلوگیری از تداخل با نوار الفبا
+                                    LazyColumn(
+                                        state = listState,
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(end = 32.dp),
+                                        verticalArrangement = Arrangement.spacedBy(10.dp),
+                                        contentPadding = PaddingValues(bottom = bottomPadding)
+                                    ) {
+                                        items(songs, key = { it.id }) { song ->
+                                            val isMenuExpanded = expandedSongId == song.id
+                                            val isThisSongPlaying =
+                                                (currentSong?.id == song.id) && isPlayingGlobal
+                                            TrackItem(
+                                                song = song,
+                                                onClick = {
+                                                    onSongClick(song.id)
+                                                    Log.d(
+                                                        "TracksScreen",
+                                                        "clicked songId: ${song.id}, currentPlayingId: ${currentSong?.id}, isPlaying: $isThisSongPlaying"
+                                                    )
+                                                },
+                                                isMenuExpanded = isMenuExpanded,
+                                                onMenuClick = {
+                                                    expandedSongId = song.id
+                                                },
+                                                onDismissMenu = {
+                                                    expandedSongId = null
+                                                },
+                                                onDeleteClick = {
+                                                    viewModel.deleteCurrentOrSelectedSong(song.id.toLong())
+                                                },
+                                                onInfoClick = {
+                                                    song.id.toLongOrNull()
+                                                        ?.let { id -> onInfoClick(id) }
+                                                },
+                                                onTagEditClick = {
+                                                    song.id.toLongOrNull()
+                                                        ?.let { id ->
+                                                            onTagEditClick(id)
+                                                        }
+                                                },
+                                                isPlaying = isThisSongPlaying
+                                            )
+                                        }
                                     }
+
+                                    AlphabetIndexerBar(
+                                        letters = alphabet,
+                                        onLetterSelected = { targetLetter ->
+                                            val index = songs.indexOfFirst { song ->
+                                                song.title.startsWith(
+                                                    targetLetter,
+                                                    ignoreCase = true
+                                                )
+                                            }
+                                            if (index != -1) {
+                                                coroutineScope.launch {
+                                                    listState.animateScrollToItem(index)
+                                                }
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .align(Alignment.CenterEnd)
+                                            .padding(bottom = bottomPadding)
+                                            .padding(end = 2.dp)
+                                    )
                                 }
                             }
                         }
