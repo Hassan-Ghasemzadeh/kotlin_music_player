@@ -72,7 +72,7 @@ fun EditTagScreen(
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Edit Tags",
-                    color = neonBlue,
+                    color = Color.White,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
@@ -106,7 +106,8 @@ fun EditTagScreen(
                     ) {
                         val context = LocalContext.current
                         val albumArtBytes = remember(state.songUri) {
-                            if (state.songUri.isNotEmpty()) state.songUri.toUri().extractAlbumArt(context) else null
+                            if (state.songUri.isNotEmpty()) state.songUri.toUri()
+                                .extractAlbumArt(context) else null
                         }
 
                         if (albumArtBytes != null) {
@@ -117,7 +118,11 @@ fun EditTagScreen(
                                 modifier = Modifier
                                     .size(56.dp)
                                     .clip(RoundedCornerShape(14.dp))
-                                    .border(1.dp, neonBlue.copy(alpha = 0.5f), RoundedCornerShape(14.dp))
+                                    .border(
+                                        1.dp,
+                                        neonBlue.copy(alpha = 0.5f),
+                                        RoundedCornerShape(14.dp)
+                                    )
                             )
                         } else {
                             Box(
@@ -157,15 +162,36 @@ fun EditTagScreen(
                     Spacer(modifier = Modifier.height(20.dp))
 
                     // Input Fields for Tags
-                    EditTagTextField(label = "Title", value = state.title, onValueChange = onTitleChange)
+                    EditTagTextField(
+                        label = "Title",
+                        value = state.title,
+                        onValueChange = onTitleChange
+                    )
                     Spacer(modifier = Modifier.height(10.dp))
-                    EditTagTextField(label = "Artist", value = state.artist, onValueChange = onArtistChange)
+                    EditTagTextField(
+                        label = "Artist",
+                        value = state.artist,
+                        onValueChange = onArtistChange
+                    )
                     Spacer(modifier = Modifier.height(10.dp))
-                    EditTagTextField(label = "Album", value = state.album, onValueChange = onAlbumChange)
+                    EditTagTextField(
+                        label = "Album",
+                        value = state.album,
+                        onValueChange = onAlbumChange
+                    )
                     Spacer(modifier = Modifier.height(10.dp))
-                    EditTagTextField(label = "Year", value = state.year, onValueChange = onYearChange, isNumber = true)
+                    EditTagTextField(
+                        label = "Year",
+                        value = state.year,
+                        onValueChange = onYearChange,
+                        isNumber = true
+                    )
                     Spacer(modifier = Modifier.height(10.dp))
-                    EditTagTextField(label = "Genre", value = state.genre, onValueChange = onGenreChange)
+                    EditTagTextField(
+                        label = "Genre",
+                        value = state.genre,
+                        onValueChange = onGenreChange
+                    )
 
                     Spacer(modifier = Modifier.height(24.dp))
 
@@ -197,9 +223,16 @@ fun EditTagScreen(
                             colors = ButtonDefaults.buttonColors(containerColor = neonBlue)
                         ) {
                             if (state.isSaving) {
-                                CircularProgressIndicator(modifier = Modifier.size(24.dp), color = Color.Black)
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(24.dp),
+                                    color = Color.Black
+                                )
                             } else {
-                                Text(text = "Save Changes", color = Color.Black, fontWeight = FontWeight.Bold)
+                                Text(
+                                    text = "Save Changes",
+                                    color = Color.Black,
+                                    fontWeight = FontWeight.Bold
+                                )
                             }
                         }
                     }

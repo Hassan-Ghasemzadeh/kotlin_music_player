@@ -82,7 +82,7 @@ fun SongDetailScreen(
             modifier = Modifier.fillMaxSize(),
             containerColor = Color.Transparent,
             topBar = {
-                CenterAlignedTopAppBar(
+                TopAppBar(
                     title = { Text("اطلاعات آهنگ", color = Color.White) },
                     navigationIcon = {
                         IconButton(onClick = onBackClick) {
