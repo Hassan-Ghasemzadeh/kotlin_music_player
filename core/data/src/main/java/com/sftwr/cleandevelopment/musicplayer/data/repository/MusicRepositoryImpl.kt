@@ -340,7 +340,11 @@ class MusicRepositoryImpl @Inject constructor(
         } catch (e: RecoverableSecurityException) {
             tempFile.delete()
             val intentSender = e.userAction.actionIntent.intentSender
-            android.util.Log.e("EditTagError", "Failed to update tags for song: ${e.localizedMessage}", e)
+            android.util.Log.e(
+                "EditTagError",
+                "Failed to update tags for song: ${e.localizedMessage}",
+                e
+            )
             UpdateTagResult.RequiresPermission(intentSender)
 
         } catch (e: SecurityException) {
@@ -361,11 +365,19 @@ class MusicRepositoryImpl @Inject constructor(
                     )
                 }
             }
-            android.util.Log.e("EditTagError", "Failed to update tags for song: ${e.localizedMessage}", e)
+            android.util.Log.e(
+                "EditTagError",
+                "Failed to update tags for song: ${e.localizedMessage}",
+                e
+            )
             UpdateTagResult.Error(e.localizedMessage ?: "خطای دسترسی امنیتی")
         } catch (e: Exception) {
             tempFile.delete()
-            android.util.Log.e("EditTagError", "Failed to update tags for song: ${e.localizedMessage}", e)
+            android.util.Log.e(
+                "EditTagError",
+                "Failed to update tags for song: ${e.localizedMessage}",
+                e
+            )
             UpdateTagResult.Error(e.localizedMessage ?: "خطای ناشناخته رخ داد")
         }
     }
