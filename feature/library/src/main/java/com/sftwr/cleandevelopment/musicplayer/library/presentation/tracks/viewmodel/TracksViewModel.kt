@@ -152,9 +152,11 @@ class TracksViewModel @Inject constructor(
                 is DeleteResult.Success -> {
                     _deleteEvent.send(PlayerUiEvent.ShowToast("آهنگ با موفقیت حذف شد"))
                 }
+
                 is DeleteResult.RequiresPermission -> {
                     _deleteEvent.send(PlayerUiEvent.ShowDeletePermissionDialog(result.intentSender))
                 }
+
                 is DeleteResult.Error -> {
                     _deleteEvent.send(PlayerUiEvent.ShowToast("خطا در حذف آهنگ"))
                 }

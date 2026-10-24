@@ -40,13 +40,15 @@ class PlayerManager @Inject constructor(
     val hasPrevious: Boolean
         get() = exoPlayer.hasPreviousMediaItem()
 
+    // 👈 حافظه موقت برای نگهداری تگ‌های ویرایش‌شده جهت جلوگیری از بازگشت به مقدار قدیم
+    private val editedSongsCache = mutableMapOf<String, SongUiModel>()
+
     init {
         exoPlayer.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlayingState: Boolean) {
                 _isPlaying.value = isPlayingState
             }
 
-            // Triggered when media item transitions automatically or manually
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 val currentIndex = exoPlayer.currentMediaItemIndex
                 if (currentIndex in activeQueue.indices) {
@@ -65,9 +67,17 @@ class PlayerManager @Inject constructor(
     private val _allSongs = MutableStateFlow<List<SongUiModel>>(emptyList())
     val allSongs: StateFlow<List<SongUiModel>> = _allSongs.asStateFlow()
 
-    // قرار دادن لیست اولیه آهنگ‌ها (مثلاً موقع بالا آمدن برنامه)
+    /**
+     * قرار دادن لیست آهنگ‌ها و اعمال خودکار تغییرات کش‌شده روی آن‌ها
+     */
     fun setSongs(songs: List<SongUiModel>) {
-        _allSongs.value = songs
+        val mergedSongs = songs.map { song ->
+            editedSongsCache[song.id] ?: song
+        }
+
+        if (mergedSongs.isNotEmpty() || _allSongs.value.isEmpty()) {
+            _allSongs.value = mergedSongs
+        }
     }
 
     private fun checkAndPlayNextOrStop() {
@@ -126,9 +136,10 @@ class PlayerManager @Inject constructor(
      * Set the entire playback queue
      */
     fun setQueue(songs: List<SongUiModel>, startIndex: Int = 0) {
-        activeQueue = songs
+        // اعمال کش روی صف پخش نیز برای ثبات کامل
+        activeQueue = songs.map { song -> editedSongsCache[song.id] ?: song }
 
-        val mediaItems = songs.map { song ->
+        val mediaItems = activeQueue.map { song ->
             MediaItem.Builder()
                 .setUri(song.uri.toUri())
                 .setMediaId(song.id)
@@ -140,8 +151,8 @@ class PlayerManager @Inject constructor(
         exoPlayer.seekTo(startIndex, 0L)
         exoPlayer.play()
 
-        if (startIndex in songs.indices) {
-            _currentSong.value = songs[startIndex]
+        if (startIndex in activeQueue.indices) {
+            _currentSong.value = activeQueue[startIndex]
         }
     }
 
@@ -149,13 +160,14 @@ class PlayerManager @Inject constructor(
      * Play a selected song individually if queue is not set.
      */
     fun playSong(song: SongUiModel) {
-        _currentSong.value = song
-        activeQueue = listOf(song)
+        val finalSong = editedSongsCache[song.id] ?: song
+        _currentSong.value = finalSong
+        activeQueue = listOf(finalSong)
 
-        val audioUri = song.uri.toUri()
+        val audioUri = finalSong.uri.toUri()
         val mediaItem = MediaItem.Builder()
             .setUri(audioUri)
-            .setMediaId(song.id)
+            .setMediaId(finalSong.id)
             .build()
 
         exoPlayer.setMediaItem(mediaItem)
@@ -163,7 +175,9 @@ class PlayerManager @Inject constructor(
         exoPlayer.play()
     }
 
-
+    /**
+     * آپدیت یکپارچه، آنی و امن متادیتا در لیست کلی، مینی‌پلیر، صف پخش و ExoPlayer
+     */
     fun updateSongMetadata(
         songId: Long,
         newTitle: String,
@@ -172,49 +186,61 @@ class PlayerManager @Inject constructor(
         newYear: String,
         newGenre: String
     ) {
+        val targetIdStr = songId.toString()
+
+        // ۱. ساخت مدل ویرایش‌شده‌ی جدید
+        val updatedSong = (_allSongs.value.find { it.id == targetIdStr } ?: currentSong.value)?.copy(
+            title = newTitle,
+            artist = newArtist,
+            album = newAlbum,
+            year = newYear,
+            genre = newGenre
+        ) ?: SongUiModel(
+            id = targetIdStr,
+            title = newTitle,
+            artist = newArtist,
+            album = newAlbum,
+            duration = "",
+            uri = "",
+            year = newYear,
+            genre = newGenre
+        )
+
+        // ۲. ذخیره در کشِ داخلی برای ماندگاری در برابر لودهای مجدد MediaStore
+        editedSongsCache[targetIdStr] = updatedSong
+
+        // ۳. اعمال آنی روی لیست کلی (allSongs)
+        var found = false
         _allSongs.value = _allSongs.value.map { song ->
-            if (song.id.toLongOrNull() == songId || song.id == songId.toString()) {
-                song.copy(
-                    title = newTitle,
-                    artist = newArtist,
-                    album = newAlbum,
-                    year = newYear,
-                    genre = newGenre
-                )
+            if (song.id.toLongOrNull() == songId || song.id == targetIdStr) {
+                found = true
+                updatedSong
             } else {
                 song
             }
         }
 
+        // اگر لیست به هر دلیلی هنوز خالی بود، آهنگ جدید را اضافه می‌کنیم
+        if (!found) {
+            _allSongs.value += updatedSong
+        }
+
+        // ۴. آپدیت کردن صف پخش فعال (activeQueue)
         activeQueue = activeQueue.map { song ->
-            if (song.id.toLongOrNull() == songId || song.id == songId.toString()) {
-                song.copy(
-                    title = newTitle,
-                    artist = newArtist,
-                    album = newAlbum,
-                    year = newYear,
-                    genre = newGenre
-                )
-            } else {
-                song
-            }
+            if (song.id.toLongOrNull() == songId || song.id == targetIdStr) updatedSong else song
         }
 
+        // ۵. آپدیت آهنگ در حال پخش (مینی‌پلیر)
         val current = _currentSong.value
-        if (current?.id?.toLongOrNull() == songId || current?.id == songId.toString()) {
-            _currentSong.value = current.copy(
-                title = newTitle,
-                artist = newArtist,
-                album = newAlbum,
-                year = newYear,
-                genre = newGenre
-            )
+        if (current?.id?.toLongOrNull() == songId || current?.id == targetIdStr) {
+            _currentSong.value = updatedSong
         }
 
+        // ۶. بروزرسانی آیتم در ExoPlayer
         val currentIndex = exoPlayer.currentMediaItemIndex
         if (currentIndex in activeQueue.indices) {
             val activeSong = activeQueue[currentIndex]
-            if (activeSong.id.toLongOrNull() == songId || activeSong.id == songId.toString()) {
+            if (activeSong.id.toLongOrNull() == songId || activeSong.id == targetIdStr) {
                 val isPlayingNow = exoPlayer.isPlaying
                 val currentPosition = exoPlayer.currentPosition
 
@@ -231,7 +257,6 @@ class PlayerManager @Inject constructor(
             }
         }
     }
-
 
     /**
      * Toggle play/pause state.
