@@ -1,20 +1,25 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel
 
 import android.net.Uri
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
+import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractExtraMetadata
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.util.Locale
 import javax.inject.Inject
 
@@ -34,7 +39,6 @@ class TracksViewModel @Inject constructor(
 
     val currentPlayingSong = playerManager.currentSong
     val isPlayerPlaying = playerManager.isPlaying
-
 
     init {
         loadTracks()
@@ -58,20 +62,27 @@ class TracksViewModel @Inject constructor(
     }
 
     /**
-     * Fetches actual device songs from the UseCase and maps them to SongUiModel.
+     * Fetches actual device songs from the UseCase and maps them to SongUiModel safely.
      */
     private fun loadTracks() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
             getDeviceSongsUseCase().collect { domainSongs ->
-                val songUiModels = domainSongs.map { song ->
+                // 👈 استفاده از toList() برای جلوگیری از ConcurrentModificationException
+                val songUiModels = domainSongs.toList().map { song ->
+                    val extraMetadata = withContext(Dispatchers.IO) {
+                        song.path.extractExtraMetadata()
+                    }
                     SongUiModel(
                         id = song.id.toString(),
                         title = song.title,
                         artist = song.artist,
                         duration = song.duration.formatTime(),
-                        uri = song.path
+                        uri = song.path,
+                        year = extraMetadata.year ?: "",
+                        album = song.path,
+                        genre = extraMetadata.genre ?: "",
                     )
                 }
 
@@ -91,7 +102,6 @@ class TracksViewModel @Inject constructor(
         val index = songs.indexOfFirst { it.id == songId }
 
         if (index != -1) {
-            // Send the entire playlist along with the selected song index to the player manager
             playerManager.setQueue(songs, startIndex = index)
 
             viewModelScope.launch {
@@ -111,7 +121,6 @@ class TracksViewModel @Inject constructor(
             when (result) {
                 is DeleteResult.Success -> {
                     _deleteEvent.send(PlayerUiEvent.ShowToast("آهنگ با موفقیت حذف شد"))
-                    //loadTracks()
                 }
 
                 is DeleteResult.RequiresPermission -> {
@@ -126,26 +135,35 @@ class TracksViewModel @Inject constructor(
     }
 
     /**
-     * Refreshes the track list from device storage.
+     * Refreshes the track list from device storage safely.
      */
+    @RequiresApi(Build.VERSION_CODES.S)
     fun refreshTracks() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isRefreshing = true)
 
             getDeviceSongsUseCase().collect { domainSongs ->
-                val songUiModels = domainSongs.map { song ->
+
+                // 👈 استفاده از toList() برای امنیت تردینگ
+                val songUiModels = domainSongs.toList().map { song ->
+                    val extraMetadata = withContext(Dispatchers.IO) {
+                        song.path.extractExtraMetadata()
+                    }
                     SongUiModel(
                         id = song.id.toString(),
                         title = song.title,
                         artist = song.artist,
                         duration = song.duration.formatTime(),
-                        uri = song.path
+                        uri = song.path,
+                        year = extraMetadata.year ?: "",
+                        album = song.path,
+                        genre = extraMetadata.genre ?: "",
                     )
                 }
 
                 _uiState.value = _uiState.value.copy(
                     songs = songUiModels,
-                    isRefreshing = false // Disable refreshing state after receiving data
+                    isRefreshing = false
                 )
             }
         }

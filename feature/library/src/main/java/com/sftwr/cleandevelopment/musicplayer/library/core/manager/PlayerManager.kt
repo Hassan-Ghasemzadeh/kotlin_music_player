@@ -13,11 +13,16 @@ import javax.inject.Singleton
 import androidx.core.net.toUri
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.DeleteSongUseCase
+import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
+import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.firstOrNull
 
 @Singleton
 class PlayerManager @Inject constructor(
     val exoPlayer: ExoPlayer,
     private val deleteSongUseCase: DeleteSongUseCase,
+    private val getDeviceSongsUseCase: GetDeviceSongsUseCase,
 ) {
 
     // Currently playing song state
@@ -148,6 +153,53 @@ class PlayerManager @Inject constructor(
         exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
         exoPlayer.play()
+    }
+
+    suspend fun refreshSongMetadataIfPlaying(
+        songId: Long,
+        newTitle: String? = null,
+        newArtist: String? = null,
+        newAlbum: String? = null,
+        newYear: String? = null,
+        newGenre: String? = null,
+    ) {
+        val current = _currentSong.value ?: return
+        if (current.id != songId.toString()) return
+
+        // ساخت نسخه به‌روزرسانی‌شده با مقادیری که کاربر همین الان وارد کرده است
+        val updatedSong = current.copy(
+            title = newTitle ?: current.title,
+            artist = newArtist ?: current.artist,
+            album = newAlbum ?: current.album,
+            year = newYear ?: current.year,
+            genre = newGenre ?: current.genre,
+        )
+
+        // ۱. آپدیت استیت مینی‌پلیر بلافاصله با متن جدید
+        _currentSong.value = updatedSong
+
+        // ۲. آپدیت صف پخش داخلی
+        activeQueue = activeQueue.map { song ->
+            if (song.id == updatedSong.id) updatedSong else song
+        }
+
+        // ۳. آپدیت مدیاایتم در ExoPlayer
+        val currentIndex = exoPlayer.currentMediaItemIndex
+        if (currentIndex in activeQueue.indices && activeQueue[currentIndex].id == updatedSong.id) {
+            val isPlayingNow = exoPlayer.isPlaying
+            val currentPosition = exoPlayer.currentPosition
+
+            val newMediaItem = MediaItem.Builder()
+                .setUri(updatedSong.uri.toUri())
+                .setMediaId(updatedSong.id)
+                .build()
+
+            exoPlayer.replaceMediaItem(currentIndex, newMediaItem)
+            exoPlayer.seekTo(currentIndex, currentPosition)
+            if (isPlayingNow) {
+                exoPlayer.play()
+            }
+        }
     }
 
     /**

@@ -1,17 +1,21 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.search.viewModel
 
+import android.os.Build
+import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.SearchSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
+import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractExtraMetadata
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.SearchUiState
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.PlayerUiEvent
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.TracksUiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -21,8 +25,10 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+@RequiresApi(Build.VERSION_CODES.S)
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val getDeviceSongsUseCase: GetDeviceSongsUseCase,
@@ -60,6 +66,7 @@ class SearchViewModel @Inject constructor(
         }
     }
 
+    @RequiresApi(Build.VERSION_CODES.S)
     fun refreshSearch() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
@@ -69,12 +76,18 @@ class SearchViewModel @Inject constructor(
 
                 if (rawResults != null) {
                     val mappedResults = rawResults.map { song ->
+                        val extraMetadata = withContext(Dispatchers.IO) {
+                            song.path.extractExtraMetadata()
+                        }
                         SongUiModel(
                             id = song.id.toString(),
                             title = song.title,
                             artist = song.artist,
+                            duration = song.duration.formatTime(),
                             uri = song.path,
-                            duration = song.duration.formatTime()
+                            year = extraMetadata.year ?: "",
+                            album = song.path,
+                            genre = extraMetadata.genre ?: "",
                         )
                     }
 
@@ -100,18 +113,25 @@ class SearchViewModel @Inject constructor(
     /**
      * Fetches actual device songs from the UseCase and maps them to SongUiModel.
      */
+    @RequiresApi(Build.VERSION_CODES.S)
     private fun loadTracks() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)
 
             getDeviceSongsUseCase().collect { domainSongs ->
                 val songUiModels = domainSongs.map { song ->
+                    val extraMetadata = withContext(Dispatchers.IO) {
+                        song.path.extractExtraMetadata()
+                    }
                     SongUiModel(
                         id = song.id.toString(),
                         title = song.title,
                         artist = song.artist,
                         duration = song.duration.formatTime(),
-                        uri = song.path
+                        uri = song.path,
+                        year = extraMetadata.year ?: "",
+                        album = song.path,
+                        genre = extraMetadata.genre ?: "",
                     )
                 }
 
@@ -207,12 +227,18 @@ class SearchViewModel @Inject constructor(
                 val rawResults = searchSongsUseCase(query)
 
                 val mappedResults = rawResults.map { song ->
+                    val extraMetadata = withContext(Dispatchers.IO) {
+                        song.path.extractExtraMetadata()
+                    }
                     SongUiModel(
                         id = song.id.toString(),
                         title = song.title,
                         artist = song.artist,
+                        duration = song.duration.formatTime(),
                         uri = song.path,
-                        duration = song.duration.formatTime()
+                        year = extraMetadata.year ?: "",
+                        album = song.path,
+                        genre = extraMetadata.genre ?: "",
                     )
                 }
 

@@ -228,7 +228,6 @@ class MusicRepositoryImpl @Inject constructor(
                 android.util.Log.d("DeleteDebug", "Target ID: $songId, Rows Deleted: $rowsDeleted")
                 if (rowsDeleted > 0) DeleteResult.Success else DeleteResult.Error
             } catch (e: android.app.RecoverableSecurityException) {
-                // Android 10: access permission from user
                 DeleteResult.RequiresPermission(e.userAction.actionIntent.intentSender)
             } catch (e: SecurityException) {
                 val uri = ContentUris.withAppendedId(
@@ -283,9 +282,22 @@ class MusicRepositoryImpl @Inject constructor(
             }
 
             val audioFile = AudioFileIO.read(tempFile)
-            val tag = audioFile.tag ?: audioFile.createDefaultTag()
 
-            val existingArtworks = tag.artworkList?.toList() ?: emptyList()
+            // 1. ذخیره آرت‌ورک‌های موجود قبل از پاکسازی تگ‌ها
+            val existingArtworks = audioFile.tag?.artworkList?.toList() ?: emptyList()
+
+            // 2. پاکسازی تگ‌های معیوب یا غیراستانداردِ قبلی (مشابه کاری که سامسونگ موزیک انجام می‌دهد)
+            try {
+                audioFile.setTag(null)
+                val tag = audioFile.createDefaultTag()
+                audioFile.tag = tag
+            } catch (_: Exception) {
+                // اگر فایل تگ نداشت یا حذف نشد، نادیده بگیر و ادامه بده
+            }
+
+            // 3. ساخت تگ جدید و استاندارد
+            val tag = audioFile.createDefaultTag()
+            audioFile.tag = tag
 
             tag.setField(FieldKey.TITLE, title)
             tag.setField(FieldKey.ARTIST, artist)
@@ -298,6 +310,7 @@ class MusicRepositoryImpl @Inject constructor(
                 tag.setField(FieldKey.GENRE, genre)
             }
 
+            // 4. بازگرداندن تصاویر کاور روی تگ جدید
             for (artwork in existingArtworks) {
                 tag.addField(artwork)
             }
@@ -327,6 +340,7 @@ class MusicRepositoryImpl @Inject constructor(
         } catch (e: RecoverableSecurityException) {
             tempFile.delete()
             val intentSender = e.userAction.actionIntent.intentSender
+            android.util.Log.e("EditTagError", "Failed to update tags for song: ${e.localizedMessage}", e)
             UpdateTagResult.RequiresPermission(intentSender)
 
         } catch (e: SecurityException) {
@@ -347,9 +361,11 @@ class MusicRepositoryImpl @Inject constructor(
                     )
                 }
             }
+            android.util.Log.e("EditTagError", "Failed to update tags for song: ${e.localizedMessage}", e)
             UpdateTagResult.Error(e.localizedMessage ?: "خطای دسترسی امنیتی")
         } catch (e: Exception) {
             tempFile.delete()
+            android.util.Log.e("EditTagError", "Failed to update tags for song: ${e.localizedMessage}", e)
             UpdateTagResult.Error(e.localizedMessage ?: "خطای ناشناخته رخ داد")
         }
     }

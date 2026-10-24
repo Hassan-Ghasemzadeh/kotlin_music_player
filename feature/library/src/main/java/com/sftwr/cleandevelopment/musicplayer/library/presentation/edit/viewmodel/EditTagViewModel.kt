@@ -1,5 +1,6 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.edit.viewmodel
 
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.SavedStateHandle
@@ -9,9 +10,11 @@ import androidx.navigation.toRoute
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.UpdateTagResult
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.UpdateSongTagsUseCase
+import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractExtraMetadata
 import com.sftwr.cleandevelopment.musicplayer.model.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -23,6 +26,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
+import androidx.core.net.toUri
 
 sealed interface EditTagUiEvent {
     data class ShowToast(val message: String) : EditTagUiEvent
@@ -47,7 +51,9 @@ data class EditTagState(
 class EditTagViewModel @Inject constructor(
     private val updateSongTagsUseCase: UpdateSongTagsUseCase,
     private val getDeviceSongsUseCase: GetDeviceSongsUseCase,
+    private val playerManager: PlayerManager,
     savedStateHandle: SavedStateHandle,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EditTagState())
@@ -126,9 +132,11 @@ class EditTagViewModel @Inject constructor(
     fun saveTags() {
         if (_uiState.value.isSaving) return
 
+
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) }
             val currentState = _uiState.value
+
             val result = updateSongTagsUseCase(
                 songId = currentState.songId,
                 title = currentState.title,
@@ -143,6 +151,21 @@ class EditTagViewModel @Inject constructor(
             when (result) {
                 is UpdateTagResult.Success -> {
                     _uiEvent.send(EditTagUiEvent.ShowToast("تگ‌ها با موفقیت ویرایش شدند"))
+
+                    playerManager.refreshSongMetadataIfPlaying(
+                        songId = currentState.songId,
+                        newTitle = currentState.title,
+                        newArtist = currentState.artist,
+                        newAlbum = currentState.album,
+                        newYear = currentState.year,     // اصلاح شد
+                        newGenre = currentState.genre    // اصلاح شد
+                    )
+
+                    android.media.MediaScannerConnection.scanFile(
+                        context,
+                        arrayOf(currentState.songUri),
+                        arrayOf("audio/*")
+                    ) { _, _ -> }
                     _uiEvent.send(EditTagUiEvent.NavigateBack)
                 }
 
@@ -151,7 +174,8 @@ class EditTagViewModel @Inject constructor(
                 }
 
                 is UpdateTagResult.Error -> {
-                    _uiEvent.send(EditTagUiEvent.ShowToast("خطا: ${result.message}"))                }
+                    _uiEvent.send(EditTagUiEvent.ShowToast("خطا: ${result.message}"))
+                }
             }
         }
     }

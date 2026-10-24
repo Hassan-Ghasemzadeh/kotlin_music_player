@@ -1,6 +1,8 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks
 
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -63,6 +65,9 @@ data class SongUiModel(
     val id: String,
     val title: String,
     val artist: String,
+    val album: String,
+    val year: String,
+    val genre: String,
     val duration: String,
     val uri: String,
 )
@@ -70,6 +75,7 @@ data class SongUiModel(
 /**
  * TracksScreen displays the list of all available audio tracks with a glassmorphic design, floating action button, and A-Z fast scroller.
  */
+@RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TracksScreen(
@@ -453,6 +459,7 @@ fun TrackItem(
     }
 }
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Preview(showBackground = true)
 @Composable
 fun TracksScreenPreview() {
@@ -463,7 +470,10 @@ fun TracksScreenPreview() {
                 title = "Golaye Kaghazi",
                 artist = "Masoud Bakhtiari",
                 duration = "05:51",
-                uri = ""
+                uri = "",
+                album = "",
+                year = "",
+                genre = ""
             )
         ),
         isLoading = false,
