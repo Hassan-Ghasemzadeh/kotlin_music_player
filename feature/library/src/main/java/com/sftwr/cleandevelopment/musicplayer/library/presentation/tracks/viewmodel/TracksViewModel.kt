@@ -3,6 +3,7 @@ package com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewm
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
@@ -23,11 +24,21 @@ import kotlinx.coroutines.withContext
 import java.util.Locale
 import javax.inject.Inject
 
+@RequiresApi(Build.VERSION_CODES.S)
 @HiltViewModel
 class TracksViewModel @Inject constructor(
     private val getDeviceSongsUseCase: GetDeviceSongsUseCase,
-    private val playerManager: PlayerManager
+    private val playerManager: PlayerManager,
+    private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
+
+    var scrollIndex: Int
+        get() = savedStateHandle.get<Int>("scroll_index") ?: 0
+        set(value) { savedStateHandle["scroll_index"] = value }
+
+    var scrollOffset: Int
+        get() = savedStateHandle.get<Int>("scroll_offset") ?: 0
+        set(value) { savedStateHandle["scroll_offset"] = value }
 
     private val _uiState = MutableStateFlow(TracksUiState())
     val uiState: StateFlow<TracksUiState> = _uiState.asStateFlow()
@@ -45,6 +56,7 @@ class TracksViewModel @Inject constructor(
     }
 
     private var pendingDeleteSongId: Long? = null
+
 
     fun deleteCurrentOrSelectedSong(songId: Long) {
         pendingDeleteSongId = songId
@@ -64,6 +76,7 @@ class TracksViewModel @Inject constructor(
     /**
      * Fetches actual device songs from the UseCase and maps them to SongUiModel safely.
      */
+    @RequiresApi(Build.VERSION_CODES.S)
     private fun loadTracks() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(isLoading = true)

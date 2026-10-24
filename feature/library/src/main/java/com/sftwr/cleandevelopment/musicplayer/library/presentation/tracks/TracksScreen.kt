@@ -15,6 +15,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
@@ -30,13 +31,18 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -97,7 +103,21 @@ fun TracksScreen(
     val currentSong by viewModel.currentPlayingSong.collectAsState()
     val isPlayingGlobal by viewModel.isPlayerPlaying.collectAsState()
 
-    val listState = rememberLazyListState()
+    val listState = rememberSaveable(saver = LazyListState.Saver) {
+        LazyListState(
+            firstVisibleItemIndex = viewModel.scrollIndex,
+            firstVisibleItemScrollOffset = viewModel.scrollOffset
+        )
+    }
+
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
+            .collect { (index, offset) ->
+                viewModel.scrollIndex = index
+                viewModel.scrollOffset = offset
+            }
+    }
+
     val coroutineScope = rememberCoroutineScope()
     // Track which song's options menu is currently expanded
     var expandedSongId by remember { mutableStateOf<String?>(null) }
@@ -201,8 +221,8 @@ fun TracksScreen(
                         contentAlignment = Alignment.Center,
                     ) {
                         when {
-                            // 1. Loading state
-                            isLoading -> {
+                            // 1. Loading state (only show full screen loader if list is currently empty)
+                            isLoading && songs.isEmpty() -> {
                                 Box(
                                     modifier = Modifier.fillMaxSize(),
                                     contentAlignment = Alignment.Center

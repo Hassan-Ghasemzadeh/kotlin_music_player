@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.sftwr.cleandevelopment.musicplayer.home.R
+import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -51,7 +52,7 @@ fun SongDetailScreen(
         if (songDetail != null) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(songDetail.albumArtUri)
+                    .data(songDetail.path.extractAlbumArt())
                     .crossfade(true)
                     .build(),
                 contentDescription = null,
@@ -171,7 +172,7 @@ fun SongDetailScreen(
                     ) {
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
-                                .data(songDetail.path)
+                                .data(songDetail.path.extractAlbumArt())
                                 .crossfade(true)
                                 .build(),
                             contentDescription = "کاور آلبوم",

@@ -1,9 +1,11 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks
 
+import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -15,6 +17,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmo
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.TracksViewModel
 import kotlinx.coroutines.flow.collectLatest
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun TracksRoute(
     viewModel: TracksViewModel = hiltViewModel(),

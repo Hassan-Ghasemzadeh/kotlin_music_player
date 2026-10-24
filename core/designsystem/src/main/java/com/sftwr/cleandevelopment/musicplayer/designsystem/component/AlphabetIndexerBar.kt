@@ -38,14 +38,16 @@ fun AlphabetIndexerBar(
 
     LaunchedEffect(letters, totalHeight) {
         dragPositionFlow.collectLatest { posY ->
-            val clampedY = posY.coerceIn(0f, totalHeight)
-            val index = ((clampedY / totalHeight) * letters.size)
-                .toInt()
-                .coerceIn(0, letters.size - 1)
-            val letter = letters[index]
-            if (selectedLetter != letter) {
-                selectedLetter = letter
-                onLetterSelected(letter)
+            if (isDragging) {
+                val clampedY = posY.coerceIn(0f, totalHeight)
+                val index = ((clampedY / totalHeight) * letters.size)
+                    .toInt()
+                    .coerceIn(0, letters.size - 1)
+                val letter = letters[index]
+                if (selectedLetter != letter) {
+                    selectedLetter = letter
+                    onLetterSelected(letter)
+                }
             }
         }
     }
@@ -104,7 +106,8 @@ fun AlphabetIndexerBar(
                                 val pointerId = change.id
                                 while (true) {
                                     val nextEvent = awaitPointerEvent()
-                                    val nextChange = nextEvent.changes.firstOrNull { it.id == pointerId }
+                                    val nextChange =
+                                        nextEvent.changes.firstOrNull { it.id == pointerId }
                                     if (nextChange == null || !nextChange.pressed) {
                                         isDragging = false
                                         selectedLetter = null
