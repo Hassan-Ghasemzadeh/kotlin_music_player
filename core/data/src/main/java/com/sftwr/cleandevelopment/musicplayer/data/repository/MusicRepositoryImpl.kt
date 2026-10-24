@@ -269,33 +269,20 @@ class MusicRepositoryImpl @Inject constructor(
             songId
         )
 
-        val tempFile = File(application.cacheDir, "temp_audio_$songId.mp3")
+        val tempFile = File(application.cacheDir, "temp_audio_${System.currentTimeMillis()}.mp3")
 
         try {
-            val inputStream = contentResolver.openInputStream(uri)
-                ?: return@withContext UpdateTagResult.Error("امکان خواندن فایل وجود ندارد")
 
-            inputStream.use { input ->
+            contentResolver.openInputStream(uri)?.use { input ->
                 tempFile.outputStream().use { output ->
-                    input.copyTo(output)
+                    input.copyTo(output, bufferSize = 8 * 1024)
                 }
-            }
+            } ?: return@withContext UpdateTagResult.Error("امکان خواندن فایل وجود ندارد")
 
             val audioFile = AudioFileIO.read(tempFile)
-
-            // 1. ذخیره آرت‌ورک‌های موجود قبل از پاکسازی تگ‌ها
             val existingArtworks = audioFile.tag?.artworkList?.toList() ?: emptyList()
 
-            // 2. پاکسازی تگ‌های معیوب یا غیراستانداردِ قبلی (مشابه کاری که سامسونگ موزیک انجام می‌دهد)
-            try {
-                audioFile.setTag(null)
-                val tag = audioFile.createDefaultTag()
-                audioFile.tag = tag
-            } catch (_: Exception) {
-                // اگر فایل تگ نداشت یا حذف نشد، نادیده بگیر و ادامه بده
-            }
 
-            // 3. ساخت تگ جدید و استاندارد
             val tag = audioFile.createDefaultTag()
             audioFile.tag = tag
 
@@ -310,21 +297,18 @@ class MusicRepositoryImpl @Inject constructor(
                 tag.setField(FieldKey.GENRE, genre)
             }
 
-            // 4. بازگرداندن تصاویر کاور روی تگ جدید
             for (artwork in existingArtworks) {
                 tag.addField(artwork)
             }
 
             audioFile.commit()
 
-            val outputStream = contentResolver.openOutputStream(uri, "w")
-                ?: return@withContext UpdateTagResult.Error("امکان نوشتن روی فایل وجود ندارد")
-
-            outputStream.use { output ->
+            contentResolver.openOutputStream(uri, "w")?.use { output ->
                 tempFile.inputStream().use { input ->
-                    input.copyTo(output)
+                    input.copyTo(output, bufferSize = 8 * 1024)
                 }
-            }
+            } ?: return@withContext UpdateTagResult.Error("امکان نوشتن روی فایل وجود ندارد")
+
 
             val contentValues = ContentValues().apply {
                 put(MediaStore.Audio.Media.TITLE, title)
@@ -334,24 +318,14 @@ class MusicRepositoryImpl @Inject constructor(
             contentResolver.update(uri, contentValues, null, null)
             contentResolver.notifyChange(uri, null)
 
-            tempFile.delete()
             UpdateTagResult.Success
 
         } catch (e: RecoverableSecurityException) {
-            tempFile.delete()
             val intentSender = e.userAction.actionIntent.intentSender
-            android.util.Log.e(
-                "EditTagError",
-                "Failed to update tags for song: ${e.localizedMessage}",
-                e
-            )
             UpdateTagResult.RequiresPermission(intentSender)
-
         } catch (e: SecurityException) {
-            tempFile.delete()
             val uriTarget =
                 ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId)
-
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 try {
                     val pendingIntent = MediaStore.createWriteRequest(
@@ -365,20 +339,13 @@ class MusicRepositoryImpl @Inject constructor(
                     )
                 }
             }
-            android.util.Log.e(
-                "EditTagError",
-                "Failed to update tags for song: ${e.localizedMessage}",
-                e
-            )
             UpdateTagResult.Error(e.localizedMessage ?: "خطای دسترسی امنیتی")
         } catch (e: Exception) {
-            tempFile.delete()
-            android.util.Log.e(
-                "EditTagError",
-                "Failed to update tags for song: ${e.localizedMessage}",
-                e
-            )
             UpdateTagResult.Error(e.localizedMessage ?: "خطای ناشناخته رخ داد")
+        } finally {
+            if (tempFile.exists()) {
+                tempFile.delete()
+            }
         }
     }
 }
