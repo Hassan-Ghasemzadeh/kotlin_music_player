@@ -1,5 +1,7 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks
 
+import android.content.ContentUris
+import android.graphics.Bitmap
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -31,6 +33,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -56,7 +59,9 @@ import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAw
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.SongDropdownMenu
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.TracksViewModel
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.visualizer.AnimatedVisualizer
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 /**
  * UI Model representing a song item in the tracks list.
@@ -361,35 +366,21 @@ fun TrackItem(
                 modifier = Modifier.weight(1f)
             ) {
                 val context = LocalContext.current
-                val albumArtBytes = remember(song.uri) {
-                    song.uri.toUri().extractAlbumArt(context)
-                }
-
-                if (albumArtBytes != null) {
-                    AsyncImage(
-                        model = albumArtBytes,
-                        contentDescription = null,
-                        contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .size(50.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                    )
-                } else {
-                    Box(
-                        modifier = Modifier
-                            .size(50.dp)
-                            .clip(RoundedCornerShape(12.dp))
-                            .background(Color.White.copy(alpha = 0.15f)),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.MusicNote,
-                            contentDescription = null,
-                            tint = Color.White,
-                            modifier = Modifier.size(24.dp)
-                        )
+                val albumArtBitmap by produceState<Bitmap?>(initialValue = null, key1 = song.uri) {
+                    value = withContext(Dispatchers.IO) {
+                        song.uri.toUri().extractAlbumArt(context)
                     }
                 }
+
+                AsyncImage(
+                    model = albumArtBitmap,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    modifier = Modifier
+                        .size(50.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(Color.White.copy(alpha = 0.15f))
+                )
 
                 Spacer(modifier = Modifier.width(14.dp))
 

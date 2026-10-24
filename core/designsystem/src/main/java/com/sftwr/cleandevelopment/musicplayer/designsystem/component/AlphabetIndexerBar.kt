@@ -4,7 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -21,6 +21,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun AlphabetIndexerBar(
@@ -34,9 +36,11 @@ fun AlphabetIndexerBar(
     var isDragging by remember { mutableStateOf(false) }
     var totalHeight by remember { mutableStateOf(0f) }
 
-    // تابع کمکی برای محاسبه حرف بر اساس موقعیت Y
-    val updateLetterFromY: (Float) -> Unit = { posY ->
-        if (totalHeight > 0f && letters.isNotEmpty()) {
+    // استفاده از StateFlow برای پردازش لحظه‌ای و بدون تاخیرِ تاچ بدون بلاک کردن UI Thread
+    val dragPositionFlow = remember { MutableStateFlow(0f) }
+
+    LaunchedEffect(letters, totalHeight) {
+        dragPositionFlow.collectLatest { posY ->
             val index = ((posY / totalHeight) * letters.size)
                 .toInt()
                 .coerceIn(0, letters.size - 1)
@@ -55,6 +59,7 @@ fun AlphabetIndexerBar(
             .padding(vertical = 16.dp),
         contentAlignment = Alignment.CenterEnd
     ) {
+        // حباب شناور
         AnimatedVisibility(
             visible = isDragging && selectedLetter != null,
             enter = fadeIn(),
@@ -79,7 +84,8 @@ fun AlphabetIndexerBar(
             }
         }
 
-        Column(
+        // ستون ایندکسر با قابلیت تشخیص سریع تاچ و درگ
+        Box(
             modifier = Modifier
                 .fillMaxHeight()
                 .width(20.dp)
@@ -88,11 +94,11 @@ fun AlphabetIndexerBar(
                 .onGloballyPositioned { coordinates ->
                     totalHeight = coordinates.size.height.toFloat()
                 }
-                .pointerInput(letters) {
-                    detectVerticalDragGestures(
+                .pointerInput(Unit) {
+                    detectDragGestures(
                         onDragStart = { offset ->
                             isDragging = true
-                            updateLetterFromY(offset.y)
+                            dragPositionFlow.value = offset.y
                         },
                         onDragEnd = {
                             isDragging = false
@@ -102,16 +108,16 @@ fun AlphabetIndexerBar(
                             isDragging = false
                             selectedLetter = null
                         },
-                        onVerticalDrag = { change, _ ->
-                            updateLetterFromY(change.position.y)
+                        onDrag = { change, _ ->
+                            dragPositionFlow.value = change.position.y
                         }
                     )
                 }
-                .pointerInput(letters) {
+                .pointerInput(Unit) {
                     detectTapGestures(
                         onPress = { offset ->
                             isDragging = true
-                            updateLetterFromY(offset.y)
+                            dragPositionFlow.value = offset.y
                             if (tryAwaitRelease()) {
                                 isDragging = false
                                 selectedLetter = null
@@ -122,19 +128,24 @@ fun AlphabetIndexerBar(
                         }
                     )
                 },
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.SpaceEvenly
+            contentAlignment = Alignment.Center
         ) {
-            letters.forEach { letter ->
-                val isSelected = letter == selectedLetter
-                Text(
-                    text = letter,
-                    color = if (isSelected) neonColor else Color.White.copy(alpha = 0.6f),
-                    fontSize = 10.sp,
-                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.weight(1f, fill = false)
-                )
+            Column(
+                modifier = Modifier.fillMaxSize(),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceEvenly
+            ) {
+                letters.forEach { letter ->
+                    val isSelected = letter == selectedLetter
+                    Text(
+                        text = letter,
+                        color = if (isSelected) neonColor else Color.White.copy(alpha = 0.6f),
+                        fontSize = 10.sp,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.weight(1f, fill = false)
+                    )
+                }
             }
         }
     }
