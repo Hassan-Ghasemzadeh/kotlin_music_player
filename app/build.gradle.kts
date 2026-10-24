@@ -24,10 +24,14 @@ android {
 
     buildTypes {
         release {
-            optimization {
-                enable = true
-                packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
-            }
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro"
+            )
+            // برای اینکه بتونی به راحتی نسخه ریلیز رو روی گوشیت نصب و تست کنی:
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {
