@@ -34,9 +34,7 @@ fun SearchRoute(
             Toast.makeText(context, "اجازه حذف داده نشد", Toast.LENGTH_SHORT).show()
         }
     }
-    LaunchedEffect(Unit) {
-        viewModel.refreshSearch()
-    }
+
     LaunchedEffect(key1 = true) {
         viewModel.deleteEvent.collect { event ->
             when (event) {
@@ -51,6 +49,9 @@ fun SearchRoute(
                 }
             }
         }
+    }
+    LaunchedEffect(Unit) {
+        viewModel.refreshSearch()
     }
     val actions = remember(viewModel, onNavigateBack, onNavigateToPlayer) {
         SearchActions(
