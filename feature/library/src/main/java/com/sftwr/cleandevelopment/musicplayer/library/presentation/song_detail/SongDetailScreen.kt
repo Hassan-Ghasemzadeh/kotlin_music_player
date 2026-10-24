@@ -171,7 +171,7 @@ fun SongDetailScreen(
                     ) {
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
-                                .data(songDetail.albumArtUri)
+                                .data(songDetail.path)
                                 .crossfade(true)
                                 .build(),
                             contentDescription = "کاور آلبوم",
