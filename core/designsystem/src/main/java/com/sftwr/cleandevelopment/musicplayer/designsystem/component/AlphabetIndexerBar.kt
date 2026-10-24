@@ -4,8 +4,6 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -36,12 +34,12 @@ fun AlphabetIndexerBar(
     var isDragging by remember { mutableStateOf(false) }
     var totalHeight by remember { mutableStateOf(0f) }
 
-    // استفاده از StateFlow برای پردازش لحظه‌ای و بدون تاخیرِ تاچ بدون بلاک کردن UI Thread
     val dragPositionFlow = remember { MutableStateFlow(0f) }
 
     LaunchedEffect(letters, totalHeight) {
         dragPositionFlow.collectLatest { posY ->
-            val index = ((posY / totalHeight) * letters.size)
+            val clampedY = posY.coerceIn(0f, totalHeight)
+            val index = ((clampedY / totalHeight) * letters.size)
                 .toInt()
                 .coerceIn(0, letters.size - 1)
             val letter = letters[index]
@@ -84,7 +82,6 @@ fun AlphabetIndexerBar(
             }
         }
 
-        // ستون ایندکسر با قابلیت تشخیص سریع تاچ و درگ
         Box(
             modifier = Modifier
                 .fillMaxHeight()
@@ -95,38 +92,31 @@ fun AlphabetIndexerBar(
                     totalHeight = coordinates.size.height.toFloat()
                 }
                 .pointerInput(Unit) {
-                    detectDragGestures(
-                        onDragStart = { offset ->
-                            isDragging = true
-                            dragPositionFlow.value = offset.y
-                        },
-                        onDragEnd = {
-                            isDragging = false
-                            selectedLetter = null
-                        },
-                        onDragCancel = {
-                            isDragging = false
-                            selectedLetter = null
-                        },
-                        onDrag = { change, _ ->
-                            dragPositionFlow.value = change.position.y
-                        }
-                    )
-                }
-                .pointerInput(Unit) {
-                    detectTapGestures(
-                        onPress = { offset ->
-                            isDragging = true
-                            dragPositionFlow.value = offset.y
-                            if (tryAwaitRelease()) {
-                                isDragging = false
-                                selectedLetter = null
-                            } else {
-                                isDragging = false
-                                selectedLetter = null
+                    awaitPointerEventScope {
+                        while (true) {
+                            val pointerEvent = awaitPointerEvent()
+                            val change = pointerEvent.changes.firstOrNull()
+                            if (change != null && change.pressed) {
+                                isDragging = true
+                                dragPositionFlow.value = change.position.y
+                                change.consume()
+
+                                val pointerId = change.id
+                                while (true) {
+                                    val nextEvent = awaitPointerEvent()
+                                    val nextChange = nextEvent.changes.firstOrNull { it.id == pointerId }
+                                    if (nextChange == null || !nextChange.pressed) {
+                                        isDragging = false
+                                        selectedLetter = null
+                                        break
+                                    } else {
+                                        dragPositionFlow.value = nextChange.position.y
+                                        nextChange.consume()
+                                    }
+                                }
                             }
                         }
-                    )
+                    }
                 },
             contentAlignment = Alignment.Center
         ) {
