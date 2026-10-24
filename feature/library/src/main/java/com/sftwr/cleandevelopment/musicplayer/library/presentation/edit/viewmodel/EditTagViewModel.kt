@@ -151,16 +151,14 @@ class EditTagViewModel @Inject constructor(
             when (result) {
                 is UpdateTagResult.Success -> {
                     _uiEvent.send(EditTagUiEvent.ShowToast("تگ‌ها با موفقیت ویرایش شدند"))
-
-                    playerManager.refreshSongMetadataIfPlaying(
+                    playerManager.updateSongMetadata(
                         songId = currentState.songId,
                         newTitle = currentState.title,
                         newArtist = currentState.artist,
                         newAlbum = currentState.album,
-                        newYear = currentState.year,     // اصلاح شد
-                        newGenre = currentState.genre    // اصلاح شد
+                        newYear = currentState.year,
+                        newGenre = currentState.genre
                     )
-
                     android.media.MediaScannerConnection.scanFile(
                         context,
                         arrayOf(currentState.songUri),

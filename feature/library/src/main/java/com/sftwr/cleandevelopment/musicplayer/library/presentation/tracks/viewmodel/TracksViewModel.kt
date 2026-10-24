@@ -16,9 +16,13 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
@@ -34,14 +38,30 @@ class TracksViewModel @Inject constructor(
 
     var scrollIndex: Int
         get() = savedStateHandle.get<Int>("scroll_index") ?: 0
-        set(value) { savedStateHandle["scroll_index"] = value }
+        set(value) {
+            savedStateHandle["scroll_index"] = value
+        }
 
     var scrollOffset: Int
         get() = savedStateHandle.get<Int>("scroll_offset") ?: 0
-        set(value) { savedStateHandle["scroll_offset"] = value }
+        set(value) {
+            savedStateHandle["scroll_offset"] = value
+        }
 
-    private val _uiState = MutableStateFlow(TracksUiState())
-    val uiState: StateFlow<TracksUiState> = _uiState.asStateFlow()
+    // 👈 متغیرهای داخلی لودینگ برای کنترل وضعیت بارگذاری
+    private val _isLoading = MutableStateFlow(false)
+    private val _isRefreshing = MutableStateFlow(false)
+
+    // 👈 اتصال مستقیم uiState به منبع حقیقت واحد (allSongs) در PlayerManager
+    val uiState: StateFlow<TracksUiState> = playerManager.allSongs
+        .map { songs ->
+            TracksUiState(
+                songs = songs,
+                isLoading = _isLoading.value,
+                isRefreshing = _isRefreshing.value
+            )
+        }
+        .stateIn(viewModelScope, SharingStarted.Lazily, TracksUiState())
 
     private val _uiEvent = Channel<TracksUiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
@@ -56,7 +76,6 @@ class TracksViewModel @Inject constructor(
     }
 
     private var pendingDeleteSongId: Long? = null
-
 
     fun deleteCurrentOrSelectedSong(songId: Long) {
         pendingDeleteSongId = songId
@@ -79,10 +98,9 @@ class TracksViewModel @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.S)
     private fun loadTracks() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            _isLoading.value = true
 
             getDeviceSongsUseCase().collect { domainSongs ->
-                // 👈 استفاده از toList() برای جلوگیری از ConcurrentModificationException
                 val songUiModels = domainSongs.toList().map { song ->
                     val extraMetadata = withContext(Dispatchers.IO) {
                         song.path.extractExtraMetadata()
@@ -99,10 +117,9 @@ class TracksViewModel @Inject constructor(
                     )
                 }
 
-                _uiState.value = _uiState.value.copy(
-                    songs = songUiModels,
-                    isLoading = false
-                )
+                // 👈 ارسال لیست به پلیرمنجر تا به عنوان منبع واحد ثبت شود
+                playerManager.setSongs(songUiModels)
+                _isLoading.value = false
             }
         }
     }
@@ -111,7 +128,7 @@ class TracksViewModel @Inject constructor(
      * Handles track selection, sets the playback queue, and triggers navigation to the player.
      */
     fun onSongClicked(songId: String) {
-        val songs = _uiState.value.songs
+        val songs = uiState.value.songs
         val index = songs.indexOfFirst { it.id == songId }
 
         if (index != -1) {
@@ -135,11 +152,9 @@ class TracksViewModel @Inject constructor(
                 is DeleteResult.Success -> {
                     _deleteEvent.send(PlayerUiEvent.ShowToast("آهنگ با موفقیت حذف شد"))
                 }
-
                 is DeleteResult.RequiresPermission -> {
                     _deleteEvent.send(PlayerUiEvent.ShowDeletePermissionDialog(result.intentSender))
                 }
-
                 is DeleteResult.Error -> {
                     _deleteEvent.send(PlayerUiEvent.ShowToast("خطا در حذف آهنگ"))
                 }
@@ -153,11 +168,9 @@ class TracksViewModel @Inject constructor(
     @RequiresApi(Build.VERSION_CODES.S)
     fun refreshTracks() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isRefreshing = true)
+            _isRefreshing.value = true
 
             getDeviceSongsUseCase().collect { domainSongs ->
-
-                // 👈 استفاده از toList() برای امنیت تردینگ
                 val songUiModels = domainSongs.toList().map { song ->
                     val extraMetadata = withContext(Dispatchers.IO) {
                         song.path.extractExtraMetadata()
@@ -174,10 +187,8 @@ class TracksViewModel @Inject constructor(
                     )
                 }
 
-                _uiState.value = _uiState.value.copy(
-                    songs = songUiModels,
-                    isRefreshing = false
-                )
+                playerManager.setSongs(songUiModels)
+                _isRefreshing.value = false
             }
         }
     }

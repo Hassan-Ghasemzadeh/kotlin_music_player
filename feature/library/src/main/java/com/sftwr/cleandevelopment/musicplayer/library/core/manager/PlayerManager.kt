@@ -62,6 +62,14 @@ class PlayerManager @Inject constructor(
         })
     }
 
+    private val _allSongs = MutableStateFlow<List<SongUiModel>>(emptyList())
+    val allSongs: StateFlow<List<SongUiModel>> = _allSongs.asStateFlow()
+
+    // قرار دادن لیست اولیه آهنگ‌ها (مثلاً موقع بالا آمدن برنامه)
+    fun setSongs(songs: List<SongUiModel>) {
+        _allSongs.value = songs
+    }
+
     private fun checkAndPlayNextOrStop() {
         if (exoPlayer.hasNextMediaItem()) {
             exoPlayer.seekToNextMediaItem()
@@ -155,52 +163,75 @@ class PlayerManager @Inject constructor(
         exoPlayer.play()
     }
 
-    suspend fun refreshSongMetadataIfPlaying(
+
+    fun updateSongMetadata(
         songId: Long,
-        newTitle: String? = null,
-        newArtist: String? = null,
-        newAlbum: String? = null,
-        newYear: String? = null,
-        newGenre: String? = null,
+        newTitle: String,
+        newArtist: String,
+        newAlbum: String,
+        newYear: String,
+        newGenre: String
     ) {
-        val current = _currentSong.value ?: return
-        if (current.id != songId.toString()) return
-
-        // ساخت نسخه به‌روزرسانی‌شده با مقادیری که کاربر همین الان وارد کرده است
-        val updatedSong = current.copy(
-            title = newTitle ?: current.title,
-            artist = newArtist ?: current.artist,
-            album = newAlbum ?: current.album,
-            year = newYear ?: current.year,
-            genre = newGenre ?: current.genre,
-        )
-
-        // ۱. آپدیت استیت مینی‌پلیر بلافاصله با متن جدید
-        _currentSong.value = updatedSong
-
-        // ۲. آپدیت صف پخش داخلی
-        activeQueue = activeQueue.map { song ->
-            if (song.id == updatedSong.id) updatedSong else song
+        _allSongs.value = _allSongs.value.map { song ->
+            if (song.id.toLongOrNull() == songId || song.id == songId.toString()) {
+                song.copy(
+                    title = newTitle,
+                    artist = newArtist,
+                    album = newAlbum,
+                    year = newYear,
+                    genre = newGenre
+                )
+            } else {
+                song
+            }
         }
 
-        // ۳. آپدیت مدیاایتم در ExoPlayer
+        activeQueue = activeQueue.map { song ->
+            if (song.id.toLongOrNull() == songId || song.id == songId.toString()) {
+                song.copy(
+                    title = newTitle,
+                    artist = newArtist,
+                    album = newAlbum,
+                    year = newYear,
+                    genre = newGenre
+                )
+            } else {
+                song
+            }
+        }
+
+        val current = _currentSong.value
+        if (current?.id?.toLongOrNull() == songId || current?.id == songId.toString()) {
+            _currentSong.value = current.copy(
+                title = newTitle,
+                artist = newArtist,
+                album = newAlbum,
+                year = newYear,
+                genre = newGenre
+            )
+        }
+
         val currentIndex = exoPlayer.currentMediaItemIndex
-        if (currentIndex in activeQueue.indices && activeQueue[currentIndex].id == updatedSong.id) {
-            val isPlayingNow = exoPlayer.isPlaying
-            val currentPosition = exoPlayer.currentPosition
+        if (currentIndex in activeQueue.indices) {
+            val activeSong = activeQueue[currentIndex]
+            if (activeSong.id.toLongOrNull() == songId || activeSong.id == songId.toString()) {
+                val isPlayingNow = exoPlayer.isPlaying
+                val currentPosition = exoPlayer.currentPosition
 
-            val newMediaItem = MediaItem.Builder()
-                .setUri(updatedSong.uri.toUri())
-                .setMediaId(updatedSong.id)
-                .build()
+                val newMediaItem = MediaItem.Builder()
+                    .setUri(activeSong.uri.toUri())
+                    .setMediaId(activeSong.id)
+                    .build()
 
-            exoPlayer.replaceMediaItem(currentIndex, newMediaItem)
-            exoPlayer.seekTo(currentIndex, currentPosition)
-            if (isPlayingNow) {
-                exoPlayer.play()
+                exoPlayer.replaceMediaItem(currentIndex, newMediaItem)
+                exoPlayer.seekTo(currentIndex, currentPosition)
+                if (isPlayingNow) {
+                    exoPlayer.play()
+                }
             }
         }
     }
+
 
     /**
      * Toggle play/pause state.
