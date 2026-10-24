@@ -4,6 +4,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,6 +33,20 @@ fun AlphabetIndexerBar(
     var selectedLetter by remember { mutableStateOf<String?>(null) }
     var isDragging by remember { mutableStateOf(false) }
     var totalHeight by remember { mutableStateOf(0f) }
+
+    // تابع کمکی برای محاسبه حرف بر اساس موقعیت Y
+    val updateLetterFromY: (Float) -> Unit = { posY ->
+        if (totalHeight > 0f && letters.isNotEmpty()) {
+            val index = ((posY / totalHeight) * letters.size)
+                .toInt()
+                .coerceIn(0, letters.size - 1)
+            val letter = letters[index]
+            if (selectedLetter != letter) {
+                selectedLetter = letter
+                onLetterSelected(letter)
+            }
+        }
+    }
 
     Box(
         modifier = modifier
@@ -72,36 +88,39 @@ fun AlphabetIndexerBar(
                 .onGloballyPositioned { coordinates ->
                     totalHeight = coordinates.size.height.toFloat()
                 }
-                .pointerInput(letters, totalHeight) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            val pointerEvent = awaitPointerEvent()
-                            val change = pointerEvent.changes.firstOrNull()
-
-                            if (change != null) {
-                                if (change.pressed) {
-                                    if (!isDragging) isDragging = true
-
-                                    updateLetter(
-                                        posY = change.position.y,
-                                        totalHeight = totalHeight,
-                                        letters = letters
-                                    ) { letter ->
-                                        if (selectedLetter != letter) {
-                                            selectedLetter = letter
-                                            onLetterSelected(letter)
-                                        }
-                                    }
-                                    change.consume()
-                                } else {
-                                    if (isDragging) {
-                                        isDragging = false
-                                        selectedLetter = null
-                                    }
-                                }
+                .pointerInput(letters) {
+                    detectVerticalDragGestures(
+                        onDragStart = { offset ->
+                            isDragging = true
+                            updateLetterFromY(offset.y)
+                        },
+                        onDragEnd = {
+                            isDragging = false
+                            selectedLetter = null
+                        },
+                        onDragCancel = {
+                            isDragging = false
+                            selectedLetter = null
+                        },
+                        onVerticalDrag = { change, _ ->
+                            updateLetterFromY(change.position.y)
+                        }
+                    )
+                }
+                .pointerInput(letters) {
+                    detectTapGestures(
+                        onPress = { offset ->
+                            isDragging = true
+                            updateLetterFromY(offset.y)
+                            if (tryAwaitRelease()) {
+                                isDragging = false
+                                selectedLetter = null
+                            } else {
+                                isDragging = false
+                                selectedLetter = null
                             }
                         }
-                    }
+                    )
                 },
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceEvenly
@@ -119,18 +138,4 @@ fun AlphabetIndexerBar(
             }
         }
     }
-}
-
-
-private inline fun updateLetter(
-    posY: Float,
-    totalHeight: Float,
-    letters: List<String>,
-    onLetterChanged: (String) -> Unit
-) {
-    if (totalHeight <= 0f || letters.isEmpty()) return
-    val index = ((posY / totalHeight) * letters.size)
-        .toInt()
-        .coerceIn(0, letters.size - 1)
-    onLetterChanged(letters[index])
 }
