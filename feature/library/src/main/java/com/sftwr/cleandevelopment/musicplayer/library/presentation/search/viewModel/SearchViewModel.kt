@@ -11,12 +11,13 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.Search
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.PlayerUiEvent
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.TracksUiEvent
-// import com.sftwr.cleandevelopment.musicplayer.library.domain.usecase.SearchSongsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -56,6 +57,43 @@ class SearchViewModel @Inject constructor(
         pendingDeleteSongId?.let { id ->
             deleteCurrentOrSelectedSong(id)
             pendingDeleteSongId = null
+        }
+    }
+
+    fun refreshSearch() {
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+
+            try {
+                val rawResults = getDeviceSongsUseCase().firstOrNull()
+
+                if (rawResults != null) {
+                    val mappedResults = rawResults.map { song ->
+                        SongUiModel(
+                            id = song.id.toString(),
+                            title = song.title,
+                            artist = song.artist,
+                            uri = song.path,
+                            duration = song.duration.formatTime()
+                        )
+                    }
+
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            isSearching = true,
+                            searchResults = mappedResults
+                        )
+                    }
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        searchResults = emptyList()
+                    )
+                }
+            }
         }
     }
 
@@ -166,10 +204,8 @@ class SearchViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true) }
 
             try {
-                // ۱. صدا زدن UseCase و گرفتن لیست Song (دامین)
                 val rawResults = searchSongsUseCase(query)
 
-                // ۲. تبدیل Song به SongUiModel برای نمایش در لایه UI
                 val mappedResults = rawResults.map { song ->
                     SongUiModel(
                         id = song.id.toString(),
@@ -180,7 +216,6 @@ class SearchViewModel @Inject constructor(
                     )
                 }
 
-                // ۳. به‌روزرسانی استیت صفحه
                 _uiState.update {
                     it.copy(
                         isLoading = false,
