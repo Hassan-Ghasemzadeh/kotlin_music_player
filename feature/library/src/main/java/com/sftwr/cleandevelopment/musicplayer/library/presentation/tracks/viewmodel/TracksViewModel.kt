@@ -127,10 +127,6 @@ class TracksViewModel @Inject constructor(
 
         if (index != -1) {
             playerManager.setQueue(songs, startIndex = index)
-
-            viewModelScope.launch {
-                _uiEvent.send(TracksUiEvent.NavigateToPlayer)
-            }
         }
     }
 
@@ -157,7 +153,6 @@ class TracksViewModel @Inject constructor(
  * UI events emitted from TracksViewModel for one-time actions like navigation.
  */
 sealed interface TracksUiEvent {
-    object NavigateToPlayer : TracksUiEvent
     object NavigateToSearch : TracksUiEvent
 }
 

@@ -27,12 +27,9 @@ import org.jaudiotagger.tag.FieldKey
 import java.io.File
 
 class MusicRepositoryImpl @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val application: Application,
 ) : MusicRepository {
-
-    @ApplicationContext
-    lateinit var context: Context
-
     /**
      * Observes device audio files from MediaStore and emits an updated list of songs reactively.
      */

@@ -16,7 +16,6 @@ data object TracksRouteKey
  */
 @RequiresApi(Build.VERSION_CODES.S)
 fun NavGraphBuilder.tracksGraph(
-    onNavigateToPlayer: () -> Unit,
     onNavigateToSearch: () -> Unit,
     onBackClick: () -> Unit,
     onInfoClick: (Long) -> Unit,
@@ -27,7 +26,6 @@ fun NavGraphBuilder.tracksGraph(
         TracksRoute(
             onBackClick = onBackClick,
             onNavigateToSearch = onNavigateToSearch,
-            onNavigateToPlayer = onNavigateToPlayer,
             onInfoClick = onInfoClick,
             onTagEditClick = onTagEditClick,
         )
