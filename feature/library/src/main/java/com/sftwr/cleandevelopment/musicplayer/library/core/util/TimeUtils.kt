@@ -1,11 +1,5 @@
 package com.sftwr.cleandevelopment.musicplayer.library.core.util
 
-import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.BitmapFactory
-import android.media.MediaMetadataRetriever
-import android.net.Uri
-import android.util.Log
 import java.util.Locale
 
 /**
@@ -32,6 +26,7 @@ fun String.toMillis(): Float {
             0f
         }
     } catch (e: Exception) {
+        e.printStackTrace()
         0f
     }
 }

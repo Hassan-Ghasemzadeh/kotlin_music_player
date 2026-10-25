@@ -21,7 +21,7 @@ import kotlinx.coroutines.flow.collectLatest
 @Composable
 fun TracksRoute(
     viewModel: TracksViewModel = hiltViewModel(),
-    onNavigateToPlayer: (String) -> Unit,
+    onNavigateToPlayer: () -> Unit,
     onNavigateToSearch: () -> Unit,
     onBackClick: () -> Unit,
     onInfoClick: (Long) -> Unit,
@@ -43,7 +43,7 @@ fun TracksRoute(
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
-                is TracksUiEvent.NavigateToPlayer -> onNavigateToPlayer
+                is TracksUiEvent.NavigateToPlayer -> onNavigateToPlayer()
                 is TracksUiEvent.NavigateToSearch -> onNavigateToSearch()
             }
         }

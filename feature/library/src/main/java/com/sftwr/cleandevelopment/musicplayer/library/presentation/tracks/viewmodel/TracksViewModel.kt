@@ -1,6 +1,5 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel
 
-import android.net.Uri
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.SavedStateHandle
@@ -18,14 +17,11 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.util.Locale
 import javax.inject.Inject
 
 @RequiresApi(Build.VERSION_CODES.S)
@@ -48,11 +44,9 @@ class TracksViewModel @Inject constructor(
             savedStateHandle["scroll_offset"] = value
         }
 
-    // 👈 متغیرهای داخلی لودینگ برای کنترل وضعیت بارگذاری
     private val _isLoading = MutableStateFlow(false)
     private val _isRefreshing = MutableStateFlow(false)
 
-    // 👈 اتصال مستقیم uiState به منبع حقیقت واحد (allSongs) در PlayerManager
     val uiState: StateFlow<TracksUiState> = playerManager.allSongs
         .map { songs ->
             TracksUiState(
@@ -135,14 +129,8 @@ class TracksViewModel @Inject constructor(
             playerManager.setQueue(songs, startIndex = index)
 
             viewModelScope.launch {
-                _uiEvent.send(TracksUiEvent.NavigateToPlayer(songId))
+                _uiEvent.send(TracksUiEvent.NavigateToPlayer)
             }
-        }
-    }
-
-    fun onSearchClicked() {
-        viewModelScope.launch {
-            _uiEvent.send(TracksUiEvent.NavigateToSearch)
         }
     }
 
@@ -163,44 +151,13 @@ class TracksViewModel @Inject constructor(
             }
         }
     }
-
-    /**
-     * Refreshes the track list from device storage safely.
-     */
-    @RequiresApi(Build.VERSION_CODES.S)
-    fun refreshTracks() {
-        viewModelScope.launch {
-            _isRefreshing.value = true
-
-            getDeviceSongsUseCase().collect { domainSongs ->
-                val songUiModels = domainSongs.toList().map { song ->
-                    val extraMetadata = withContext(Dispatchers.IO) {
-                        song.path.extractExtraMetadata()
-                    }
-                    SongUiModel(
-                        id = song.id.toString(),
-                        title = song.title,
-                        artist = song.artist,
-                        duration = song.duration.formatTime(),
-                        uri = song.path,
-                        year = extraMetadata.year ?: "",
-                        album = song.path,
-                        genre = extraMetadata.genre ?: "",
-                    )
-                }
-
-                playerManager.setSongs(songUiModels)
-                _isRefreshing.value = false
-            }
-        }
-    }
 }
 
 /**
  * UI events emitted from TracksViewModel for one-time actions like navigation.
  */
 sealed interface TracksUiEvent {
-    data class NavigateToPlayer(val songId: String) : TracksUiEvent
+    object NavigateToPlayer : TracksUiEvent
     object NavigateToSearch : TracksUiEvent
 }
 

@@ -25,6 +25,7 @@ fun Uri.extractAlbumArt(context: Context): Bitmap? {
             null
         }
     } catch (e: Exception) {
+        e.printStackTrace()
         null
     } finally {
         try {
@@ -40,11 +41,13 @@ fun String.extractAlbumArt(): ByteArray? {
         retriever.setDataSource(this)
         retriever.embeddedPicture
     } catch (e: Exception) {
+        e.printStackTrace()
         null
     } finally {
         try {
             retriever.release()
         } catch (ignored: Exception) {
+            ignored.printStackTrace()
         }
     }
 }
@@ -71,6 +74,7 @@ fun String.extractExtraMetadata(): SongExtraMetadata {
             mimeType = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE)
         )
     } catch (e: Exception) {
+        e.printStackTrace()
         SongExtraMetadata(null, null, null, null, null)
     } finally {
         try {

@@ -25,7 +25,7 @@ fun SearchScreen(
     uiState: SearchUiState, actions: SearchActions, modifier: Modifier = Modifier
 ) {
     // Track which song's options menu is currently expanded in search results
-    var expandedSongId: String? by remember { mutableStateOf<String?>(null) }
+    var expandedSongId: String? by remember { mutableStateOf(null) }
 
     // Main container with dark vertical gradient background matching TracksScreen
     Box(

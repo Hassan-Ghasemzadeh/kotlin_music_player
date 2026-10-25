@@ -1,6 +1,5 @@
 package com.sftwr.cleandevelopment.musicplayer.library.core.manager
 
-import android.net.Uri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
@@ -13,16 +12,11 @@ import javax.inject.Singleton
 import androidx.core.net.toUri
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.DeleteSongUseCase
-import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
-import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
-import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 
 @Singleton
 class PlayerManager @Inject constructor(
     val exoPlayer: ExoPlayer,
     private val deleteSongUseCase: DeleteSongUseCase,
-    private val getDeviceSongsUseCase: GetDeviceSongsUseCase,
 ) {
 
     // Currently playing song state

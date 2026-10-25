@@ -27,9 +27,11 @@ import org.jaudiotagger.tag.FieldKey
 import java.io.File
 
 class MusicRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context,
     private val application: Application,
 ) : MusicRepository {
+
+    @ApplicationContext
+    lateinit var context: Context
 
     /**
      * Observes device audio files from MediaStore and emits an updated list of songs reactively.
@@ -227,7 +229,7 @@ class MusicRepositoryImpl @Inject constructor(
                 val rowsDeleted = context.contentResolver.delete(uri, null, null)
                 android.util.Log.d("DeleteDebug", "Target ID: $songId, Rows Deleted: $rowsDeleted")
                 if (rowsDeleted > 0) DeleteResult.Success else DeleteResult.Error
-            } catch (e: android.app.RecoverableSecurityException) {
+            } catch (e: RecoverableSecurityException) {
                 DeleteResult.RequiresPermission(e.userAction.actionIntent.intentSender)
             } catch (e: SecurityException) {
                 val uri = ContentUris.withAppendedId(

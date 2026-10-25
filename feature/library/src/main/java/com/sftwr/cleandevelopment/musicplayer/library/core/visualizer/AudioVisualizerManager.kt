@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlin.math.hypot
 
 class AudioVisualizerManager {
-    private val _fftData = MutableStateFlow(FloatArray(64) { 0f })
+    private val _fftData = MutableStateFlow(FloatArray(64))
     val fftData: StateFlow<FloatArray> = _fftData.asStateFlow()
 
     private var visualizer: Visualizer? = null
@@ -84,7 +84,7 @@ class AudioVisualizerManager {
             e.printStackTrace()
         } finally {
             visualizer = null
-            _fftData.value = FloatArray(64) { 0f }
+            _fftData.value = FloatArray(64)
         }
     }
 }

@@ -12,8 +12,6 @@ import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractExtraMeta
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.SearchUiState
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
-import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.PlayerUiEvent
-import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.TracksUiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
@@ -21,7 +19,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -100,6 +97,7 @@ class SearchViewModel @Inject constructor(
                     }
                 }
             } catch (e: Exception) {
+                e.printStackTrace()
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -250,6 +248,7 @@ class SearchViewModel @Inject constructor(
                     )
                 }
             } catch (e: Exception) {
+                e.printStackTrace()
                 _uiState.update {
                     it.copy(
                         isLoading = false,

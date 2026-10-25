@@ -4,7 +4,6 @@ import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import com.sftwr.cleandevelopment.musicplayer.model.Screen
 import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.Serializable
 
 /**
  * Extension function to register the home screen and its navigation graph

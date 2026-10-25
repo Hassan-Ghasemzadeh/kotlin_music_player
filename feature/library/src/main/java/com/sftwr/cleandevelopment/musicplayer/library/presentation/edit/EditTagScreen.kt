@@ -184,7 +184,6 @@ fun EditTagScreen(
                         label = "Year",
                         value = state.year,
                         onValueChange = onYearChange,
-                        isNumber = true
                     )
                     Spacer(modifier = Modifier.height(10.dp))
                     EditTagTextField(
@@ -247,7 +246,6 @@ fun EditTagTextField(
     label: String,
     value: String,
     onValueChange: (String) -> Unit,
-    isNumber: Boolean = false
 ) {
     OutlinedTextField(
         value = value,

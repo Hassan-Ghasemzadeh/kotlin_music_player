@@ -1,10 +1,12 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.search
 
 
+import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -15,6 +17,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.viewModel.SearchPlayerUiEvent
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.viewModel.SearchViewModel
 
+@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun SearchRoute(
     onNavigateBack: () -> Unit,

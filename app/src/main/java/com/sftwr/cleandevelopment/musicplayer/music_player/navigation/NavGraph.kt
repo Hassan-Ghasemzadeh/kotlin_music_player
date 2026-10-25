@@ -51,7 +51,7 @@ fun AppNavGraph(
             onNavigateToSearch = {
                 navController.navigate(Screen.Search)
             },
-            onNavigateToPlayer = { songId ->
+            onNavigateToPlayer = {
                 navController.navigate(Screen.Player)
             },
             onInfoClick = { songId ->

@@ -26,7 +26,6 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
-import androidx.core.net.toUri
 
 sealed interface EditTagUiEvent {
     data class ShowToast(val message: String) : EditTagUiEvent

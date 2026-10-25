@@ -207,134 +207,128 @@ fun TracksScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                PullToRefreshBox(
-                    isRefreshing = viewModel.uiState.collectAsState().value.isRefreshing,
-                    onRefresh = { viewModel.refreshTracks() },
-                    modifier = Modifier.fillMaxSize()
+                Box(
+                    modifier = Modifier.fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
                 ) {
-                    Box(
-                        modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center,
-                    ) {
-                        when {
-                            // 1. Loading state (only show full screen loader if list is currently empty)
-                            isLoading && songs.isEmpty() -> {
-                                Box(
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    CircularProgressIndicator(
-                                        color = Color(0xFF00D2FF)
-                                    )
-                                }
+                    when {
+                        // 1. Loading state (only show full screen loader if list is currently empty)
+                        isLoading && songs.isEmpty() -> {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(
+                                    color = Color(0xFF00D2FF)
+                                )
                             }
+                        }
 
-                            // 2. Empty list state
-                            songs.isEmpty() -> {
-                                Column(
+                        // 2. Empty list state
+                        songs.isEmpty() -> {
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .verticalScroll(rememberScrollState())
+                                    .padding(24.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.Center
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.MusicOff,
+                                    contentDescription = null,
+                                    modifier = Modifier.size(64.dp),
+                                    tint = Color.White.copy(alpha = 0.4f)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = "No songs found on the device!",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = Color.White,
+                                    textAlign = TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "Pull down to refresh or add new audio files.",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = Color.White.copy(alpha = 0.6f),
+                                    textAlign = TextAlign.Center
+                                )
+                            }
+                        }
+
+                        // 3. Populated list state with A-Z Fast Scroller
+                        else -> {
+                            val bottomPadding = rememberPlayerAwareBottomPadding()
+
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                // LazyColumn با پدینگ سمت راست برای جلوگیری از تداخل با نوار الفبا
+                                LazyColumn(
+                                    state = listState,
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .verticalScroll(rememberScrollState())
-                                        .padding(24.dp),
-                                    horizontalAlignment = Alignment.CenterHorizontally,
-                                    verticalArrangement = Arrangement.Center
+                                        .padding(end = 32.dp),
+                                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                                    contentPadding = PaddingValues(bottom = bottomPadding)
                                 ) {
-                                    Icon(
-                                        imageVector = Icons.Default.MusicOff,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(64.dp),
-                                        tint = Color.White.copy(alpha = 0.4f)
-                                    )
-                                    Spacer(modifier = Modifier.height(16.dp))
-                                    Text(
-                                        text = "No songs found on the device!",
-                                        style = MaterialTheme.typography.titleMedium,
-                                        color = Color.White,
-                                        textAlign = TextAlign.Center
-                                    )
-                                    Spacer(modifier = Modifier.height(8.dp))
-                                    Text(
-                                        text = "Pull down to refresh or add new audio files.",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = Color.White.copy(alpha = 0.6f),
-                                        textAlign = TextAlign.Center
-                                    )
+                                    items(songs, key = { it.id }) { song ->
+                                        val isMenuExpanded = expandedSongId == song.id
+                                        val isThisSongPlaying =
+                                            (currentSong?.id == song.id) && isPlayingGlobal
+                                        TrackItem(
+                                            song = song,
+                                            onClick = {
+                                                onSongClick(song.id)
+                                                Log.d(
+                                                    "TracksScreen",
+                                                    "clicked songId: ${song.id}, currentPlayingId: ${currentSong?.id}, isPlaying: $isThisSongPlaying"
+                                                )
+                                            },
+                                            isMenuExpanded = isMenuExpanded,
+                                            onMenuClick = {
+                                                expandedSongId = song.id
+                                            },
+                                            onDismissMenu = {
+                                                expandedSongId = null
+                                            },
+                                            onDeleteClick = {
+                                                viewModel.deleteCurrentOrSelectedSong(song.id.toLong())
+                                            },
+                                            onInfoClick = {
+                                                song.id.toLongOrNull()
+                                                    ?.let { id -> onInfoClick(id) }
+                                            },
+                                            onTagEditClick = {
+                                                song.id.toLongOrNull()
+                                                    ?.let { id ->
+                                                        onTagEditClick(id)
+                                                    }
+                                            },
+                                            isPlaying = isThisSongPlaying
+                                        )
+                                    }
                                 }
-                            }
 
-                            // 3. Populated list state with A-Z Fast Scroller
-                            else -> {
-                                val bottomPadding = rememberPlayerAwareBottomPadding()
-
-                                Box(modifier = Modifier.fillMaxSize()) {
-                                    // LazyColumn با پدینگ سمت راست برای جلوگیری از تداخل با نوار الفبا
-                                    LazyColumn(
-                                        state = listState,
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .padding(end = 32.dp),
-                                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                                        contentPadding = PaddingValues(bottom = bottomPadding)
-                                    ) {
-                                        items(songs, key = { it.id }) { song ->
-                                            val isMenuExpanded = expandedSongId == song.id
-                                            val isThisSongPlaying =
-                                                (currentSong?.id == song.id) && isPlayingGlobal
-                                            TrackItem(
-                                                song = song,
-                                                onClick = {
-                                                    onSongClick(song.id)
-                                                    Log.d(
-                                                        "TracksScreen",
-                                                        "clicked songId: ${song.id}, currentPlayingId: ${currentSong?.id}, isPlaying: $isThisSongPlaying"
-                                                    )
-                                                },
-                                                isMenuExpanded = isMenuExpanded,
-                                                onMenuClick = {
-                                                    expandedSongId = song.id
-                                                },
-                                                onDismissMenu = {
-                                                    expandedSongId = null
-                                                },
-                                                onDeleteClick = {
-                                                    viewModel.deleteCurrentOrSelectedSong(song.id.toLong())
-                                                },
-                                                onInfoClick = {
-                                                    song.id.toLongOrNull()
-                                                        ?.let { id -> onInfoClick(id) }
-                                                },
-                                                onTagEditClick = {
-                                                    song.id.toLongOrNull()
-                                                        ?.let { id ->
-                                                            onTagEditClick(id)
-                                                        }
-                                                },
-                                                isPlaying = isThisSongPlaying
+                                AlphabetIndexerBar(
+                                    letters = alphabet,
+                                    onLetterSelected = { targetLetter ->
+                                        val index = songs.indexOfFirst { song ->
+                                            song.title.startsWith(
+                                                targetLetter,
+                                                ignoreCase = true
                                             )
                                         }
-                                    }
-
-                                    AlphabetIndexerBar(
-                                        letters = alphabet,
-                                        onLetterSelected = { targetLetter ->
-                                            val index = songs.indexOfFirst { song ->
-                                                song.title.startsWith(
-                                                    targetLetter,
-                                                    ignoreCase = true
-                                                )
+                                        if (index != -1) {
+                                            coroutineScope.launch {
+                                                listState.animateScrollToItem(index)
                                             }
-                                            if (index != -1) {
-                                                coroutineScope.launch {
-                                                    listState.animateScrollToItem(index)
-                                                }
-                                            }
-                                        },
-                                        modifier = Modifier
-                                            .align(Alignment.CenterEnd)
-                                            .padding(bottom = bottomPadding)
-                                            .padding(end = 2.dp)
-                                    )
-                                }
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .align(Alignment.CenterEnd)
+                                        .padding(bottom = bottomPadding)
+                                        .padding(end = 2.dp)
+                                )
                             }
                         }
                     }

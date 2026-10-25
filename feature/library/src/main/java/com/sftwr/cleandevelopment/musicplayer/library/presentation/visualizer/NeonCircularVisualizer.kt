@@ -33,7 +33,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import kotlin.math.PI
 import kotlin.math.cos
