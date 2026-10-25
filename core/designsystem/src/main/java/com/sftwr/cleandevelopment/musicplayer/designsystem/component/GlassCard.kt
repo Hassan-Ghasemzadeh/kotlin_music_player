@@ -9,16 +9,24 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 
+/**
+ * A reusable Glassmorphism container card featuring a translucent gradient background
+ * and a subtle glowing gradient border for modern UI design.
+ */
 @Composable
 fun GlassCard(
     modifier: Modifier = Modifier,
+    shape: Shape = RoundedCornerShape(24.dp),
     content: @Composable () -> Unit
 ) {
     Box(
         modifier = modifier
-            .clip(RoundedCornerShape(24.dp))
+            // Apply shape clipping to the card container
+            .clip(shape)
+            // Apply translucent dual-tone linear gradient background for glass effect
             .background(
                 Brush.linearGradient(
                     colors = listOf(
@@ -27,6 +35,7 @@ fun GlassCard(
                     )
                 )
             )
+            // Apply subtle glowing border with linear gradient stroke
             .border(
                 width = 1.dp,
                 brush = Brush.linearGradient(
@@ -35,7 +44,7 @@ fun GlassCard(
                         Color.White.copy(alpha = 0.1f)
                     )
                 ),
-                shape = RoundedCornerShape(24.dp)
+                shape = shape
             )
     ) {
         content()

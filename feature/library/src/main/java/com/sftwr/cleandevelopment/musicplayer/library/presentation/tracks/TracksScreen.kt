@@ -27,7 +27,6 @@ import androidx.compose.material.icons.filled.MusicOff
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -66,7 +65,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 /**
- * UI Model representing a song item in the tracks list.
+ * UI Model representing a song item in the tracks list with all necessary metadata properties.
  */
 data class SongUiModel(
     val id: String,
@@ -80,7 +79,8 @@ data class SongUiModel(
 )
 
 /**
- * TracksScreen displays the list of all available audio tracks with a glassmorphic design, floating action button, and A-Z fast scroller.
+ * TracksScreen displays the list of all available audio tracks with a glassmorphic design,
+ * floating action button for quick jump to active track, and A-Z fast scroller integration.
  */
 @RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -99,6 +99,7 @@ fun TracksScreen(
     val currentSong by viewModel.currentPlayingSong.collectAsState()
     val isPlayingGlobal by viewModel.isPlayerPlaying.collectAsState()
 
+    // Restore and save list scroll state across configuration changes
     val listState = rememberSaveable(saver = LazyListState.Saver) {
         LazyListState(
             firstVisibleItemIndex = viewModel.scrollIndex,
@@ -106,6 +107,7 @@ fun TracksScreen(
         )
     }
 
+    // Persist scroll position updates back into the ViewModel
     LaunchedEffect(listState) {
         snapshotFlow { listState.firstVisibleItemIndex to listState.firstVisibleItemScrollOffset }
             .collect { (index, offset) ->
@@ -115,18 +117,20 @@ fun TracksScreen(
     }
 
     val coroutineScope = rememberCoroutineScope()
-    // Track which song's options menu is currently expanded
+    // Tracks which song's options dropdown menu is currently expanded
     var expandedSongId by remember { mutableStateOf<String?>(null) }
 
     val alphabet = remember { ('A'..'Z').map { it.toString() } }
 
-    // Main container with dark vertical gradient background matching the home screen
+    // Scaffold container with custom dark vertical gradient background matching theme guidelines
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = Color.Transparent,
         floatingActionButton = {
             val bottomPadding = rememberPlayerAwareBottomPadding()
             val adjustedBottomPadding = (bottomPadding - 60.dp).coerceAtLeast(8.dp)
+
+            // Show floating action button only when a song is currently loaded
             AnimatedVisibility(
                 visible = currentSong != null,
                 enter = fadeIn() + scaleIn(),
@@ -175,7 +179,7 @@ fun TracksScreen(
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                // Top App Bar section for Tracks screen
+                // Top App Bar header section for Tracks screen
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -224,7 +228,7 @@ fun TracksScreen(
                             }
                         }
 
-                        // 2. Empty list state
+                        // 2. Empty list state handling
                         songs.isEmpty() -> {
                             Column(
                                 modifier = Modifier
@@ -249,7 +253,7 @@ fun TracksScreen(
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "Pull down to refresh or add new audio files.",
+                                    text = "Please add new audio files to your device storage.",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = Color.White.copy(alpha = 0.6f),
                                     textAlign = TextAlign.Center
@@ -257,12 +261,11 @@ fun TracksScreen(
                             }
                         }
 
-                        // 3. Populated list state with A-Z Fast Scroller
+                        // 3. Populated list state with LazyColumn and A-Z Fast Indexer Bar
                         else -> {
                             val bottomPadding = rememberPlayerAwareBottomPadding()
 
                             Box(modifier = Modifier.fillMaxSize()) {
-                                // LazyColumn با پدینگ سمت راست برای جلوگیری از تداخل با نوار الفبا
                                 LazyColumn(
                                     state = listState,
                                     modifier = Modifier
@@ -275,6 +278,7 @@ fun TracksScreen(
                                         val isMenuExpanded = expandedSongId == song.id
                                         val isThisSongPlaying =
                                             (currentSong?.id == song.id) && isPlayingGlobal
+
                                         TrackItem(
                                             song = song,
                                             onClick = {
@@ -309,6 +313,7 @@ fun TracksScreen(
                                     }
                                 }
 
+                                // Alphabet Fast Scroller Bar positioned on the right edge
                                 AlphabetIndexerBar(
                                     letters = alphabet,
                                     onLetterSelected = { targetLetter ->
@@ -339,7 +344,8 @@ fun TracksScreen(
 }
 
 /**
- * Individual glass-morphic list item representing a single track.
+ * Individual glass-morphic list item representing a single audio track with album art,
+ * animated visualizer indicator, and action options menu.
  */
 @Composable
 fun TrackItem(
@@ -376,11 +382,14 @@ fun TrackItem(
                 modifier = Modifier.weight(1f)
             ) {
                 val context = LocalContext.current
+
+                // Extract album art bitmap asynchronously on IO thread pool
                 val albumArtBitmap by produceState<Bitmap?>(initialValue = null, key1 = song.uri) {
                     value = withContext(Dispatchers.IO) {
                         song.uri.toUri().extractAlbumArt(context)
                     }
                 }
+
                 if (albumArtBitmap != null) {
                     AsyncImage(
                         model = albumArtBitmap,
@@ -407,6 +416,7 @@ fun TrackItem(
                         )
                     }
                 }
+
                 Spacer(modifier = Modifier.width(14.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
@@ -433,6 +443,7 @@ fun TrackItem(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 if (isPlaying) {
+                    // Render animated equalizer visualizer if the track is actively playing
                     AnimatedVisualizer(
                         modifier = Modifier.size(24.dp, 14.dp),
                         barCount = 3,
@@ -460,6 +471,7 @@ fun TrackItem(
                         )
                     }
 
+                    // Dropdown menu containing song actions (Info, Edit Tag, Delete, etc.)
                     SongDropdownMenu(
                         expanded = isMenuExpanded,
                         onDismissRequest = onDismissMenu,

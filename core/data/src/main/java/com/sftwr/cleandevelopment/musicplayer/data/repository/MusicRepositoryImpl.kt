@@ -1,10 +1,10 @@
 package com.sftwr.cleandevelopment.musicplayer.data.repository
 
-import android.app.Application
 import android.app.RecoverableSecurityException
 import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
+import android.database.Cursor
 import android.database.ContentObserver
 import android.os.Build
 import android.provider.MediaStore
@@ -19,104 +19,48 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
 import javax.inject.Inject
 import androidx.core.net.toUri
+import com.sftwr.cleandevelopment.musicplayer.data.util.AudioTagEditor
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.UpdateTagResult
 import kotlinx.coroutines.withContext
-import org.jaudiotagger.audio.AudioFileIO
-import org.jaudiotagger.tag.FieldKey
 import java.io.File
 
 class MusicRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val application: Application,
+    private val audioTagEditor: AudioTagEditor,
 ) : MusicRepository {
+
     /**
-     * Observes device audio files from MediaStore and emits an updated list of songs reactively.
+     * Observes device audio files from MediaStore and emits an updated list reactively using a Flow.
      */
     override fun getDeviceSongs(): Flow<List<Song>> = callbackFlow {
-        val songs = mutableListOf<Song>()
         val collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-
-        val projection = arrayOf(
-            MediaStore.Audio.Media._ID,
-            MediaStore.Audio.Media.TITLE,
-            MediaStore.Audio.Media.ARTIST,
-            MediaStore.Audio.Media.ALBUM,
-            MediaStore.Audio.Media.ALBUM_ID,
-            MediaStore.Audio.Media.DURATION,
-            MediaStore.Audio.Media.SIZE,
-            MediaStore.Audio.Media.DATA
-        )
-
-        // Filter out actual music files (excluding short recordings, ringtones, or notifications)
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
         val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
 
+        // Helper function to query MediaStore and emit the song list
         fun fetchSongs() {
-            songs.clear()
+            val songs = mutableListOf<Song>()
             context.contentResolver.query(
                 collection,
-                projection,
+                getProjection(),
                 selection,
                 null,
                 sortOrder
             )?.use { cursor ->
-                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-                val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
-                val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
-                val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
-                val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
-                val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-                val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)
-                val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
-
-                while (cursor.moveToNext()) {
-                    val id = cursor.getLong(idColumn)
-                    val title = cursor.getString(titleColumn) ?: "Unknown"
-                    val artist = cursor.getString(artistColumn) ?: "Unknown Artist"
-                    val album = cursor.getString(albumColumn) ?: "Unknown Album"
-                    val albumId = cursor.getLong(albumIdColumn)
-                    val duration = cursor.getLong(durationColumn)
-                    val size = cursor.getLong(sizeColumn)
-                    val path = cursor.getString(dataColumn) ?: ""
-
-                    val contentUri = ContentUris.withAppendedId(
-                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                        id
-                    )
-
-                    val albumArtUri = ContentUris.withAppendedId(
-                        "content://media/external/audio/albumart".toUri(),
-                        albumId
-                    ).toString()
-
-                    songs.add(
-                        Song(
-                            id = id,
-                            title = title,
-                            artist = artist,
-                            album = album,
-                            albumId = albumId,
-                            contentUri = contentUri,
-                            albumArtUri = albumArtUri,
-                            duration = duration,
-                            size = size,
-                            path = path
-                        )
-                    )
-                }
+                songs.addAll(parseSongsFromCursor(cursor))
             }
             trySend(songs)
         }
 
-        // Initial loading of songs
+        // Emit initial set of songs
         fetchSongs()
 
-        // Register a ContentObserver to listen for MediaStore changes (e.g. downloaded new songs)
+        // Register a ContentObserver to listen for external database changes (e.g., new downloads or deletions)
         val observer = object : ContentObserver(null) {
             override fun onChange(selfChange: Boolean) {
                 super.onChange(selfChange)
-                fetchSongs() // Re-query songs whenever media store content changes or new files are added
+                fetchSongs()
             }
         }
 
@@ -126,133 +70,134 @@ class MusicRepositoryImpl @Inject constructor(
             observer
         )
 
-        // Unregister the observer when the flow is closed
+        // Clean up the observer when the Flow collector cancels or completes
         awaitClose {
             context.contentResolver.unregisterContentObserver(observer)
         }
     }.flowOn(Dispatchers.IO)
 
-    override suspend fun searchSongs(query: String): List<Song> {
-        if (query.isBlank()) return emptyList()
+    /**
+     * Performs a filtered search on MediaStore based on title or artist query matching.
+     */
+    override suspend fun searchSongs(query: String): List<Song> = withContext(Dispatchers.IO) {
+        if (query.isBlank()) return@withContext emptyList()
 
-        val songs = mutableListOf<Song>()
         val collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
-
-        val projection = arrayOf(
-            MediaStore.Audio.Media._ID,
-            MediaStore.Audio.Media.TITLE,
-            MediaStore.Audio.Media.ARTIST,
-            MediaStore.Audio.Media.ALBUM,
-            MediaStore.Audio.Media.ALBUM_ID,
-            MediaStore.Audio.Media.DURATION,
-            MediaStore.Audio.Media.SIZE,
-            MediaStore.Audio.Media.DATA
-        )
-
         val selection =
             "${MediaStore.Audio.Media.IS_MUSIC} != 0 AND (${MediaStore.Audio.Media.TITLE} LIKE ? OR ${MediaStore.Audio.Media.ARTIST} LIKE ?)"
         val selectionArgs = arrayOf("%$query%", "%$query%")
         val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
 
+        val songs = mutableListOf<Song>()
         try {
             context.contentResolver.query(
                 collection,
-                projection,
+                getProjection(),
                 selection,
                 selectionArgs,
                 sortOrder
             )?.use { cursor ->
-                val idColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
-                val titleColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
-                val artistColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
-                val albumColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
-                val albumIdColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
-                val durationColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
-                val sizeColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)
-                val dataColumn = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
-
-                while (cursor.moveToNext()) {
-                    val id = cursor.getLong(idColumn)
-                    val title = cursor.getString(titleColumn) ?: "Unknown"
-                    val artist = cursor.getString(artistColumn) ?: "Unknown Artist"
-                    val album = cursor.getString(albumColumn) ?: "Unknown Album"
-                    val albumId = cursor.getLong(albumIdColumn)
-                    val duration = cursor.getLong(durationColumn)
-                    val size = cursor.getLong(sizeColumn)
-                    val path = cursor.getString(dataColumn) ?: ""
-
-                    val contentUri = ContentUris.withAppendedId(
-                        MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                        id
-                    )
-
-                    val albumArtUri = ContentUris.withAppendedId(
-                        "content://media/external/audio/albumart".toUri(),
-                        albumId
-                    ).toString()
-
-                    songs.add(
-                        Song(
-                            id = id,
-                            title = title,
-                            artist = artist,
-                            album = album,
-                            albumId = albumId,
-                            contentUri = contentUri,
-                            albumArtUri = albumArtUri,
-                            duration = duration,
-                            size = size,
-                            path = path
-                        )
-                    )
-                }
+                songs.addAll(parseSongsFromCursor(cursor))
             }
         } catch (e: Exception) {
             e.printStackTrace()
         }
+        songs
+    }
 
+    /**
+     * Defines the required columns projection for querying audio files from MediaStore.
+     */
+    private fun getProjection() = arrayOf(
+        MediaStore.Audio.Media._ID,
+        MediaStore.Audio.Media.TITLE,
+        MediaStore.Audio.Media.ARTIST,
+        MediaStore.Audio.Media.ALBUM,
+        MediaStore.Audio.Media.ALBUM_ID,
+        MediaStore.Audio.Media.DURATION,
+        MediaStore.Audio.Media.SIZE,
+        MediaStore.Audio.Media.DATA
+    )
+
+    /**
+     * Parses a database Cursor and maps it into a list of domain [Song] models.
+     */
+    private fun parseSongsFromCursor(cursor: Cursor): List<Song> {
+        val songs = mutableListOf<Song>()
+        val idCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
+        val titleCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
+        val artistCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
+        val albumCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM)
+        val albumIdCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ALBUM_ID)
+        val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
+        val sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)
+        val dataCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
+
+        while (cursor.moveToNext()) {
+            val id = cursor.getLong(idCol)
+            val title = cursor.getString(titleCol) ?: "Unknown"
+            val artist = cursor.getString(artistCol) ?: "Unknown Artist"
+            val album = cursor.getString(albumCol) ?: "Unknown Album"
+            val albumId = cursor.getLong(albumIdCol)
+            val duration = cursor.getLong(durationCol)
+            val size = cursor.getLong(sizeCol)
+            val path = cursor.getString(dataCol) ?: ""
+
+            val contentUri =
+                ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+            val albumArtUri = ContentUris.withAppendedId(
+                "content://media/external/audio/albumart".toUri(),
+                albumId
+            ).toString()
+
+            songs.add(
+                Song(
+                    id = id, title = title, artist = artist, album = album,
+                    albumId = albumId, contentUri = contentUri, albumArtUri = albumArtUri,
+                    duration = duration, size = size, path = path
+                )
+            )
+        }
         return songs
     }
 
+    /**
+     * Deletes a specific audio file from device storage with proper Scoped Storage permission handling.
+     */
     @RequiresApi(Build.VERSION_CODES.Q)
-    override suspend fun deleteSong(songId: Long): DeleteResult {
-        return withContext(Dispatchers.IO) {
-            try {
-                val uri = ContentUris.withAppendedId(
-                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    songId
-                )
-
-                val rowsDeleted = context.contentResolver.delete(uri, null, null)
-                android.util.Log.d("DeleteDebug", "Target ID: $songId, Rows Deleted: $rowsDeleted")
-                if (rowsDeleted > 0) DeleteResult.Success else DeleteResult.Error
-            } catch (e: RecoverableSecurityException) {
-                DeleteResult.RequiresPermission(e.userAction.actionIntent.intentSender)
-            } catch (e: SecurityException) {
-                val uri = ContentUris.withAppendedId(
-                    MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-                    songId
-                )
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-                    try {
-                        val pendingIntent = MediaStore.createDeleteRequest(
-                            application.contentResolver,
-                            listOf(uri)
-                        )
-                        return@withContext DeleteResult.RequiresPermission(pendingIntent.intentSender)
-                    } catch (_: Exception) {
-                        return@withContext DeleteResult.Error
-                    }
+    override suspend fun deleteSong(songId: Long): DeleteResult = withContext(Dispatchers.IO) {
+        try {
+            val uri =
+                ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId)
+            val rowsDeleted = context.contentResolver.delete(uri, null, null)
+            if (rowsDeleted > 0) DeleteResult.Success else DeleteResult.Error
+        } catch (e: RecoverableSecurityException) {
+            // Handled for Android 10 (API 29) file deletion permission consent
+            DeleteResult.RequiresPermission(e.userAction.actionIntent.intentSender)
+        } catch (_: SecurityException) {
+            val uri =
+                ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                try {
+                    // Handled for Android 11+ (API 30+) batch delete request API
+                    val pendingIntent =
+                        MediaStore.createDeleteRequest(context.contentResolver, listOf(uri))
+                    return@withContext DeleteResult.RequiresPermission(pendingIntent.intentSender)
+                } catch (_: Exception) {
+                    return@withContext DeleteResult.Error
                 }
-                e.printStackTrace()
-                DeleteResult.Error
-            } catch (e: Exception) {
-                e.printStackTrace()
-                DeleteResult.Error
             }
+            DeleteResult.Error
+        } catch (e: Exception) {
+            e.printStackTrace()
+            DeleteResult.Error
         }
     }
 
+    /**
+     * Updates track metadata tags safely by copying the file to cache, editing tags via AudioTagEditor,
+     * writing back to the content stream, and notifying MediaStore.
+     */
     @RequiresApi(Build.VERSION_CODES.Q)
     override suspend fun updateSongTags(
         songId: Long,
@@ -262,53 +207,25 @@ class MusicRepositoryImpl @Inject constructor(
         year: String,
         genre: String
     ): UpdateTagResult = withContext(Dispatchers.IO) {
-        val contentResolver = application.contentResolver
-        val uri = ContentUris.withAppendedId(
-            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            songId
-        )
-
-        val tempFile = File(application.cacheDir, "temp_audio_${System.currentTimeMillis()}.mp3")
+        val contentResolver = context.contentResolver
+        val uri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId)
+        val tempFile = File(context.cacheDir, "temp_audio_${System.currentTimeMillis()}.mp3")
 
         try {
-
+            // Step 1: Copy media stream to a temporary local file for safe tag manipulation
             contentResolver.openInputStream(uri)?.use { input ->
-                tempFile.outputStream().use { output ->
-                    input.copyTo(output, bufferSize = 8 * 1024)
-                }
-            } ?: return@withContext UpdateTagResult.Error("امکان خواندن فایل وجود ندارد")
+                tempFile.outputStream().use { output -> input.copyTo(output) }
+            } ?: return@withContext UpdateTagResult.Error("Failed to read the audio file")
 
-            val audioFile = AudioFileIO.read(tempFile)
-            val existingArtworks = audioFile.tag?.artworkList?.toList() ?: emptyList()
+            // Step 2: Edit audio tags using external modular editor helper
+            audioTagEditor.updateTags(tempFile, title, artist, album, year, genre)
 
-
-            val tag = audioFile.createDefaultTag()
-            audioFile.tag = tag
-
-            tag.setField(FieldKey.TITLE, title)
-            tag.setField(FieldKey.ARTIST, artist)
-            tag.setField(FieldKey.ALBUM, album)
-
-            if (year.isNotBlank() && year != "نامشخص") {
-                tag.setField(FieldKey.YEAR, year)
-            }
-            if (genre.isNotBlank() && genre != "نامشخص") {
-                tag.setField(FieldKey.GENRE, genre)
-            }
-
-            for (artwork in existingArtworks) {
-                tag.addField(artwork)
-            }
-
-            audioFile.commit()
-
+            // Step 3: Write modified temporary file back to content resolver output stream
             contentResolver.openOutputStream(uri, "w")?.use { output ->
-                tempFile.inputStream().use { input ->
-                    input.copyTo(output, bufferSize = 8 * 1024)
-                }
-            } ?: return@withContext UpdateTagResult.Error("امکان نوشتن روی فایل وجود ندارد")
+                tempFile.inputStream().use { input -> input.copyTo(output) }
+            } ?: return@withContext UpdateTagResult.Error("Failed to write to the audio file")
 
-
+            // Step 4: Update MediaStore database records to reflect changes immediately
             val contentValues = ContentValues().apply {
                 put(MediaStore.Audio.Media.TITLE, title)
                 put(MediaStore.Audio.Media.ARTIST, artist)
@@ -320,31 +237,29 @@ class MusicRepositoryImpl @Inject constructor(
             UpdateTagResult.Success
 
         } catch (e: RecoverableSecurityException) {
-            val intentSender = e.userAction.actionIntent.intentSender
-            UpdateTagResult.RequiresPermission(intentSender)
+            // Handle Android 10 scoped storage write permission request
+            UpdateTagResult.RequiresPermission(e.userAction.actionIntent.intentSender)
         } catch (e: SecurityException) {
             val uriTarget =
                 ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 try {
-                    val pendingIntent = MediaStore.createWriteRequest(
-                        application.contentResolver,
-                        listOf(uriTarget)
-                    )
+                    // Handle Android 11+ explicit write request intent
+                    val pendingIntent =
+                        MediaStore.createWriteRequest(context.contentResolver, listOf(uriTarget))
                     return@withContext UpdateTagResult.RequiresPermission(pendingIntent.intentSender)
                 } catch (ex: Exception) {
                     return@withContext UpdateTagResult.Error(
-                        ex.localizedMessage ?: "خطا در درخواست مجوز"
+                        ex.localizedMessage ?: "Permission request error"
                     )
                 }
             }
-            UpdateTagResult.Error(e.localizedMessage ?: "خطای دسترسی امنیتی")
+            UpdateTagResult.Error(e.localizedMessage ?: "Security access error")
         } catch (e: Exception) {
-            UpdateTagResult.Error(e.localizedMessage ?: "خطای ناشناخته رخ داد")
+            UpdateTagResult.Error(e.localizedMessage ?: "An unknown error occurred")
         } finally {
-            if (tempFile.exists()) {
-                tempFile.delete()
-            }
+            // Ensure temporary file cleanup to prevent cache bloat
+            if (tempFile.exists()) tempFile.delete()
         }
     }
 }

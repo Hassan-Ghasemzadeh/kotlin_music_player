@@ -67,13 +67,17 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.visualizer.Ne
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
-@kotlin.OptIn(ExperimentalMaterial3Api::class)
+/**
+ * PlayerScreen displays the full-screen media player interface featuring dynamic neon circular visualizers,
+ * album artwork, playback timeline scrubbers, and core audio transport control buttons.
+ */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PlayerScreen(
     viewModel: PlayerViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
 ) {
-    // Collecting player state flows from ViewModel
+    // Collecting player state flows reactively from the ViewModel
     val isPlaying by viewModel.isPlaying.collectAsState()
     val currentPosition by viewModel.currentPosition.collectAsState()
     val isShuffleEnabled by viewModel.isShuffleEnabled.collectAsState()
@@ -87,7 +91,7 @@ fun PlayerScreen(
     val context = LocalContext.current
     val visualizerManager = remember { AudioVisualizerManager() }
 
-    // 1. Check RECORD_AUDIO permission for the audio visualizer
+    // Check RECORD_AUDIO permission required for capturing active audio session frequency/FFT data
     var hasAudioPermission by remember {
         mutableStateOf(
             ContextCompat.checkSelfPermission(
@@ -116,12 +120,10 @@ fun PlayerScreen(
         songState?.let { song ->
             Log.d("AlbumArtDebug", "Song Title: ${song.title}")
             Log.d("AlbumArtDebug", "Song URI / Path: ${song.uri}")
-            // اگر در مدل شما فیلد دیگری برای آلبوم آرت هست:
-            // Log.d("AlbumArtDebug", "Album Art Uri: ${song.albumArtUri}")
         }
     }
 
-    // 2. Bind the visualizer to the active player session
+    // Bind and control the visualizer lifecycle based on playback state and audio recording permissions
     LaunchedEffect(isPlaying, hasAudioPermission) {
         if (isPlaying && hasAudioPermission) {
             delay(350.milliseconds)
@@ -138,7 +140,7 @@ fun PlayerScreen(
 
     val fftData by visualizerManager.fftData.collectAsState()
 
-    // Ensure visualizer resources are released when leaving the screen
+    // Ensure audio visualizer resources are cleanly released when leaving the screen
     DisposableEffect(Unit) {
         onDispose {
             visualizerManager.stopListening()
@@ -160,7 +162,7 @@ fun PlayerScreen(
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        // Screen Header / Top Bar
+        // Top screen header bar with collapse button
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -176,16 +178,19 @@ fun PlayerScreen(
                 )
             }
             Text(
-                text = "Now Playing", style = MaterialTheme.typography.titleMedium.copy(
+                text = "Now Playing",
+                style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.9f)
-                ), textAlign = TextAlign.Center, modifier = Modifier.weight(1f)
+                ),
+                textAlign = TextAlign.Center,
+                modifier = Modifier.weight(1f)
             )
             Spacer(modifier = Modifier.width(48.dp))
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Neon Visualizer and Album Art Container
+        // Neon circular visualizer and album art container view
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -203,28 +208,35 @@ fun PlayerScreen(
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Track Information (Title & Artist)
+        // Active track information (Title & Artist name labels)
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.fillMaxWidth()
         ) {
             Text(
-                text = songTitle, style = MaterialTheme.typography.headlineSmall.copy(
+                text = songTitle,
+                style = MaterialTheme.typography.headlineSmall.copy(
                     fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center
-                ), maxLines = 1, modifier = Modifier.padding(horizontal = 24.dp)
+                ),
+                maxLines = 1,
+                modifier = Modifier.padding(horizontal = 24.dp)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
-                text = artistName, style = MaterialTheme.typography.titleMedium.copy(
+                text = artistName,
+                style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Normal,
                     color = Color.White.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center
-                ), maxLines = 1, modifier = Modifier.padding(horizontal = 24.dp)
+                ),
+                maxLines = 1,
+                modifier = Modifier.padding(horizontal = 24.dp)
             )
         }
 
         Spacer(modifier = Modifier.height(32.dp))
 
-        // Playback Controls & Timeline Slider
+        // Playback progress timeline slider and duration indicator labels
         Column(modifier = Modifier.fillMaxWidth()) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -241,7 +253,7 @@ fun PlayerScreen(
                 )
             }
 
-            // Custom modern slim slider
+            // Custom modern slim playback progress slider
             Slider(
                 value = currentPosition.toFloat(),
                 onValueChange = {
@@ -273,7 +285,7 @@ fun PlayerScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Playback Actions Row (Shuffle, Previous, Play/Pause, Next, Repeat)
+            // Playback controls action bar (Shuffle, Previous, Play/Pause, Next, Repeat)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceAround,

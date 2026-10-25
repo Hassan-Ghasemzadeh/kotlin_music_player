@@ -16,18 +16,25 @@ import dagger.hilt.android.AndroidEntryPoint
 
 /**
  * Main entry point activity annotated with @AndroidEntryPoint
- * to enable Hilt dependency injection for Compose and ViewModels.
+ * to enable Hilt dependency injection across Compose UI components and ViewModels.
  */
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Disable system window fitting to enable edge-to-edge layout design
         WindowCompat.setDecorFitsSystemWindows(window, false)
 
         setContent {
+            // Apply application custom theme
             Music_playerTheme {
+                // Initialize top-level navigation controller for Compose navigation graph
                 val navController = rememberNavController()
+
+                // Render root content container holding the navigation host and global UI elements
                 AppRootContent(navController = navController)
             }
         }

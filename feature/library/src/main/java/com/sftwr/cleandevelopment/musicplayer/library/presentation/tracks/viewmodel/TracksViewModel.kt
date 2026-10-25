@@ -24,6 +24,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+/**
+ * ViewModel responsible for managing the tracks library state, handling track playback queues,
+ * processing media deletion flows, and preserving UI scroll positions across configuration changes.
+ */
 @RequiresApi(Build.VERSION_CODES.S)
 @HiltViewModel
 class TracksViewModel @Inject constructor(
@@ -32,12 +36,14 @@ class TracksViewModel @Inject constructor(
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
+    // Persistent scroll index stored safely in SavedStateHandle across process death
     var scrollIndex: Int
         get() = savedStateHandle.get<Int>("scroll_index") ?: 0
         set(value) {
             savedStateHandle["scroll_index"] = value
         }
 
+    // Persistent scroll pixel offset stored safely in SavedStateHandle
     var scrollOffset: Int
         get() = savedStateHandle.get<Int>("scroll_offset") ?: 0
         set(value) {
@@ -47,6 +53,7 @@ class TracksViewModel @Inject constructor(
     private val _isLoading = MutableStateFlow(false)
     private val _isRefreshing = MutableStateFlow(false)
 
+    // Reactive UI state stream mapping player manager songs to UI models
     val uiState: StateFlow<TracksUiState> = playerManager.allSongs
         .map { songs ->
             TracksUiState(
@@ -59,6 +66,7 @@ class TracksViewModel @Inject constructor(
 
     private val _uiEvent = Channel<TracksUiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
+
     private val _deleteEvent = Channel<PlayerUiEvent>()
     val deleteEvent = _deleteEvent.receiveAsFlow()
 
@@ -71,6 +79,9 @@ class TracksViewModel @Inject constructor(
 
     private var pendingDeleteSongId: Long? = null
 
+    /**
+     * Initiates song deletion workflow and handles security permission results (Scoped Storage).
+     */
     fun deleteCurrentOrSelectedSong(songId: Long) {
         pendingDeleteSongId = songId
         viewModelScope.launch {
@@ -79,6 +90,9 @@ class TracksViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Retries the pending deletion request after user grants system write/delete permission.
+     */
     fun retryDeleteAfterPermission() {
         pendingDeleteSongId?.let { id ->
             deleteCurrentOrSelectedSong(id)
@@ -87,7 +101,8 @@ class TracksViewModel @Inject constructor(
     }
 
     /**
-     * Fetches actual device songs from the UseCase and maps them to SongUiModel safely.
+     * Fetches device songs from the domain use case, extracts extra metadata safely on IO dispatcher,
+     * and registers the playlist into the central player manager.
      */
     @RequiresApi(Build.VERSION_CODES.S)
     private fun loadTracks() {
@@ -96,6 +111,7 @@ class TracksViewModel @Inject constructor(
 
             getDeviceSongsUseCase().collect { domainSongs ->
                 val songUiModels = domainSongs.toList().map { song ->
+                    // Offload heavy metadata extraction to IO thread pool
                     val extraMetadata = withContext(Dispatchers.IO) {
                         song.path.extractExtraMetadata()
                     }
@@ -111,7 +127,7 @@ class TracksViewModel @Inject constructor(
                     )
                 }
 
-                // 👈 ارسال لیست به پلیرمنجر تا به عنوان منبع واحد ثبت شود
+                // Register loaded song models as the single source of truth in PlayerManager
                 playerManager.setSongs(songUiModels)
                 _isLoading.value = false
             }
@@ -119,7 +135,7 @@ class TracksViewModel @Inject constructor(
     }
 
     /**
-     * Handles track selection, sets the playback queue, and triggers navigation to the player.
+     * Handles track selection from the list, updates the active playback queue, and sets the starting index.
      */
     fun onSongClicked(songId: String) {
         val songs = uiState.value.songs
@@ -130,6 +146,9 @@ class TracksViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Processes deletion results and dispatches corresponding UI events (Toast or Permission Dialog).
+     */
     private fun handleDeleteResult(result: DeleteResult) {
         viewModelScope.launch {
             when (result) {
@@ -156,6 +175,9 @@ sealed interface TracksUiEvent {
     object NavigateToSearch : TracksUiEvent
 }
 
+/**
+ * UI events related to media playback and file management operations.
+ */
 sealed interface PlayerUiEvent {
     data class ShowDeletePermissionDialog(val intentSender: android.content.IntentSender) :
         PlayerUiEvent

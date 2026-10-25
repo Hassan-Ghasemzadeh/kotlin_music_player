@@ -25,6 +25,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+/**
+ * ViewModel responsible for managing song detail states, extracting extended audio file metadata,
+ * and parsing track attributes asynchronously on background thread pools.
+ */
 @RequiresApi(Build.VERSION_CODES.S)
 @HiltViewModel
 class SongDetailViewModel @Inject constructor(
@@ -32,6 +36,7 @@ class SongDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
+    // Safely extract target song ID from type-safe navigation arguments or fallback keys
     private val songId: Long = runCatching {
         savedStateHandle.toRoute<Screen.SongDetail>().songId
     }.getOrNull()
@@ -46,6 +51,9 @@ class SongDetailViewModel @Inject constructor(
         loadSongDetail()
     }
 
+    /**
+     * Fetches device audio files, locates the matching song by ID, and extracts its extended metadata and album art.
+     */
     @RequiresApi(Build.VERSION_CODES.S)
     private fun loadSongDetail() {
         if (songId == -1L) {
@@ -65,6 +73,8 @@ class SongDetailViewModel @Inject constructor(
                             "SongDetailViewModel",
                             "domainSong: ${domainSong.id}, songId: $songId, path: ${domainSong.path}"
                         )
+
+                        // Offload heavy metadata and album art extraction tasks to IO dispatcher pool
                         val extraMetadata = withContext(Dispatchers.IO) {
                             domainSong.path.extractExtraMetadata()
                         }
@@ -78,6 +88,7 @@ class SongDetailViewModel @Inject constructor(
                             null
                         }
 
+                        // Map domain entity and extracted attributes into UI model representation
                         val songDetailUiModel = SongDetailUiModel(
                             id = domainSong.id.toString(),
                             title = domainSong.title,
@@ -116,5 +127,4 @@ class SongDetailViewModel @Inject constructor(
             }
         }
     }
-
 }

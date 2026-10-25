@@ -20,14 +20,20 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.compon
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.components.SearchEmptyState
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.TrackItem
 
+/**
+ * SearchScreen stateless composable responsible for rendering the search bar input,
+ * handling loading states, and displaying matching audio tracks using glassmorphic list items.
+ */
 @Composable
 fun SearchScreen(
-    uiState: SearchUiState, actions: SearchActions, modifier: Modifier = Modifier
+    uiState: SearchUiState,
+    actions: SearchActions,
+    modifier: Modifier = Modifier
 ) {
-    // Track which song's options menu is currently expanded in search results
+    // Track which song's options dropdown menu is currently expanded in search results
     var expandedSongId: String? by remember { mutableStateOf(null) }
 
-    // Main container with dark vertical gradient background matching TracksScreen
+    // Main container box with dark vertical gradient background matching application theme
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -41,33 +47,39 @@ fun SearchScreen(
     ) {
         Scaffold(
             modifier = modifier.fillMaxSize(),
-            // Make scaffold container transparent to show the background gradient
-            containerColor = Color.Transparent, topBar = {
+            // Make scaffold container transparent to reveal the underlying gradient background
+            containerColor = Color.Transparent,
+            topBar = {
                 NeonSearchBar(
                     query = uiState.query,
                     onQueryChange = actions.onQueryChange,
                     onClearQuery = actions.onClearQueryClick,
                     onCancelClick = actions.onCancelClick
                 )
-            }) { innerPadding ->
+            }
+        ) { innerPadding ->
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(innerPadding)
             ) {
                 when {
+                    // 1. Loading state indicator
                     uiState.isLoading -> {
                         CircularProgressIndicator(
-                            modifier = Modifier.align(Alignment.Center), color = Color(0xFF00D2FF)
+                            modifier = Modifier.align(Alignment.Center),
+                            color = Color(0xFF00D2FF)
                         )
                     }
 
+                    // 2. Initial empty query state
                     uiState.query.isEmpty() -> {
                         SearchEmptyState(
                             modifier = Modifier.align(Alignment.TopCenter)
                         )
                     }
 
+                    // 3. No search results found state
                     uiState.searchResults.isEmpty() -> {
                         Text(
                             text = "هیچ موردی یافت نشد",
@@ -77,17 +89,24 @@ fun SearchScreen(
                         )
                     }
 
+                    // 4. Populated search results list state
                     else -> {
                         val bottomPadding = rememberPlayerAwareBottomPadding()
+
                         LazyColumn(
-                            modifier = Modifier.fillMaxSize(), contentPadding = PaddingValues(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(
                                 start = 16.dp, end = 16.dp, top = 8.dp, bottom = bottomPadding
-                            ), verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
                         ) {
                             items(
-                                items = uiState.searchResults, key = { it.id }) { song ->
+                                items = uiState.searchResults,
+                                key = { it.id }
+                            ) { song ->
                                 val isMenuExpanded = expandedSongId == song.id
-                                // Reusing the standardized glassmorphic TrackItem
+
+                                // Reusing the standardized glassmorphic TrackItem component
                                 TrackItem(
                                     song = song,
                                     onClick = {

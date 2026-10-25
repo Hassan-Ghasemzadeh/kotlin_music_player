@@ -1,6 +1,5 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.song_detail
 
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
@@ -31,6 +30,10 @@ import com.sftwr.cleandevelopment.musicplayer.home.R
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 
+/**
+ * SongDetailScreen displays comprehensive technical and metadata properties of a selected track
+ * inside a glassmorphic layout card with a blurred dynamic background.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SongDetailScreen(
@@ -48,7 +51,7 @@ fun SongDetailScreen(
             .fillMaxSize()
             .background(darkPurple)
     ) {
-
+        // Render blurred background album art wallpaper if metadata is available
         if (songDetail != null) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
@@ -65,6 +68,7 @@ fun SongDetailScreen(
                 placeholder = painterResource(id = R.drawable.ic_default_album_art)
             )
 
+            // Dark gradient overlay to blend background wallpaper with the app theme
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -100,8 +104,8 @@ fun SongDetailScreen(
                 )
             }
         ) { innerPadding ->
-
             if (songDetail == null) {
+                // Loading or error state placeholder container
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
@@ -120,6 +124,8 @@ fun SongDetailScreen(
                 }
             } else {
                 val playerBottomPadding = rememberPlayerAwareBottomPadding()
+
+                // Scrollable content container for song details and file properties
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
@@ -133,7 +139,6 @@ fun SongDetailScreen(
                         ),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-
                     Text(
                         text = songDetail.title,
                         style = MaterialTheme.typography.headlineMedium.copy(fontWeight = FontWeight.Bold),
@@ -156,6 +161,7 @@ fun SongDetailScreen(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
+                    // Album artwork preview card with elevated shadow and rounded border
                     Card(
                         modifier = Modifier
                             .size(220.dp)
@@ -187,6 +193,7 @@ fun SongDetailScreen(
 
                     Spacer(modifier = Modifier.height(28.dp))
 
+                    // Glassmorphic properties specification card box
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -214,6 +221,7 @@ fun SongDetailScreen(
                                 color = Color.White.copy(alpha = 0.1f),
                                 modifier = Modifier.padding(bottom = 12.dp)
                             )
+
                             InfoRow(label = "آلبوم", value = songDetail.album)
                             InfoRow(label = "ژانر", value = songDetail.genre.ifEmpty { "نامشخص" })
                             InfoRow(
@@ -240,6 +248,9 @@ fun SongDetailScreen(
     }
 }
 
+/**
+ * Reusable layout row component for displaying key-value metadata info aligned right in Persian.
+ */
 @Composable
 private fun InfoRow(
     label: String,

@@ -5,11 +5,16 @@ import com.sftwr.cleandevelopment.musicplayer.domain.repository.UpdateTagResult
 import javax.inject.Inject
 
 /**
- * Use case responsible for orchestrating the song metadata tag update operation.
+ * Use case responsible for orchestrating the song metadata tag update operation,
+ * delegating the update request securely to the music repository.
  */
 class UpdateSongTagsUseCase @Inject constructor(
     private val musicRepository: MusicRepository
 ) {
+    /**
+     * Executes the use case to update metadata tags (title, artist, album, year, genre)
+     * for a specific song identified by its unique ID.
+     */
     suspend operator fun invoke(
         songId: Long,
         title: String,

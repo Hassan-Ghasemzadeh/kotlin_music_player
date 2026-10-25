@@ -25,6 +25,10 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
+/**
+ * ViewModel responsible for managing search query inputs, executing song search use cases,
+ * handling audio track deletions, and mapping query result sets to UI models.
+ */
 @RequiresApi(Build.VERSION_CODES.S)
 @HiltViewModel
 class SearchViewModel @Inject constructor(
@@ -44,18 +48,23 @@ class SearchViewModel @Inject constructor(
     }
 
     private var pendingDeleteSongId: Long? = null
-    private var pendingDeleteSongStringId: String? =
-        null // ذخیره به صورت استرینگ برای مقایسه راحت‌تر
+    private var pendingDeleteSongStringId: String? = null
 
+    /**
+     * Initiates deletion workflow for the selected track and caches its identifiers for permission handling.
+     */
     fun deleteCurrentOrSelectedSong(songId: Long) {
         pendingDeleteSongId = songId
-        pendingDeleteSongStringId = songId.toString() // ذخیره دقیق استرینگ آیدی
+        pendingDeleteSongStringId = songId.toString()
         viewModelScope.launch {
             val result = playerManager.deleteSong(songId)
             handleDeleteResult(result)
         }
     }
 
+    /**
+     * Retries song deletion after system write/delete permission is granted by the user.
+     */
     fun retryDeleteAfterPermission() {
         pendingDeleteSongId?.let { id ->
             deleteCurrentOrSelectedSong(id)
@@ -63,6 +72,9 @@ class SearchViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Refreshes search cache and re-fetches device tracks list asynchronously.
+     */
     @RequiresApi(Build.VERSION_CODES.S)
     fun refreshSearch() {
         viewModelScope.launch {
@@ -109,12 +121,12 @@ class SearchViewModel @Inject constructor(
     }
 
     /**
-     * Fetches actual device songs from the UseCase and maps them to SongUiModel.
+     * Fetches raw device songs from domain use case and populates base song models.
      */
     @RequiresApi(Build.VERSION_CODES.S)
     private fun loadTracks() {
         viewModelScope.launch {
-            _uiState.value = _uiState.value.copy(isLoading = true)
+            _uiState.update { it.copy(isLoading = true) }
 
             getDeviceSongsUseCase().collect { domainSongs ->
                 val songUiModels = domainSongs.map { song ->
@@ -133,25 +145,26 @@ class SearchViewModel @Inject constructor(
                     )
                 }
 
-                _uiState.value = _uiState.value.copy(
-                    songs = songUiModels,
-                    isLoading = false
-                )
+                _uiState.update {
+                    it.copy(
+                        songs = songUiModels,
+                        isLoading = false
+                    )
+                }
             }
         }
     }
 
+    /**
+     * Processes file deletion results and updates search result states or triggers permission dialogues.
+     */
     private fun handleDeleteResult(result: DeleteResult) {
         viewModelScope.launch {
             when (result) {
                 is DeleteResult.Success -> {
                     _deleteEvent.send(SearchPlayerUiEvent.ShowToast("آهنگ با موفقیت حذف شد"))
-                    _uiState.update { currentState ->
-                        val updatedResults =
-                            currentState.searchResults.filter { it.id != pendingDeleteSongId?.toString() }
-                        currentState.copy(searchResults = updatedResults)
-                    }
 
+                    // Filter out the deleted song from search results state
                     _uiState.update { currentState ->
                         val targetId = pendingDeleteSongStringId
                         val updatedResults = currentState.searchResults.filter { it.id != targetId }
@@ -174,7 +187,7 @@ class SearchViewModel @Inject constructor(
     }
 
     /**
-     * Handles changes in the search query text input.
+     * Handles text changes in the search input query field.
      */
     fun onQueryChanged(query: String) {
         _uiState.update { it.copy(query = query, isLoading = query.isNotBlank()) }
@@ -187,7 +200,7 @@ class SearchViewModel @Inject constructor(
     }
 
     /**
-     * Clears the current search query and results.
+     * Clears active search query input and resets search results.
      */
     fun onClearQuery() {
         _uiState.update {
@@ -200,22 +213,20 @@ class SearchViewModel @Inject constructor(
         }
     }
 
-
     /**
-     * Handles track selection, sets the playback queue, and triggers navigation to the player.
+     * Handles search result item selection, sets active queue, and prepares playback.
      */
     fun onSongClicked(songId: String) {
         val songs = _uiState.value.searchResults
         val index = songs.indexOfFirst { it.id == songId }
 
         if (index != -1) {
-            // Send the entire playlist along with the selected song index to the player manager
             playerManager.setQueue(songs, startIndex = index)
         }
     }
 
     /**
-     * Performs the actual search operation and maps results to SongUiModel.
+     * Executes the search query using search use-cases and maps matching results on IO thread pool.
      */
     private fun performSearch(query: String) {
         viewModelScope.launch {
@@ -260,6 +271,9 @@ class SearchViewModel @Inject constructor(
     }
 }
 
+/**
+ * UI events related to search and file management actions.
+ */
 sealed interface SearchPlayerUiEvent {
     data class ShowDeletePermissionDialog(val intentSender: android.content.IntentSender) :
         SearchPlayerUiEvent

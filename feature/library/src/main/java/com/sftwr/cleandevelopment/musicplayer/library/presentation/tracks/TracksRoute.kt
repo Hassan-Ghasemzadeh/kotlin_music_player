@@ -17,6 +17,10 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmo
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.TracksViewModel
 import kotlinx.coroutines.flow.collectLatest
 
+/**
+ * Stateful route wrapper for the Tracks screen, responsible for collecting ViewModel states,
+ * handling one-time UI side-effects, and managing scoped storage permission intent launchers.
+ */
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun TracksRoute(
@@ -27,18 +31,22 @@ fun TracksRoute(
     onTagEditClick: (Long) -> Unit,
 ) {
     val context = LocalContext.current
-    // Collect UI state safely with lifecycle awareness
+
+    // Collect UI state safely with lifecycle awareness to prevent unnecessary resource consumption
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Register activity result launcher for handling media deletion permission requests (Scoped Storage)
     val deletePermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
         if (result.resultCode == android.app.Activity.RESULT_OK) {
             viewModel.retryDeleteAfterPermission()
         } else {
-            Toast.makeText(context, "اجازه حذف داده نشد", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, "Delete permission denied", Toast.LENGTH_SHORT).show()
         }
     }
-    // Handle one-time UI events (Navigation side-effects)
+
+    // Handle one-time navigation UI events as side-effects
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collectLatest { event ->
             when (event) {
@@ -46,6 +54,8 @@ fun TracksRoute(
             }
         }
     }
+
+    // Handle playback and file deletion UI events (Toasts and Permission Dialogs)
     LaunchedEffect(key1 = true) {
         viewModel.deleteEvent.collect { event ->
             when (event) {
@@ -61,10 +71,11 @@ fun TracksRoute(
             }
         }
     }
-    // Pass state and action callbacks down to the stateless UI screen
+
+    // Pass immutable state and action callbacks down to the stateless UI screen
     TracksScreen(
         songs = uiState.songs,
-        isLoading = uiState.isLoading, // اضافه شده
+        isLoading = uiState.isLoading,
         onSongClick = { songId -> viewModel.onSongClicked(songId) },
         onBackClick = onBackClick,
         onSearchClick = onNavigateToSearch,

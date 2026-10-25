@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -19,9 +20,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.collectLatest
 
+/**
+ * A customizable Alphabet Indexer Bar component that allows users to quickly
+ * navigate through lists by dragging across letters with smooth touch gesture handling.
+ */
 @Composable
 fun AlphabetIndexerBar(
     letters: List<String>,
@@ -30,24 +33,30 @@ fun AlphabetIndexerBar(
     neonColor: Color = Color(0xFF00D2FF),
     glassColor: Color = Color.White.copy(alpha = 0.05f)
 ) {
+    // State tracking the currently active letter during touch interaction
     var selectedLetter by remember { mutableStateOf<String?>(null) }
+
+    // State tracking whether the user is actively dragging along the bar
     var isDragging by remember { mutableStateOf(false) }
+
+    // Total measured height of the indexer bar container
     var totalHeight by remember { mutableStateOf(0f) }
 
-    val dragPositionFlow = remember { MutableStateFlow(0f) }
+    /**
+     * Helper function to map vertical touch coordinates (Y position) to
+     * the corresponding alphabet letter index safely.
+     */
+    fun updateSelectedLetter(posY: Float) {
+        if (totalHeight > 0f && letters.isNotEmpty()) {
+            val clampedY = posY.coerceIn(0f, totalHeight)
+            val index = ((clampedY / totalHeight) * letters.size)
+                .toInt()
+                .coerceIn(0, letters.size - 1)
 
-    LaunchedEffect(letters, totalHeight) {
-        dragPositionFlow.collectLatest { posY ->
-            if (isDragging) {
-                val clampedY = posY.coerceIn(0f, totalHeight)
-                val index = ((clampedY / totalHeight) * letters.size)
-                    .toInt()
-                    .coerceIn(0, letters.size - 1)
-                val letter = letters[index]
-                if (selectedLetter != letter) {
-                    selectedLetter = letter
-                    onLetterSelected(letter)
-                }
+            val letter = letters[index]
+            if (selectedLetter != letter) {
+                selectedLetter = letter
+                onLetterSelected(letter)
             }
         }
     }
@@ -59,7 +68,7 @@ fun AlphabetIndexerBar(
             .padding(vertical = 16.dp),
         contentAlignment = Alignment.CenterEnd
     ) {
-        // حباب شناور
+        // Floating bubble indicator showing the currently selected letter popup
         AnimatedVisibility(
             visible = isDragging && selectedLetter != null,
             enter = fadeIn(),
@@ -84,6 +93,7 @@ fun AlphabetIndexerBar(
             }
         }
 
+        // Main indexer container with drag gesture detection
         Box(
             modifier = Modifier
                 .fillMaxHeight()
@@ -93,36 +103,29 @@ fun AlphabetIndexerBar(
                 .onGloballyPositioned { coordinates ->
                     totalHeight = coordinates.size.height.toFloat()
                 }
-                .pointerInput(Unit) {
-                    awaitPointerEventScope {
-                        while (true) {
-                            val pointerEvent = awaitPointerEvent()
-                            val change = pointerEvent.changes.firstOrNull()
-                            if (change != null && change.pressed) {
-                                isDragging = true
-                                dragPositionFlow.value = change.position.y
-                                change.consume()
-
-                                val pointerId = change.id
-                                while (true) {
-                                    val nextEvent = awaitPointerEvent()
-                                    val nextChange =
-                                        nextEvent.changes.firstOrNull { it.id == pointerId }
-                                    if (nextChange == null || !nextChange.pressed) {
-                                        isDragging = false
-                                        selectedLetter = null
-                                        break
-                                    } else {
-                                        dragPositionFlow.value = nextChange.position.y
-                                        nextChange.consume()
-                                    }
-                                }
-                            }
+                .pointerInput(letters, totalHeight) {
+                    detectDragGestures(
+                        onDragStart = { offset ->
+                            isDragging = true
+                            updateSelectedLetter(offset.y)
+                        },
+                        onDrag = { change, _ ->
+                            change.consume()
+                            updateSelectedLetter(change.position.y)
+                        },
+                        onDragEnd = {
+                            isDragging = false
+                            selectedLetter = null
+                        },
+                        onDragCancel = {
+                            isDragging = false
+                            selectedLetter = null
                         }
-                    }
+                    )
                 },
             contentAlignment = Alignment.Center
         ) {
+            // Column displaying all indexer letters vertically distributed
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,

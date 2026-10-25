@@ -16,6 +16,10 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.Tracks
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.tracksGraph
 import com.sftwr.cleandevelopment.musicplayer.model.Screen
 
+/**
+ * Main application navigation graph hosting all top-level destinations, feature graphs,
+ * and type-safe screen routes using Jetpack Compose Navigation.
+ */
 @RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun AppNavGraph(
@@ -27,23 +31,24 @@ fun AppNavGraph(
         startDestination = Screen.Home,
         modifier = modifier
     ) {
-        // home main graph
+        // Home feature navigation graph
         homeGraph(
             onNavigateToPlayer = {
                 navController.navigate(Screen.Player)
             },
             onOpenPlaylist = {
-
+                // Placeholder for future playlist detail navigation
             },
             onNavigateToSearch = {
                 navController.navigate(Screen.Search)
             },
             onNavigateToTracks = {
-                // Navigate to Tracks screen when card is clicked
+                // Navigate to tracks library screen when card is selected
                 navController.navigate(TracksRouteKey)
             }
         )
-        // Tracks graph
+
+        // Tracks library feature navigation graph
         tracksGraph(
             onBackClick = {
                 navController.popBackStack()
@@ -54,10 +59,12 @@ fun AppNavGraph(
             onInfoClick = { songId ->
                 navController.navigate(Screen.SongDetail(songId))
             },
-            onTagEditClick = {
-                navController.navigate(Screen.EditTagScreen(it))
+            onTagEditClick = { songId ->
+                navController.navigate(Screen.EditTagScreen(songId))
             }
         )
+
+        // Search destination screen route
         composable<Screen.Search> {
             SearchRoute(
                 onNavigateBack = {
@@ -69,27 +76,31 @@ fun AppNavGraph(
                 onInfoClick = { songId ->
                     navController.navigate(Screen.SongDetail(songId))
                 },
-                onTagEditClick = {
-                    navController.navigate(Screen.EditTagScreen(it))
+                onTagEditClick = { songId ->
+                    navController.navigate(Screen.EditTagScreen(songId))
                 }
             )
         }
-        composable<Screen.Player> {
 
+        // Full-screen audio player destination route
+        composable<Screen.Player> {
             PlayerScreen(
                 onBackClick = {
                     navController.popBackStack()
                 },
             )
         }
-        composable<Screen.SongDetail> {
 
+        // Detailed song metadata view destination route
+        composable<Screen.SongDetail> {
             SongDetailRoute(
                 onBackClick = {
                     navController.popBackStack()
                 },
             )
         }
+
+        // Edit tag feature navigation graph
         editTagScreenGraph(
             onBackClick = {
                 navController.popBackStack()

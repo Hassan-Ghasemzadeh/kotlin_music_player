@@ -27,6 +27,10 @@ import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.model.Screen
 import kotlinx.serialization.InternalSerializationApi
 
+/**
+ * Root application content composable responsible for hosting the navigation graph
+ * and dynamically displaying the persistent bottom mini-player bar based on the active screen state.
+ */
 @RequiresApi(Build.VERSION_CODES.S)
 @OptIn(InternalSerializationApi::class)
 @Composable
@@ -34,33 +38,43 @@ fun AppRootContent(
     navController: NavHostController,
     mainViewModel: MainViewModel = hiltViewModel(),
 ) {
+    // Retrieve the centralized audio player manager instance from the main view model
     val playerManager = mainViewModel.playerManager
-    // Collect current playing song from global manager
+
+    // Collect active playback state flows reactively using lifecycle-aware extension
     val currentSong by playerManager.currentSong.collectAsStateWithLifecycle()
     val isPlaying by playerManager.isPlaying.collectAsStateWithLifecycle()
 
+    // Monitor current navigation backstack entry to determine active route
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    // Hide bottom player bar when the user is currently on the full Player screen
     val showBottomBar = currentRoute?.contains("Player") == false
     val context = LocalContext.current
 
+    // Extract and remember album art bitmap efficiently when the current song URI changes
     val artUri = remember(currentSong?.uri) {
         currentSong?.uri?.toUri()?.extractAlbumArt(context = context)
     }
+
+    // Root container box holding the navigation graph and layered bottom player bar
     Box(
         modifier = Modifier
             .background(Color(0xFF0F0B21))
             .fillMaxSize(),
         contentAlignment = Alignment.BottomCenter
     ) {
+        // Main navigation graph container for screens
         AppNavGraph(
             modifier = Modifier
                 .fillMaxSize()
                 .statusBarsPadding(),
             navController = navController,
         )
+
+        // Conditionally render the bottom mini player bar if a song is loaded and visibility rules allow
         if (showBottomBar && currentSong != null) {
-            // Only show if a song is selected/playing
             BottomPlayerBar(
                 hasNext = playerManager.hasNext,
                 hasPrevious = playerManager.hasPrevious,
@@ -70,7 +84,7 @@ fun AppRootContent(
                 isPlaying = isPlaying,
                 onPlayPauseClick = { playerManager.togglePlayPause() },
                 onPlayerClick = {
-                    // Navigate to full player screen if needed
+                    // Navigate to full-screen player view when mini player is tapped
                     navController.navigate(Screen.Player)
                 },
                 onNextClick = {

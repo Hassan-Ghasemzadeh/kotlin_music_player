@@ -37,9 +37,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 
-
 /**
- * Bottom mini player bar displaying currently playing track and controls.
+ * Bottom mini player bar displaying the currently playing track metadata (art, title, artist)
+ * and essential playback control actions (play/pause, next, previous).
  */
 @Composable
 fun BottomPlayerBar(
@@ -55,6 +55,7 @@ fun BottomPlayerBar(
     onPreviousClick: () -> Unit,
     onPlayerClick: () -> Unit,
 ) {
+    // Glassmorphism styled container wrapper for the mini player bar
     GlassCard(
         modifier = modifier
             .fillMaxWidth()
@@ -75,10 +76,12 @@ fun BottomPlayerBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
+            // Track information container (Album Art + Title/Artist Column)
             Row(
-                verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
             ) {
-                // Album art placeholder
+                // Album art display box with fallback to default music icon placeholder
                 Box(
                     modifier = Modifier
                         .size(48.dp)
@@ -99,7 +102,8 @@ fun BottomPlayerBar(
                             modifier = Modifier
                                 .size(48.dp)
                                 .clip(RoundedCornerShape(8.dp))
-                                .background(Color.DarkGray), contentAlignment = Alignment.Center
+                                .background(Color.DarkGray),
+                            contentAlignment = Alignment.Center
                         ) {
                             Icon(
                                 imageVector = Icons.Default.MusicNote,
@@ -110,26 +114,32 @@ fun BottomPlayerBar(
                         }
                     }
                 }
+
                 Spacer(modifier = Modifier.width(12.dp))
+
+                // Track metadata text labels (Title & Artist name)
                 Column {
                     Text(
                         text = songTitle,
                         color = Color.White,
                         fontSize = 16.sp,
-                        fontWeight = FontWeight.Bold, maxLines = 1,
+                        fontWeight = FontWeight.Bold,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
                         text = artistName,
-                        color = Color.White,
+                        color = Color.White.copy(alpha = 0.7f),
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Light,
+                        maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
                 }
             }
 
+            // Playback control action buttons container (Previous, Play/Pause, Next)
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -137,7 +147,8 @@ fun BottomPlayerBar(
                     Icon(
                         imageVector = Icons.Default.SkipPrevious,
                         contentDescription = "Previous",
-                        tint = Color.White.copy(alpha = if (hasPrevious) 1f else 0.3f), // کم‌رنگ شدن در حالت غیرفعال
+                        // Dim icon opacity when action is disabled
+                        tint = Color.White.copy(alpha = if (hasPrevious) 1f else 0.3f),
                         modifier = Modifier.size(28.dp)
                     )
                 }
@@ -155,7 +166,8 @@ fun BottomPlayerBar(
                     Icon(
                         imageVector = Icons.Default.SkipNext,
                         contentDescription = "Next",
-                        tint = Color.White.copy(alpha = if (hasNext) 1f else 0.3f), // کم‌رنگ شدن در حالت غیرفعال
+                        // Dim icon opacity when action is disabled
+                        tint = Color.White.copy(alpha = if (hasNext) 1f else 0.3f),
                         modifier = Modifier.size(28.dp)
                     )
                 }

@@ -1,9 +1,16 @@
+@file:OptIn(kotlinx.serialization.InternalSerializationApi::class)
+
 package com.sftwr.cleandevelopment.musicplayer.model
 
 import kotlinx.serialization.Serializable
 
+/**
+ * Represents the type-safe navigation screens and destinations within the application,
+ * leveraging "kotlinx.serialization" for Jetpack Compose Navigation arguments parsing.
+ */
 @Serializable
 sealed interface Screen {
+
     @Serializable
     data object Home : Screen
 
@@ -13,11 +20,9 @@ sealed interface Screen {
     @Serializable
     data object Search : Screen
 
-    @OptIn(kotlinx.serialization.InternalSerializationApi::class)
     @Serializable
     data class SongDetail(val songId: Long = -1L) : Screen
 
-    @OptIn(kotlinx.serialization.InternalSerializationApi::class)
     @Serializable
     data class EditTagScreen(val songId: Long = -1L) : Screen
 
