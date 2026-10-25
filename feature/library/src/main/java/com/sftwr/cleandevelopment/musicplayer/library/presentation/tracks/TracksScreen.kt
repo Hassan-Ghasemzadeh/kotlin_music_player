@@ -30,6 +30,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -57,6 +58,7 @@ import coil.compose.AsyncImage
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.AlphabetIndexerBar
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.ScrollToTopButton
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.SongDropdownMenu
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.TracksViewModel
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.visualizer.AnimatedVisualizer
@@ -83,7 +85,6 @@ data class SongUiModel(
  * floating action button for quick jump to active track, and A-Z fast scroller integration.
  */
 @RequiresApi(Build.VERSION_CODES.S)
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TracksScreen(
     modifier: Modifier = Modifier,
@@ -121,7 +122,13 @@ fun TracksScreen(
     var expandedSongId by remember { mutableStateOf<String?>(null) }
 
     val alphabet = remember { ('A'..'Z').map { it.toString() } }
-
+    // Determine if the scroll-to-top button should be visible based on scroll offset and direction
+    val showScrollToTopButton by remember {
+        derivedStateOf {
+            // Show button only if we've scrolled past the first few items
+            listState.firstVisibleItemIndex > 3
+        }
+    }
     // Scaffold container with custom dark vertical gradient background matching theme guidelines
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -333,6 +340,19 @@ fun TracksScreen(
                                         .align(Alignment.CenterEnd)
                                         .padding(bottom = bottomPadding)
                                         .padding(end = 2.dp)
+                                )
+                                // Scroll-to-Top button positioned above the mini player and centered horizontally
+                                ScrollToTopButton(
+                                    isScrolling = listState.isScrollInProgress,
+                                    onClick = {
+                                        coroutineScope.launch {
+                                            // Smoothly scroll back to the top item
+                                            listState.animateScrollToItem(0)
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .align(Alignment.BottomCenter)
+                                        .padding(bottom = 80.dp) // Placed right above the mini player
                                 )
                             }
                         }
