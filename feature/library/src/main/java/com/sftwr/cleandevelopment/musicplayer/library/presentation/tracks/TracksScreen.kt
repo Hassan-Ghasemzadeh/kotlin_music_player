@@ -30,7 +30,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -122,13 +121,7 @@ fun TracksScreen(
     var expandedSongId by remember { mutableStateOf<String?>(null) }
 
     val alphabet = remember { ('A'..'Z').map { it.toString() } }
-    // Determine if the scroll-to-top button should be visible based on scroll offset and direction
-    val showScrollToTopButton by remember {
-        derivedStateOf {
-            // Show button only if we've scrolled past the first few items
-            listState.firstVisibleItemIndex > 3
-        }
-    }
+
     // Scaffold container with custom dark vertical gradient background matching theme guidelines
     Scaffold(
         modifier = modifier.fillMaxSize(),
