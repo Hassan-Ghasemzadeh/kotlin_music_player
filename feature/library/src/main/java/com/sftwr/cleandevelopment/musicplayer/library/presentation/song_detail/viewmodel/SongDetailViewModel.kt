@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
+import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractTechnicalMetadata
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatSize
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.song_detail.SongDetailUiModel
@@ -83,7 +84,9 @@ class SongDetailViewModel @Inject constructor(
                         } else {
                             null
                         }
-
+                        val technicalMeta = withContext(Dispatchers.IO) {
+                            extractTechnicalMetadata(domainSong.path)
+                        }
                         // Map domain entity and cached attributes into UI model representation
                         val songDetailUiModel = SongDetailUiModel(
                             id = domainSong.id.toString(),
@@ -97,9 +100,9 @@ class SongDetailViewModel @Inject constructor(
                             albumArtUri = artUriOrBytes,
                             genre = domainSong.genre.ifEmpty { "نامشخص" },
                             year = domainSong.year.ifEmpty { "نامشخص" },
-                            bitrate = "",
-                            sampleRate = "",
-                            mimeType = "نامشخص"
+                            bitrate = technicalMeta.bitrate,
+                            sampleRate = technicalMeta.sampleRate,
+                            mimeType = technicalMeta.mimeType
                         )
 
                         _uiState.update {
