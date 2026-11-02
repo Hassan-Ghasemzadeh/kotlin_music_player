@@ -83,7 +83,6 @@ data class SongUiModel(
  * TracksScreen displays the list of all available audio tracks with a glassmorphic design,
  * floating action button for quick jump to active track, and A-Z fast scroller integration.
  */
-@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun TracksScreen(
     modifier: Modifier = Modifier,
@@ -223,7 +222,7 @@ fun TracksScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 CircularProgressIndicator(
-                                    color = Color(0xFF00D2FF)
+                                    color = Color(0xFF91D8FB)
                                 )
                             }
                         }

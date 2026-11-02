@@ -5,76 +5,86 @@ import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
-import android.database.ContentObserver
 import android.os.Build
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
+import androidx.core.net.toUri
+import com.sftwr.cleandevelopment.musicplayer.data.model.SongEntity
+import com.sftwr.cleandevelopment.musicplayer.data.source.local.SongDao
+import com.sftwr.cleandevelopment.musicplayer.data.util.AudioTagEditor
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.MusicRepository
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.UpdateTagResult
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.flowOn
-import javax.inject.Inject
-import androidx.core.net.toUri
-import com.sftwr.cleandevelopment.musicplayer.data.util.AudioTagEditor
-import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
-import com.sftwr.cleandevelopment.musicplayer.domain.repository.UpdateTagResult
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
 import java.io.File
+import javax.inject.Inject
 
 class MusicRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
     private val audioTagEditor: AudioTagEditor,
+    private val songDao: SongDao // Inject local database(cache)
 ) : MusicRepository {
 
     /**
-     * Observes device audio files from MediaStore and emits an updated list reactively using a Flow.
+     * Returns a reactive Flow from the local database cache for instant UI loading,
+     * while observing MediaStore changes to trigger background sync.
      */
-    override fun getDeviceSongs(): Flow<List<Song>> = callbackFlow {
+    override fun getDeviceSongs(): Flow<List<Song>> {
+        // Ui Source is local cache always
+        return songDao.getAllSongsFlow()
+            .map { entities -> entities.map { it.toDomain() } }
+            .flowOn(Dispatchers.IO)
+    }
+
+    /**
+     * Performs a background sync between device MediaStore and local Room database.
+     * Call this on app start, resume, or pull-to-refresh.
+     */
+    override suspend fun syncWithDevice() = withContext(Dispatchers.IO) {
+        try {
+            val deviceSongs = fetchSongsFromMediaStore()
+            val cachedSongs = songDao.getAllSongsOnce()
+
+            val cachedDomainSongs = cachedSongs.map { it.toDomain() }
+            val hasChanges = deviceSongs != cachedDomainSongs
+
+            if (deviceSongs.isNotEmpty()) {
+                if (hasChanges) {
+                    songDao.upsertSongs(deviceSongs.map { it.toEntity() })
+                }
+                songDao.deleteStaleSongs(deviceSongs.map { it.path })
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    /**
+     * Scans MediaStore directly from device storage.
+     */
+    private fun fetchSongsFromMediaStore(): List<Song> {
         val collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
         val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
 
-        // Helper function to query MediaStore and emit the song list
-        fun fetchSongs() {
-            val songs = mutableListOf<Song>()
-            context.contentResolver.query(
-                collection,
-                getProjection(),
-                selection,
-                null,
-                sortOrder
-            )?.use { cursor ->
-                songs.addAll(parseSongsFromCursor(cursor))
-            }
-            trySend(songs)
+        val songs = mutableListOf<Song>()
+        context.contentResolver.query(
+            collection,
+            getProjection(),
+            selection,
+            null,
+            sortOrder
+        )?.use { cursor ->
+            songs.addAll(parseSongsFromCursor(cursor))
         }
-
-        // Emit initial set of songs
-        fetchSongs()
-
-        // Register a ContentObserver to listen for external database changes (e.g., new downloads or deletions)
-        val observer = object : ContentObserver(null) {
-            override fun onChange(selfChange: Boolean) {
-                super.onChange(selfChange)
-                fetchSongs()
-            }
-        }
-
-        context.contentResolver.registerContentObserver(
-            MediaStore.Audio.Media.EXTERNAL_CONTENT_URI,
-            true,
-            observer
-        )
-
-        // Clean up the observer when the Flow collector cancels or completes
-        awaitClose {
-            context.contentResolver.unregisterContentObserver(observer)
-        }
-    }.flowOn(Dispatchers.IO)
+        return songs
+    }
 
     /**
      * Performs a filtered search on MediaStore based on title or artist query matching.
@@ -105,9 +115,6 @@ class MusicRepositoryImpl @Inject constructor(
         songs
     }
 
-    /**
-     * Defines the required columns projection for querying audio files from MediaStore.
-     */
     private fun getProjection() = arrayOf(
         MediaStore.Audio.Media._ID,
         MediaStore.Audio.Media.TITLE,
@@ -119,9 +126,6 @@ class MusicRepositoryImpl @Inject constructor(
         MediaStore.Audio.Media.DATA
     )
 
-    /**
-     * Parses a database Cursor and maps it into a list of domain [Song] models.
-     */
     private fun parseSongsFromCursor(cursor: Cursor): List<Song> {
         val songs = mutableListOf<Song>()
         val idCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
@@ -161,25 +165,23 @@ class MusicRepositoryImpl @Inject constructor(
         return songs
     }
 
-    /**
-     * Deletes a specific audio file from device storage with proper Scoped Storage permission handling.
-     */
     @RequiresApi(Build.VERSION_CODES.Q)
     override suspend fun deleteSong(songId: Long): DeleteResult = withContext(Dispatchers.IO) {
         try {
             val uri =
                 ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId)
             val rowsDeleted = context.contentResolver.delete(uri, null, null)
-            if (rowsDeleted > 0) DeleteResult.Success else DeleteResult.Error
+            if (rowsDeleted > 0) {
+                syncWithDevice() // همگام‌سازی پس از حذف
+                DeleteResult.Success
+            } else DeleteResult.Error
         } catch (e: RecoverableSecurityException) {
-            // Handled for Android 10 (API 29) file deletion permission consent
             DeleteResult.RequiresPermission(e.userAction.actionIntent.intentSender)
         } catch (_: SecurityException) {
             val uri =
                 ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 try {
-                    // Handled for Android 11+ (API 30+) batch delete request API
                     val pendingIntent =
                         MediaStore.createDeleteRequest(context.contentResolver, listOf(uri))
                     return@withContext DeleteResult.RequiresPermission(pendingIntent.intentSender)
@@ -194,10 +196,6 @@ class MusicRepositoryImpl @Inject constructor(
         }
     }
 
-    /**
-     * Updates track metadata tags safely by copying the file to cache, editing tags via AudioTagEditor,
-     * writing back to the content stream, and notifying MediaStore.
-     */
     @RequiresApi(Build.VERSION_CODES.Q)
     override suspend fun updateSongTags(
         songId: Long,
@@ -212,20 +210,16 @@ class MusicRepositoryImpl @Inject constructor(
         val tempFile = File(context.cacheDir, "temp_audio_${System.currentTimeMillis()}.mp3")
 
         try {
-            // Step 1: Copy media stream to a temporary local file for safe tag manipulation
             contentResolver.openInputStream(uri)?.use { input ->
                 tempFile.outputStream().use { output -> input.copyTo(output) }
             } ?: return@withContext UpdateTagResult.Error("Failed to read the audio file")
 
-            // Step 2: Edit audio tags using external modular editor helper
             audioTagEditor.updateTags(tempFile, title, artist, album, year, genre)
 
-            // Step 3: Write modified temporary file back to content resolver output stream
-            contentResolver.openOutputStream(uri, "w")?.use { output ->
+            contentResolver.openOutputStream(uri, "rwt")?.use { output ->
                 tempFile.inputStream().use { input -> input.copyTo(output) }
             } ?: return@withContext UpdateTagResult.Error("Failed to write to the audio file")
 
-            // Step 4: Update MediaStore database records to reflect changes immediately
             val contentValues = ContentValues().apply {
                 put(MediaStore.Audio.Media.TITLE, title)
                 put(MediaStore.Audio.Media.ARTIST, artist)
@@ -234,23 +228,33 @@ class MusicRepositoryImpl @Inject constructor(
             contentResolver.update(uri, contentValues, null, null)
             contentResolver.notifyChange(uri, null)
 
+            val cachedSongs = songDao.getAllSongsOnce()
+            val existingEntity = cachedSongs.find { it.id == songId }
+            if (existingEntity != null) {
+                val updatedEntity = existingEntity.copy(
+                    title = title,
+                    artist = artist,
+                    album = album
+                )
+                songDao.upsertSongs(listOf(updatedEntity))
+            }
+
+            syncWithDevice()
             UpdateTagResult.Success
 
         } catch (e: RecoverableSecurityException) {
-            // Handle Android 10 scoped storage write permission request
             UpdateTagResult.RequiresPermission(e.userAction.actionIntent.intentSender)
         } catch (e: SecurityException) {
             val uriTarget =
                 ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, songId)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 try {
-                    // Handle Android 11+ explicit write request intent
                     val pendingIntent =
                         MediaStore.createWriteRequest(context.contentResolver, listOf(uriTarget))
                     return@withContext UpdateTagResult.RequiresPermission(pendingIntent.intentSender)
                 } catch (ex: Exception) {
                     return@withContext UpdateTagResult.Error(
-                        ex.localizedMessage ?: "Permission request error"
+                        ex.localizedMessage ?: "Permission error"
                     )
                 }
             }
@@ -258,8 +262,26 @@ class MusicRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             UpdateTagResult.Error(e.localizedMessage ?: "An unknown error occurred")
         } finally {
-            // Ensure temporary file cleanup to prevent cache bloat
             if (tempFile.exists()) tempFile.delete()
         }
     }
 }
+
+// Extension Mappers for Clean Architecture Layer Isolation
+private fun SongEntity.toDomain() = Song(
+    id = id,
+    title = title,
+    artist = artist,
+    album = album,
+    albumId = albumId,
+    contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id),
+    albumArtUri = "",
+    duration = duration,
+    size = size,
+    path = path
+)
+
+private fun Song.toEntity() = SongEntity(
+    id = id, title = title, artist = artist, album = album,
+    albumId = albumId, duration = duration, size = size, path = path
+)

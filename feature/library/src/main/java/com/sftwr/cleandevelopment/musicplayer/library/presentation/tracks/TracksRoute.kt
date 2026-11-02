@@ -1,16 +1,18 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks
 
-import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.PlayerUiEvent
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.TracksUiEvent
@@ -21,7 +23,6 @@ import kotlinx.coroutines.flow.collectLatest
  * Stateful route wrapper for the Tracks screen, responsible for collecting ViewModel states,
  * handling one-time UI side-effects, and managing scoped storage permission intent launchers.
  */
-@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun TracksRoute(
     viewModel: TracksViewModel = hiltViewModel(),
@@ -31,9 +32,22 @@ fun TracksRoute(
     onTagEditClick: (Long) -> Unit,
 ) {
     val context = LocalContext.current
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     // Collect UI state safely with lifecycle awareness to prevent unnecessary resource consumption
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.onAppResumed()
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
+        }
+    }
 
     // Register activity result launcher for handling media deletion permission requests (Scoped Storage)
     val deletePermissionLauncher = rememberLauncherForActivityResult(

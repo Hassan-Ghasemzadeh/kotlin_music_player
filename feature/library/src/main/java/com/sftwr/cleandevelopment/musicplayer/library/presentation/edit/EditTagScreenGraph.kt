@@ -1,12 +1,10 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.edit
 
 import android.app.Activity
-import android.os.Build
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -22,7 +20,6 @@ import com.sftwr.cleandevelopment.musicplayer.model.Screen
 /**
  * Extension function to register EditTagScreen in the NavGraphBuilder.
  */
-@RequiresApi(Build.VERSION_CODES.S)
 fun NavGraphBuilder.editTagScreenGraph(
     onBackClick: () -> Unit,
 ) {

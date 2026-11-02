@@ -6,7 +6,6 @@ import android.graphics.BitmapFactory
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
-import androidx.annotation.RequiresApi
 
 
 /**
@@ -61,16 +60,18 @@ data class SongExtraMetadata(
     val mimeType: String?
 )
 
-@RequiresApi(Build.VERSION_CODES.S)
 fun String.extractExtraMetadata(): SongExtraMetadata {
     val retriever = MediaMetadataRetriever()
     return try {
         retriever.setDataSource(this)
+        val sampleRate = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_SAMPLERATE)
+        } else null
         SongExtraMetadata(
             genre = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE),
             year = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_YEAR),
             bitrate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_BITRATE),
-            sampleRate = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_SAMPLERATE),
+            sampleRate = sampleRate,
             mimeType = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_MIMETYPE)
         )
     } catch (e: Exception) {

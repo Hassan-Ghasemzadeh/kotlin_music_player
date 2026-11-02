@@ -35,6 +35,8 @@ interface MusicRepository {
         year: String,
         genre: String
     ): UpdateTagResult
+
+    suspend fun syncWithDevice()
 }
 
 /**

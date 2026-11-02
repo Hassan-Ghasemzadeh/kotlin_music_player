@@ -16,24 +16,29 @@ class AudioTagEditor @Inject constructor() {
         genre: String
     ) {
         val audioFile = AudioFileIO.read(file)
-        val existingArtworks = audioFile.tag?.artworkList?.toList() ?: emptyList()
+        val tag = audioFile.tagOrCreateAndSetDefault
 
-        val tag = audioFile.createDefaultTag()
-        audioFile.tag = tag
-
-        tag.setField(FieldKey.TITLE, title)
-        tag.setField(FieldKey.ARTIST, artist)
-        tag.setField(FieldKey.ALBUM, album)
-
-        if (year.isNotBlank() && year != "نامشخص") {
-            tag.setField(FieldKey.YEAR, year)
+        if (title.isNotBlank()) {
+            tag.setField(FieldKey.TITLE, title)
         }
-        if (genre.isNotBlank() && genre != "نامشخص") {
-            tag.setField(FieldKey.GENRE, genre)
+        if (artist.isNotBlank()) {
+            tag.setField(FieldKey.ARTIST, artist)
+        }
+        if (album.isNotBlank()) {
+            tag.setField(FieldKey.ALBUM, album)
         }
 
-        for (artwork in existingArtworks) {
-            tag.addField(artwork)
+        if (year.isNotBlank() && year != "نامشخص" && year != "Unknown") {
+            try {
+                tag.setField(FieldKey.YEAR, year)
+            } catch (_: Exception) {
+            }
+        }
+        if (genre.isNotBlank() && genre != "نامشخص" && genre != "Unknown") {
+            try {
+                tag.setField(FieldKey.GENRE, genre)
+            } catch (_: Exception) {
+            }
         }
 
         audioFile.commit()

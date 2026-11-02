@@ -30,7 +30,6 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            // برای اینکه بتونی به راحتی نسخه ریلیز رو روی گوشیت نصب و تست کنی:
             signingConfig = signingConfigs.getByName("debug")
         }
     }
@@ -56,7 +55,9 @@ dependencies {
     implementation(libs.androidx.hilt.navigation.compose)
 
     implementation(libs.kotlinx.serialization.json)
-
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
     implementation(platform(libs.androidx.compose.bom))
     implementation(libs.androidx.activity.compose)
     implementation(libs.androidx.compose.material3)

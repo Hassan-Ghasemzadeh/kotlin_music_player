@@ -1,8 +1,6 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.edit.viewmodel
 
 import android.content.Context
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -45,7 +43,6 @@ data class EditTagState(
     val isLoading: Boolean = true,
 )
 
-@RequiresApi(Build.VERSION_CODES.S)
 @HiltViewModel
 class EditTagViewModel @Inject constructor(
     private val updateSongTagsUseCase: UpdateSongTagsUseCase,
@@ -75,13 +72,11 @@ class EditTagViewModel @Inject constructor(
         }
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
     fun loadSongDetailsExplicitly(songId: Long) {
         if (uiState.value.songId == songId && !uiState.value.isLoading) return
         loadSongDetails(songId)
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
     private fun loadSongDetails(songId: Long) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, songId = songId) }

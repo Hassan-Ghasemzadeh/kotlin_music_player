@@ -1,12 +1,10 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
-import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.MusicRepository
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractExtraMetadata
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
@@ -17,52 +15,68 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-/**
- * ViewModel responsible for managing the tracks library state, handling track playback queues,
- * processing media deletion flows, and preserving UI scroll positions across configuration changes.
- */
-@RequiresApi(Build.VERSION_CODES.S)
 @HiltViewModel
 class TracksViewModel @Inject constructor(
-    private val getDeviceSongsUseCase: GetDeviceSongsUseCase,
+    private val musicRepository: MusicRepository,
     private val playerManager: PlayerManager,
     private val savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    // Persistent scroll index stored safely in SavedStateHandle across process death
     var scrollIndex: Int
         get() = savedStateHandle.get<Int>("scroll_index") ?: 0
         set(value) {
             savedStateHandle["scroll_index"] = value
         }
 
-    // Persistent scroll pixel offset stored safely in SavedStateHandle
     var scrollOffset: Int
         get() = savedStateHandle.get<Int>("scroll_offset") ?: 0
         set(value) {
             savedStateHandle["scroll_offset"] = value
         }
 
-    private val _isLoading = MutableStateFlow(false)
+    private val _isLoading = MutableStateFlow(true)
     private val _isRefreshing = MutableStateFlow(false)
 
-    // Reactive UI state stream mapping player manager songs to UI models
-    val uiState: StateFlow<TracksUiState> = playerManager.allSongs
-        .map { songs ->
-            TracksUiState(
-                songs = songs,
-                isLoading = _isLoading.value,
-                isRefreshing = _isRefreshing.value
-            )
+    // دریافت مستقیم و واکنش‌گرا از کش محلی (Room) و ترکیب با وضعیت بارگذاری
+    val uiState: StateFlow<TracksUiState> = combine(
+        musicRepository.getDeviceSongs(),
+        _isLoading,
+        _isRefreshing
+    ) { domainSongs, isLoading, isRefreshing ->
+        val songUiModels = withContext(Dispatchers.IO) {
+            domainSongs.map { song ->
+                val extraMetadata = song.path.extractExtraMetadata()
+                SongUiModel(
+                    id = song.id.toString(),
+                    title = song.title,
+                    artist = song.artist,
+                    duration = song.duration.formatTime(),
+                    uri = song.path,
+                    year = extraMetadata.year ?: "",
+                    album = song.album,
+                    genre = extraMetadata.genre ?: "",
+                )
+            }
         }
-        .stateIn(viewModelScope, SharingStarted.Lazily, TracksUiState())
+        playerManager.setSongs(songUiModels)
+
+        TracksUiState(
+            songs = songUiModels,
+            isLoading = isLoading,
+            isRefreshing = isRefreshing
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = TracksUiState(isLoading = true)
+    )
 
     private val _uiEvent = Channel<TracksUiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
@@ -74,14 +88,11 @@ class TracksViewModel @Inject constructor(
     val isPlayerPlaying = playerManager.isPlaying
 
     init {
-        loadTracks()
+        syncTracks()
     }
 
     private var pendingDeleteSongId: Long? = null
 
-    /**
-     * Initiates song deletion workflow and handles security permission results (Scoped Storage).
-     */
     fun deleteCurrentOrSelectedSong(songId: Long) {
         pendingDeleteSongId = songId
         viewModelScope.launch {
@@ -90,9 +101,6 @@ class TracksViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Retries the pending deletion request after user grants system write/delete permission.
-     */
     fun retryDeleteAfterPermission() {
         pendingDeleteSongId?.let { id ->
             deleteCurrentOrSelectedSong(id)
@@ -100,43 +108,21 @@ class TracksViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Fetches device songs from the domain use case, extracts extra metadata safely on IO dispatcher,
-     * and registers the playlist into the central player manager.
-     */
-    @RequiresApi(Build.VERSION_CODES.S)
-    private fun loadTracks() {
+
+    fun onAppResumed() {
         viewModelScope.launch {
-            _isLoading.value = true
-
-            getDeviceSongsUseCase().collect { domainSongs ->
-                val songUiModels = domainSongs.toList().map { song ->
-                    // Offload heavy metadata extraction to IO thread pool
-                    val extraMetadata = withContext(Dispatchers.IO) {
-                        song.path.extractExtraMetadata()
-                    }
-                    SongUiModel(
-                        id = song.id.toString(),
-                        title = song.title,
-                        artist = song.artist,
-                        duration = song.duration.formatTime(),
-                        uri = song.path,
-                        year = extraMetadata.year ?: "",
-                        album = song.path,
-                        genre = extraMetadata.genre ?: "",
-                    )
-                }
-
-                // Register loaded song models as the single source of truth in PlayerManager
-                playerManager.setSongs(songUiModels)
-                _isLoading.value = false
-            }
+            musicRepository.syncWithDevice()
         }
     }
 
-    /**
-     * Handles track selection from the list, updates the active playback queue, and sets the starting index.
-     */
+    private fun syncTracks() {
+        viewModelScope.launch {
+            _isLoading.value = true
+            musicRepository.syncWithDevice()
+            _isLoading.value = false
+        }
+    }
+
     fun onSongClicked(songId: String) {
         val songs = uiState.value.songs
         val index = songs.indexOfFirst { it.id == songId }
@@ -146,9 +132,6 @@ class TracksViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Processes deletion results and dispatches corresponding UI events (Toast or Permission Dialog).
-     */
     private fun handleDeleteResult(result: DeleteResult) {
         viewModelScope.launch {
             when (result) {
@@ -168,16 +151,10 @@ class TracksViewModel @Inject constructor(
     }
 }
 
-/**
- * UI events emitted from TracksViewModel for one-time actions like navigation.
- */
 sealed interface TracksUiEvent {
     object NavigateToSearch : TracksUiEvent
 }
 
-/**
- * UI events related to media playback and file management operations.
- */
 sealed interface PlayerUiEvent {
     data class ShowDeletePermissionDialog(val intentSender: android.content.IntentSender) :
         PlayerUiEvent
