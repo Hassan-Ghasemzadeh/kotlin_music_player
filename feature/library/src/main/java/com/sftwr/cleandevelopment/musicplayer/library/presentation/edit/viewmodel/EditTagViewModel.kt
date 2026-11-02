@@ -9,11 +9,9 @@ import com.sftwr.cleandevelopment.musicplayer.domain.repository.UpdateTagResult
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.UpdateSongTagsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
-import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractExtraMetadata
 import com.sftwr.cleandevelopment.musicplayer.model.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -22,7 +20,6 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 sealed interface EditTagUiEvent {
@@ -84,17 +81,14 @@ class EditTagViewModel @Inject constructor(
             val songs = getDeviceSongsUseCase().firstOrNull()
             val song = songs?.find { it.id == songId }
             if (song != null) {
-                val extraMetadata = withContext(Dispatchers.IO) {
-                    song.path.extractExtraMetadata()
-                }
                 _uiState.update {
                     it.copy(
                         title = song.title,
                         artist = song.artist,
                         album = song.album,
                         songUri = song.path,
-                        genre = extraMetadata.genre?.ifEmpty { "نامشخص" } ?: "نامشخص",
-                        year = extraMetadata.year?.ifEmpty { "نامشخص" } ?: "نامشخص",
+                        genre = song.genre.ifEmpty { "نامشخص" },
+                        year = song.year.ifEmpty { "نامشخص" },
                         isLoading = false)
                 }
             } else {

@@ -8,12 +8,10 @@ import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.SearchSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
-import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractExtraMetadata
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.SearchUiState
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -85,18 +83,15 @@ class SearchViewModel @Inject constructor(
 
                 if (rawResults != null) {
                     val mappedResults = rawResults.map { song ->
-                        val extraMetadata = withContext(Dispatchers.IO) {
-                            song.path.extractExtraMetadata()
-                        }
                         SongUiModel(
                             id = song.id.toString(),
                             title = song.title,
                             artist = song.artist,
                             duration = song.duration.formatTime(),
                             uri = song.path,
-                            year = extraMetadata.year ?: "",
-                            album = song.path,
-                            genre = extraMetadata.genre ?: "",
+                            year = song.year,
+                            album = song.album,
+                            genre = song.genre,
                         )
                     }
 
@@ -130,18 +125,15 @@ class SearchViewModel @Inject constructor(
 
             getDeviceSongsUseCase().collect { domainSongs ->
                 val songUiModels = domainSongs.map { song ->
-                    val extraMetadata = withContext(Dispatchers.IO) {
-                        song.path.extractExtraMetadata()
-                    }
                     SongUiModel(
                         id = song.id.toString(),
                         title = song.title,
                         artist = song.artist,
                         duration = song.duration.formatTime(),
                         uri = song.path,
-                        year = extraMetadata.year ?: "",
-                        album = song.path,
-                        genre = extraMetadata.genre ?: "",
+                        year = song.year,
+                        album = song.album,
+                        genre = song.genre,
                     )
                 }
 
@@ -236,18 +228,15 @@ class SearchViewModel @Inject constructor(
                 val rawResults = searchSongsUseCase(query)
 
                 val mappedResults = rawResults.map { song ->
-                    val extraMetadata = withContext(Dispatchers.IO) {
-                        song.path.extractExtraMetadata()
-                    }
                     SongUiModel(
                         id = song.id.toString(),
                         title = song.title,
                         artist = song.artist,
                         duration = song.duration.formatTime(),
                         uri = song.path,
-                        year = extraMetadata.year ?: "",
-                        album = song.path,
-                        genre = extraMetadata.genre ?: "",
+                        year = song.year,
+                        album = song.album,
+                        genre = song.genre,
                     )
                 }
 

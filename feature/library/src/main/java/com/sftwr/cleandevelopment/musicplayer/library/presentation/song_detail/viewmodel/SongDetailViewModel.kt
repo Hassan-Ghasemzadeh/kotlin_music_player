@@ -9,7 +9,6 @@ import androidx.lifecycle.viewModelScope
 import androidx.navigation.toRoute
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
-import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractExtraMetadata
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatSize
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.song_detail.SongDetailUiModel
@@ -74,10 +73,7 @@ class SongDetailViewModel @Inject constructor(
                             "domainSong: ${domainSong.id}, songId: $songId, path: ${domainSong.path}"
                         )
 
-                        // Offload heavy metadata and album art extraction tasks to IO dispatcher pool
-                        val extraMetadata = withContext(Dispatchers.IO) {
-                            domainSong.path.extractExtraMetadata()
-                        }
+                        // Offload heavy album art extraction task to IO dispatcher pool
                         val artworkBytes = withContext(Dispatchers.IO) {
                             domainSong.path.extractAlbumArt()
                         }
@@ -88,7 +84,7 @@ class SongDetailViewModel @Inject constructor(
                             null
                         }
 
-                        // Map domain entity and extracted attributes into UI model representation
+                        // Map domain entity and cached attributes into UI model representation
                         val songDetailUiModel = SongDetailUiModel(
                             id = domainSong.id.toString(),
                             title = domainSong.title,
@@ -99,11 +95,11 @@ class SongDetailViewModel @Inject constructor(
                             size = domainSong.size.formatSize(),
                             path = domainSong.path,
                             albumArtUri = artUriOrBytes,
-                            genre = extraMetadata.genre ?: "نامشخص",
-                            year = extraMetadata.year ?: "نامشخص",
-                            bitrate = extraMetadata.bitrate ?: "",
-                            sampleRate = extraMetadata.sampleRate ?: "",
-                            mimeType = extraMetadata.mimeType ?: "نامشخص"
+                            genre = domainSong.genre.ifEmpty { "نامشخص" },
+                            year = domainSong.year.ifEmpty { "نامشخص" },
+                            bitrate = "",
+                            sampleRate = "",
+                            mimeType = "نامشخص"
                         )
 
                         _uiState.update {

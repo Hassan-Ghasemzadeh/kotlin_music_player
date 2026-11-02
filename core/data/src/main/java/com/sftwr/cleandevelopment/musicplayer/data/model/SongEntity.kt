@@ -12,5 +12,7 @@ data class SongEntity(
     val albumId: Long,
     val duration: Long,
     val size: Long,
-    val path: String
+    val path: String,
+    val year: String = "",
+    val genre: String = ""
 )

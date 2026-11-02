@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.MusicRepository
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
-import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractExtraMetadata
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -50,20 +49,17 @@ class TracksViewModel @Inject constructor(
         _isLoading,
         _isRefreshing
     ) { domainSongs, isLoading, isRefreshing ->
-        val songUiModels = withContext(Dispatchers.IO) {
-            domainSongs.map { song ->
-                val extraMetadata = song.path.extractExtraMetadata()
-                SongUiModel(
-                    id = song.id.toString(),
-                    title = song.title,
-                    artist = song.artist,
-                    duration = song.duration.formatTime(),
-                    uri = song.path,
-                    year = extraMetadata.year ?: "",
-                    album = song.album,
-                    genre = extraMetadata.genre ?: "",
-                )
-            }
+        val songUiModels = domainSongs.map { song ->
+            SongUiModel(
+                id = song.id.toString(),
+                title = song.title,
+                artist = song.artist,
+                duration = song.duration.formatTime(),
+                uri = song.path,
+                year = song.year,
+                album = song.album,
+                genre = song.genre,
+            )
         }
         playerManager.setSongs(songUiModels)
 

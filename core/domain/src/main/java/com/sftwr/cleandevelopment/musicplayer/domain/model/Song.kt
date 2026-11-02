@@ -15,5 +15,7 @@ data class Song(
     val albumArtUri: String? = null,// Album art Uri or URL string (nullable if cover image is missing)
     val duration: Long = 0L,        // Song duration in milliseconds
     val size: Long = 0L,            // File size in bytes
-    val path: String = ""           // Full absolute path on device storage (useful for folder or filter management)
+    val path: String = "",          // Full absolute path on device storage (useful for folder or filter management)
+    val year: String = "",          // Track release year
+    val genre: String = ""          // Track genre
 )

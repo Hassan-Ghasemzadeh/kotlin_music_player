@@ -4,7 +4,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.sftwr.cleandevelopment.musicplayer.data.model.SongEntity
 
-@Database(entities = [SongEntity::class], version = 1, exportSchema = false)
+@Database(entities = [SongEntity::class], version = 3, exportSchema = false)
 abstract class MusicDatabase : RoomDatabase() {
     abstract fun songDao(): SongDao
 

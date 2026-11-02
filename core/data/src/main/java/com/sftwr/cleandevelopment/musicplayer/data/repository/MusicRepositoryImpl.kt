@@ -5,6 +5,7 @@ import android.content.ContentUris
 import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
+import android.media.MediaMetadataRetriever
 import android.os.Build
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
@@ -46,19 +47,24 @@ class MusicRepositoryImpl @Inject constructor(
      * Performs a background sync between device MediaStore and local Room database.
      * Call this on app start, resume, or pull-to-refresh.
      */
+    /**
+     * Performs a background sync between device MediaStore and local Room database.
+     * Extracts year and genre once during device scan/sync and saves them directly into SongEntity.
+     */
     override suspend fun syncWithDevice() = withContext(Dispatchers.IO) {
         try {
-            val deviceSongs = fetchSongsFromMediaStore()
+            val deviceEntities = fetchSongsFromMediaStore()
             val cachedSongs = songDao.getAllSongsOnce()
 
             val cachedDomainSongs = cachedSongs.map { it.toDomain() }
-            val hasChanges = deviceSongs != cachedDomainSongs
+            val deviceDomainSongs = deviceEntities.map { it.toDomain() }
+            val hasChanges = deviceDomainSongs != cachedDomainSongs
 
-            if (deviceSongs.isNotEmpty()) {
+            if (deviceEntities.isNotEmpty()) {
                 if (hasChanges) {
-                    songDao.upsertSongs(deviceSongs.map { it.toEntity() })
+                    songDao.upsertSongs(deviceEntities)
                 }
-                songDao.deleteStaleSongs(deviceSongs.map { it.path })
+                songDao.deleteStaleSongs(deviceEntities.map { it.path })
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -66,14 +72,14 @@ class MusicRepositoryImpl @Inject constructor(
     }
 
     /**
-     * Scans MediaStore directly from device storage.
+     * Scans MediaStore directly from device storage and populates SongEntity with metadata.
      */
-    private fun fetchSongsFromMediaStore(): List<Song> {
+    private fun fetchSongsFromMediaStore(): List<SongEntity> {
         val collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
         val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
 
-        val songs = mutableListOf<Song>()
+        val songEntities = mutableListOf<SongEntity>()
         context.contentResolver.query(
             collection,
             getProjection(),
@@ -81,9 +87,9 @@ class MusicRepositoryImpl @Inject constructor(
             null,
             sortOrder
         )?.use { cursor ->
-            songs.addAll(parseSongsFromCursor(cursor))
+            songEntities.addAll(parseSongEntitiesFromCursor(cursor))
         }
-        return songs
+        return songEntities
     }
 
     /**
@@ -98,7 +104,7 @@ class MusicRepositoryImpl @Inject constructor(
         val selectionArgs = arrayOf("%$query%", "%$query%")
         val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
 
-        val songs = mutableListOf<Song>()
+        val songEntities = mutableListOf<SongEntity>()
         try {
             context.contentResolver.query(
                 collection,
@@ -107,12 +113,12 @@ class MusicRepositoryImpl @Inject constructor(
                 selectionArgs,
                 sortOrder
             )?.use { cursor ->
-                songs.addAll(parseSongsFromCursor(cursor))
+                songEntities.addAll(parseSongEntitiesFromCursor(cursor))
             }
         } catch (e: Exception) {
             e.printStackTrace()
         }
-        songs
+        songEntities.map { it.toDomain() }
     }
 
     private fun getProjection() = arrayOf(
@@ -126,8 +132,8 @@ class MusicRepositoryImpl @Inject constructor(
         MediaStore.Audio.Media.DATA
     )
 
-    private fun parseSongsFromCursor(cursor: Cursor): List<Song> {
-        val songs = mutableListOf<Song>()
+    private fun parseSongEntitiesFromCursor(cursor: Cursor): List<SongEntity> {
+        val songEntities = mutableListOf<SongEntity>()
         val idCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
         val titleCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
         val artistCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.ARTIST)
@@ -147,22 +153,41 @@ class MusicRepositoryImpl @Inject constructor(
             val size = cursor.getLong(sizeCol)
             val path = cursor.getString(dataCol) ?: ""
 
-            val contentUri =
-                ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
-            val albumArtUri = ContentUris.withAppendedId(
-                "content://media/external/audio/albumart".toUri(),
-                albumId
-            ).toString()
+            // Extract extra metadata (year and genre) once during device scan/sync
+            val (year, genre) = extractMetadataFromFile(path)
 
-            songs.add(
-                Song(
-                    id = id, title = title, artist = artist, album = album,
-                    albumId = albumId, contentUri = contentUri, albumArtUri = albumArtUri,
-                    duration = duration, size = size, path = path
+            songEntities.add(
+                SongEntity(
+                    id = id,
+                    title = title,
+                    artist = artist,
+                    album = album,
+                    albumId = albumId,
+                    duration = duration,
+                    size = size,
+                    path = path,
+                    year = year,
+                    genre = genre
                 )
             )
         }
-        return songs
+        return songEntities
+    }
+
+    private fun extractMetadataFromFile(path: String): Pair<String, String> {
+        val retriever = MediaMetadataRetriever()
+        return try {
+            retriever.setDataSource(path)
+            val genre = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_GENRE) ?: ""
+            val year = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_YEAR) ?: ""
+            Pair(year, genre)
+        } catch (_: Exception) {
+            Pair("", "")
+        } finally {
+            try {
+                retriever.release()
+            } catch (_: Exception) {}
+        }
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
@@ -275,13 +300,26 @@ private fun SongEntity.toDomain() = Song(
     album = album,
     albumId = albumId,
     contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id),
-    albumArtUri = "",
+    albumArtUri = ContentUris.withAppendedId(
+        "content://media/external/audio/albumart".toUri(),
+        albumId
+    ).toString(),
     duration = duration,
     size = size,
-    path = path
+    path = path,
+    year = year,
+    genre = genre
 )
 
 private fun Song.toEntity() = SongEntity(
-    id = id, title = title, artist = artist, album = album,
-    albumId = albumId, duration = duration, size = size, path = path
+    id = id,
+    title = title,
+    artist = artist,
+    album = album,
+    albumId = albumId,
+    duration = duration,
+    size = size,
+    path = path,
+    year = year,
+    genre = genre
 )
