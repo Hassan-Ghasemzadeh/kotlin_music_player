@@ -49,13 +49,18 @@ class SongTagEditBenchmarkTest {
             songDao = songDao
         )
 
-        // 2. Create a valid temporary MP3 file on actual device storage for real file I/O
+        // 2. Copy a valid small sample MP3 file from androidTest assets for real file I/O
         targetFile = File(context.cacheDir, "benchmark_target_song.mp3")
-        val frameHeader = byteArrayOf(0xFF.toByte(), 0xFB.toByte(), 0x90.toByte(), 0x64.toByte())
-        val framePayload = ByteArray(413)
-        val oneFrame = frameHeader + framePayload
-        val mp3Data = oneFrame + oneFrame + oneFrame + oneFrame
-        targetFile.writeBytes(mp3Data)
+        try {
+            context.assets.open("sample.mp3").use { input ->
+                targetFile.outputStream().use { output ->
+                    input.copyTo(output)
+                }
+            }
+        } catch (e: Exception) {
+            // Fallback if asset file is missing
+            targetFile.writeBytes(ByteArray(1024 * 100))
+        }
 
         // 3. Setup test scenario with 200 mock songs inserted into Room database
         val mockSongs = (1L..200L).map { id ->
@@ -106,7 +111,13 @@ class SongTagEditBenchmarkTest {
                     year = newYear,
                     genre = newGenre
                 )
-                assertTrue("Expected UpdateTagResult.Success", result is UpdateTagResult.Success)
+
+                // If it fails, print the error/exception message to Logcat for easier debugging
+                if (result is UpdateTagResult.Error) {
+                    Log.e("SongTagEditBenchmark", "Tag edit failed: ${result.message}", Exception(result.message))
+                }
+
+                assertTrue("Expected UpdateTagResult.Success, but got: $result", result is UpdateTagResult.Success)
             }
         }
 
