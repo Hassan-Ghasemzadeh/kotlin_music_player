@@ -2,6 +2,7 @@ package com.sftwr.cleandevelopment.musicplayer.library.core.manager
 
 import android.content.Context
 import android.content.Intent
+import android.os.Build
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
@@ -26,22 +27,16 @@ class PlayerManager @Inject constructor(
     @param:ApplicationContext private val context: Context,
 ) {
 
-    // Currently playing song state
     private val _currentSong = MutableStateFlow<SongUiModel?>(null)
     val currentSong: StateFlow<SongUiModel?> = _currentSong.asStateFlow()
 
-    // Play/Pause state
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
-    // Internal active queue list for tracking songs
     private var activeQueue: List<SongUiModel> = emptyList()
-    val hasNext: Boolean
-        get() = exoPlayer.hasNextMediaItem()
-    val hasPrevious: Boolean
-        get() = exoPlayer.hasPreviousMediaItem()
+    val hasNext: Boolean get() = exoPlayer.hasNextMediaItem()
+    val hasPrevious: Boolean get() = exoPlayer.hasPreviousMediaItem()
 
-    // 👈 حافظه موقت برای نگهداری تگ‌های ویرایش‌شده جهت جلوگیری از بازگشت به مقدار قدیم
     private val editedSongsCache = mutableMapOf<String, SongUiModel>()
 
     init {
@@ -68,14 +63,8 @@ class PlayerManager @Inject constructor(
     private val _allSongs = MutableStateFlow<List<SongUiModel>>(emptyList())
     val allSongs: StateFlow<List<SongUiModel>> = _allSongs.asStateFlow()
 
-    /**
-     * قرار دادن لیست آهنگ‌ها و اعمال خودکار تغییرات کش‌شده روی آن‌ها
-     */
     fun setSongs(songs: List<SongUiModel>) {
-        val mergedSongs = songs.map { song ->
-            editedSongsCache[song.id] ?: song
-        }
-
+        val mergedSongs = songs.map { song -> editedSongsCache[song.id] ?: song }
         if (mergedSongs.isNotEmpty() || _allSongs.value.isEmpty()) {
             _allSongs.value = mergedSongs
         }
@@ -91,9 +80,6 @@ class PlayerManager @Inject constructor(
         }
     }
 
-    /**
-     * Stop playback, clear media items, and reset current song state.
-     */
     fun stopPlayback() {
         exoPlayer.stop()
         exoPlayer.clearMediaItems()
@@ -104,14 +90,12 @@ class PlayerManager @Inject constructor(
 
     suspend fun deleteSong(songId: Long): DeleteResult {
         val result = deleteSongUseCase(songId)
-
         if (result is DeleteResult.Success) {
             val currentPlayingId = currentSong.value?.id
             if (currentPlayingId == songId.toString()) {
                 stopPlayback()
             }
         }
-
         return result
     }
 
@@ -136,7 +120,11 @@ class PlayerManager @Inject constructor(
     private fun startPlaybackService() {
         try {
             val intent = Intent(context, MusicPlaybackService::class.java)
-            ContextCompat.startForegroundService(context, intent)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                ContextCompat.startForegroundService(context, intent)
+            } else {
+                context.startService(intent)
+            }
         } catch (e: Exception) {
             e.printStackTrace()
         }
@@ -157,14 +145,9 @@ class PlayerManager @Inject constructor(
             .build()
     }
 
-    /**
-     * Set the entire playback queue
-     */
     fun setQueue(songs: List<SongUiModel>, startIndex: Int = 0) {
-        startPlaybackService()
-        // اعمال کش روی صف پخش نیز برای ثبات کامل
+        startPlaybackService() // استارت امن سرویس برای اجرای پس‌زمینه
         activeQueue = songs.map { song -> editedSongsCache[song.id] ?: song }
-
         val mediaItems = activeQueue.map { song -> song.toMediaItem() }
 
         exoPlayer.setMediaItems(mediaItems)
@@ -177,11 +160,8 @@ class PlayerManager @Inject constructor(
         }
     }
 
-    /**
-     * Play a selected song individually if queue is not set.
-     */
     fun playSong(song: SongUiModel) {
-        startPlaybackService()
+        startPlaybackService() // استارت امن سرویس برای اجرای پس‌زمینه
         val finalSong = editedSongsCache[song.id] ?: song
         _currentSong.value = finalSong
         activeQueue = listOf(finalSong)
@@ -191,9 +171,6 @@ class PlayerManager @Inject constructor(
         exoPlayer.play()
     }
 
-    /**
-     * آپدیت یکپارچه، آنی و امن متادیتا در لیست کلی، مینی‌پلیر، صف پخش و ExoPlayer
-     */
     fun updateSongMetadata(
         songId: Long,
         newTitle: String,
@@ -203,8 +180,6 @@ class PlayerManager @Inject constructor(
         newGenre: String
     ) {
         val targetIdStr = songId.toString()
-
-        // ۱. ساخت مدل ویرایش‌شده‌ی جدید
         val updatedSong = (_allSongs.value.find { it.id == targetIdStr } ?: currentSong.value)?.copy(
             title = newTitle,
             artist = newArtist,
@@ -222,10 +197,8 @@ class PlayerManager @Inject constructor(
             genre = newGenre
         )
 
-        // ۲. ذخیره در کشِ داخلی برای ماندگاری در برابر لودهای مجدد MediaStore
         editedSongsCache[targetIdStr] = updatedSong
 
-        // ۳. اعمال آنی روی لیست کلی (allSongs)
         var found = false
         _allSongs.value = _allSongs.value.map { song ->
             if (song.id.toLongOrNull() == songId || song.id == targetIdStr) {
@@ -236,23 +209,19 @@ class PlayerManager @Inject constructor(
             }
         }
 
-        // اگر لیست به هر دلیلی هنوز خالی بود، آهنگ جدید را اضافه می‌کنیم
         if (!found) {
             _allSongs.value += updatedSong
         }
 
-        // ۴. آپدیت کردن صف پخش فعال (activeQueue)
         activeQueue = activeQueue.map { song ->
             if (song.id.toLongOrNull() == songId || song.id == targetIdStr) updatedSong else song
         }
 
-        // ۵. آپدیت آهنگ در حال پخش (مینی‌پلیر)
         val current = _currentSong.value
         if (current?.id?.toLongOrNull() == songId || current?.id == targetIdStr) {
             _currentSong.value = updatedSong
         }
 
-        // ۶. بروزرسانی آیتم در ExoPlayer
         val currentIndex = exoPlayer.currentMediaItemIndex
         if (currentIndex in activeQueue.indices) {
             val activeSong = activeQueue[currentIndex]
@@ -269,13 +238,16 @@ class PlayerManager @Inject constructor(
         }
     }
 
-    /**
-     * Toggle play/pause state.
-     */
     fun togglePlayPause() {
         if (exoPlayer.isPlaying) {
             exoPlayer.pause()
         } else {
+            if (exoPlayer.currentMediaItem == null && _currentSong.value != null) {
+                val song = _currentSong.value!!
+                activeQueue = listOf(song)
+                exoPlayer.setMediaItem(song.toMediaItem())
+                exoPlayer.prepare()
+            }
             startPlaybackService()
             exoPlayer.play()
         }

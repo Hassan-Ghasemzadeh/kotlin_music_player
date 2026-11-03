@@ -1,5 +1,7 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.home
 
+import android.Manifest
+import android.os.Build
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -19,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
+import com.google.accompanist.permissions.rememberPermissionState
 import com.sftwr.cleandevelopment.musicplayer.library.core.permissions.rememberAudioPermissionState
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components.LibraryCard
@@ -48,6 +51,16 @@ fun HomeScreen(
     tracksCount: String,
 ) {
     val permissionState = rememberAudioPermissionState()
+
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        val notificationPermissionState = rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        LaunchedEffect(Unit) {
+            if (!notificationPermissionState.status.isGranted) {
+                notificationPermissionState.launchPermissionRequest()
+            }
+        }
+    }
+
     val bottomPadding = rememberPlayerAwareBottomPadding()
     Box(
         modifier = modifier

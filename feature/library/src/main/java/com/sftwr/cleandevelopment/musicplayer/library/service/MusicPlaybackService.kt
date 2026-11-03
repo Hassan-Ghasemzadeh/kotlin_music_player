@@ -7,6 +7,7 @@ import android.content.Intent
 import android.os.Build
 import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.DefaultMediaNotificationProvider
@@ -25,14 +26,8 @@ interface MusicPlaybackServiceEntryPoint {
     fun exoPlayer(): ExoPlayer
 }
 
-/**
- * Foreground service extending AndroidX Media3 MediaSessionService.
- * Handles background audio playback, persistent media notifications, lock screen controls,
- * and hardware media buttons (Bluetooth headsets, wired headphones, car audio).
- */
+@OptIn(UnstableApi::class)
 class MusicPlaybackService : MediaSessionService() {
-
-    lateinit var player: ExoPlayer
 
     private var mediaSession: MediaSession? = null
 
@@ -41,28 +36,31 @@ class MusicPlaybackService : MediaSessionService() {
         private const val NOTIFICATION_CHANNEL_ID = "music_playback_channel"
     }
 
-    @OptIn(UnstableApi::class)
     override fun onCreate() {
         super.onCreate()
-        val entryPoint = EntryPointAccessors.fromApplication(
-            applicationContext,
-            MusicPlaybackServiceEntryPoint::class.java
-        )
-        player = entryPoint.exoPlayer()
-
         createNotificationChannel()
 
-        val openActivityIntent = PendingIntent.getActivity(
-            this,
-            0,
-            Intent(this, Class.forName("com.sftwr.cleandevelopment.musicplayer.music_player.MainActivity")),
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
+        val player = EntryPointAccessors.fromApplication(
+            applicationContext,
+            MusicPlaybackServiceEntryPoint::class.java
+        ).exoPlayer()
 
-        mediaSession = MediaSession.Builder(this, player)
-            .setSessionActivity(openActivityIntent)
+        val activityIntent = packageManager.getLaunchIntentForPackage(packageName)
+        val sessionBuilder = MediaSession.Builder(this, player)
             .setCallback(MediaSessionCallback())
-            .build()
+
+        if (activityIntent != null) {
+            sessionBuilder.setSessionActivity(
+                PendingIntent.getActivity(
+                    this, 0, activityIntent,
+                    PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                )
+            )
+        }
+
+        val session = sessionBuilder.build()
+        mediaSession = session
+        addSession(session)
 
         setMediaNotificationProvider(
             DefaultMediaNotificationProvider.Builder(this)
@@ -73,8 +71,15 @@ class MusicPlaybackService : MediaSessionService() {
         )
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
-        return mediaSession
+    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? =
+        mediaSession
+
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        val player = mediaSession?.player
+        if (player == null || !player.playWhenReady || player.playbackState == Player.STATE_ENDED) {
+            stopSelf()
+        }
+        super.onTaskRemoved(rootIntent)
     }
 
     override fun onDestroy() {
@@ -93,37 +98,24 @@ class MusicPlaybackService : MediaSessionService() {
                 getString(com.sftwr.cleandevelopment.musicplayer.home.R.string.media_notification_channel_name),
                 NotificationManager.IMPORTANCE_LOW
             ).apply {
-                description = "Controls and notification display for active music playback"
+                description = "Music playback controls and metadata display"
             }
-            val notificationManager = getSystemService(NotificationManager::class.java)
-            notificationManager?.createNotificationChannel(channel)
+            getSystemService(NotificationManager::class.java)?.createNotificationChannel(channel)
         }
     }
 
     private inner class MediaSessionCallback : MediaSession.Callback {
-        override fun onConnect(
-            session: MediaSession,
-            controller: MediaSession.ControllerInfo
-        ): MediaSession.ConnectionResult {
-            val connectionResult = super.onConnect(session, controller)
-            val sessionCommands = connectionResult.availableSessionCommands
-            return MediaSession.ConnectionResult.accept(
-                sessionCommands,
-                connectionResult.availablePlayerCommands
-            )
-        }
-
         override fun onAddMediaItems(
             mediaSession: MediaSession,
             controller: MediaSession.ControllerInfo,
             mediaItems: MutableList<MediaItem>
         ): ListenableFuture<MutableList<MediaItem>> {
-            val updatedMediaItems = mediaItems.map { mediaItem ->
-                mediaItem.buildUpon()
-                    .setUri(mediaItem.requestMetadata.mediaUri ?: mediaItem.localConfiguration?.uri)
+            val updated = mediaItems.map { item ->
+                item.buildUpon()
+                    .setUri(item.requestMetadata.mediaUri ?: item.localConfiguration?.uri)
                     .build()
             }.toMutableList()
-            return Futures.immediateFuture(updatedMediaItems)
+            return Futures.immediateFuture(updated)
         }
     }
 }
