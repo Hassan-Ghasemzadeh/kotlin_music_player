@@ -1,0 +1,3 @@
+<resources>
+    <string name="media_notification_channel_name">Music Playback Controls</string>
+</resources>

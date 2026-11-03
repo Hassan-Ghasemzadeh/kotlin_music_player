@@ -1,22 +1,29 @@
 package com.sftwr.cleandevelopment.musicplayer.library.core.manager
 
+import android.content.Context
+import android.content.Intent
+import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
+import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
+import com.sftwr.cleandevelopment.musicplayer.domain.usecase.DeleteSongUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
+import com.sftwr.cleandevelopment.musicplayer.library.service.MusicPlaybackService
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import javax.inject.Inject
 import javax.inject.Singleton
-import androidx.core.net.toUri
-import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
-import com.sftwr.cleandevelopment.musicplayer.domain.usecase.DeleteSongUseCase
 
 @Singleton
 class PlayerManager @Inject constructor(
     val exoPlayer: ExoPlayer,
     private val deleteSongUseCase: DeleteSongUseCase,
+    @param:ApplicationContext private val context: Context,
 ) {
 
     // Currently playing song state
@@ -126,19 +133,39 @@ class PlayerManager @Inject constructor(
         exoPlayer.seekTo(position)
     }
 
+    private fun startPlaybackService() {
+        try {
+            val intent = Intent(context, MusicPlaybackService::class.java)
+            ContextCompat.startForegroundService(context, intent)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    private fun SongUiModel.toMediaItem(): MediaItem {
+        return MediaItem.Builder()
+            .setUri(uri.toUri())
+            .setMediaId(id)
+            .setMediaMetadata(
+                MediaMetadata.Builder()
+                    .setTitle(title)
+                    .setArtist(artist)
+                    .setAlbumTitle(album)
+                    .setArtworkUri(if (uri.isNotEmpty()) uri.toUri() else null)
+                    .build()
+            )
+            .build()
+    }
+
     /**
      * Set the entire playback queue
      */
     fun setQueue(songs: List<SongUiModel>, startIndex: Int = 0) {
+        startPlaybackService()
         // اعمال کش روی صف پخش نیز برای ثبات کامل
         activeQueue = songs.map { song -> editedSongsCache[song.id] ?: song }
 
-        val mediaItems = activeQueue.map { song ->
-            MediaItem.Builder()
-                .setUri(song.uri.toUri())
-                .setMediaId(song.id)
-                .build()
-        }
+        val mediaItems = activeQueue.map { song -> song.toMediaItem() }
 
         exoPlayer.setMediaItems(mediaItems)
         exoPlayer.prepare()
@@ -154,17 +181,12 @@ class PlayerManager @Inject constructor(
      * Play a selected song individually if queue is not set.
      */
     fun playSong(song: SongUiModel) {
+        startPlaybackService()
         val finalSong = editedSongsCache[song.id] ?: song
         _currentSong.value = finalSong
         activeQueue = listOf(finalSong)
 
-        val audioUri = finalSong.uri.toUri()
-        val mediaItem = MediaItem.Builder()
-            .setUri(audioUri)
-            .setMediaId(finalSong.id)
-            .build()
-
-        exoPlayer.setMediaItem(mediaItem)
+        exoPlayer.setMediaItem(finalSong.toMediaItem())
         exoPlayer.prepare()
         exoPlayer.play()
     }
@@ -238,12 +260,7 @@ class PlayerManager @Inject constructor(
                 val isPlayingNow = exoPlayer.isPlaying
                 val currentPosition = exoPlayer.currentPosition
 
-                val newMediaItem = MediaItem.Builder()
-                    .setUri(activeSong.uri.toUri())
-                    .setMediaId(activeSong.id)
-                    .build()
-
-                exoPlayer.replaceMediaItem(currentIndex, newMediaItem)
+                exoPlayer.replaceMediaItem(currentIndex, activeSong.toMediaItem())
                 exoPlayer.seekTo(currentIndex, currentPosition)
                 if (isPlayingNow) {
                     exoPlayer.play()
@@ -259,6 +276,7 @@ class PlayerManager @Inject constructor(
         if (exoPlayer.isPlaying) {
             exoPlayer.pause()
         } else {
+            startPlaybackService()
             exoPlayer.play()
         }
     }

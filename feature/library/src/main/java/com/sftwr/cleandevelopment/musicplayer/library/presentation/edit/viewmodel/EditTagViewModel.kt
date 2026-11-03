@@ -1,5 +1,6 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.edit.viewmodel
 
+import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import android.content.Context
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
@@ -8,7 +9,6 @@ import androidx.navigation.toRoute
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.UpdateTagResult
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.UpdateSongTagsUseCase
-import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import com.sftwr.cleandevelopment.musicplayer.model.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -48,7 +48,7 @@ class EditTagViewModel @Inject constructor(
     private val getDeviceSongsUseCase: GetDeviceSongsUseCase,
     private val playerManager: PlayerManager,
     savedStateHandle: SavedStateHandle,
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EditTagState())
