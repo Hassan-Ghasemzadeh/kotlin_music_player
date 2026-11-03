@@ -21,8 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
-import com.google.accompanist.permissions.rememberPermissionState
-import com.sftwr.cleandevelopment.musicplayer.library.core.permissions.rememberAudioPermissionState
+import com.sftwr.cleandevelopment.musicplayer.library.core.permissions.rememberAppPermissionsState
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components.LibraryCard
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components.PlaylistCard
@@ -50,22 +49,18 @@ fun HomeScreen(
     actions: HomeActions,
     tracksCount: String,
 ) {
-    val permissionState = rememberAudioPermissionState()
+    val permissionsState = rememberAppPermissionsState()
 
     LaunchedEffect(Unit) {
-        if (!permissionState.status.isGranted) {
-            permissionState.launchPermissionRequest()
+        if (!permissionsState.allPermissionsGranted) {
+            permissionsState.launchMultiplePermissionRequest()
         }
     }
 
-    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        val notificationPermissionState =
-            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
-        LaunchedEffect(Unit) {
-            if (!notificationPermissionState.status.isGranted) {
-                notificationPermissionState.launchPermissionRequest()
-            }
-        }
+    val isAudioPermissionGranted = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+        permissionsState.permissions.find { it.permission == Manifest.permission.READ_MEDIA_AUDIO }?.status?.isGranted == true
+    } else {
+        permissionsState.permissions.find { it.permission == Manifest.permission.READ_EXTERNAL_STORAGE }?.status?.isGranted == true
     }
 
     val bottomPadding = rememberPlayerAwareBottomPadding()
@@ -118,10 +113,10 @@ fun HomeScreen(
                                 .weight(1f)
                                 .clickable(
                                     onClick = {
-                                        if (permissionState.status.isGranted) {
+                                        if (isAudioPermissionGranted) {
                                             actions.onNavigateToTracks()
                                         } else {
-                                            permissionState.launchPermissionRequest()
+                                            permissionsState.launchMultiplePermissionRequest()
                                         }
                                     }
                                 )
