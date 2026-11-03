@@ -12,6 +12,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import com.sftwr.cleandevelopment.musicplayer.model.Screen
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +21,7 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 sealed interface EditTagUiEvent {
@@ -120,19 +122,20 @@ class EditTagViewModel @Inject constructor(
     fun saveTags() {
         if (_uiState.value.isSaving) return
 
-
         viewModelScope.launch {
             _uiState.update { it.copy(isSaving = true) }
             val currentState = _uiState.value
 
-            val result = updateSongTagsUseCase(
-                songId = currentState.songId,
-                title = currentState.title,
-                artist = currentState.artist,
-                album = currentState.album,
-                year = currentState.year,
-                genre = currentState.genre
-            )
+            val result = withContext(Dispatchers.IO) {
+                updateSongTagsUseCase(
+                    songId = currentState.songId,
+                    title = currentState.title,
+                    artist = currentState.artist,
+                    album = currentState.album,
+                    year = currentState.year,
+                    genre = currentState.genre
+                )
+            }
 
             _uiState.update { it.copy(isSaving = false) }
 
@@ -147,11 +150,6 @@ class EditTagViewModel @Inject constructor(
                         newYear = currentState.year,
                         newGenre = currentState.genre
                     )
-                    android.media.MediaScannerConnection.scanFile(
-                        context,
-                        arrayOf(currentState.songUri),
-                        arrayOf("audio/*")
-                    ) { _, _ -> }
                     _uiEvent.send(EditTagUiEvent.NavigateBack)
                 }
 

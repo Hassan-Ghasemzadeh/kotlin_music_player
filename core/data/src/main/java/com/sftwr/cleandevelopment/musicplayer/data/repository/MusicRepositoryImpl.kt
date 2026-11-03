@@ -6,6 +6,7 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.media.MediaMetadataRetriever
+import android.media.MediaScannerConnection
 import android.os.Build
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
@@ -22,9 +23,11 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.io.File
 import javax.inject.Inject
+import kotlin.coroutines.resume
 
 class MusicRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -259,12 +262,29 @@ class MusicRepositoryImpl @Inject constructor(
                 val updatedEntity = existingEntity.copy(
                     title = title,
                     artist = artist,
-                    album = album
+                    album = album,
+                    year = year,
+                    genre = genre
                 )
+                // Immediately refresh the local Room database/cache for this specific song
                 songDao.upsertSongs(listOf(updatedEntity))
+
+                // Targeted scan specifically for the modified song file instead of full device rescan
+                if (existingEntity.path.isNotEmpty()) {
+                    suspendCancellableCoroutine { continuation ->
+                        MediaScannerConnection.scanFile(
+                            context,
+                            arrayOf(existingEntity.path),
+                            arrayOf("audio/*")
+                        ) { _, _ ->
+                            if (continuation.isActive) {
+                                continuation.resume(Unit)
+                            }
+                        }
+                    }
+                }
             }
 
-            syncWithDevice()
             UpdateTagResult.Success
 
         } catch (e: RecoverableSecurityException) {
