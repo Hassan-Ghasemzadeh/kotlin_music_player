@@ -63,6 +63,12 @@ fun HomeScreen(
         permissionsState.permissions.find { it.permission == Manifest.permission.READ_EXTERNAL_STORAGE }?.status?.isGranted == true
     }
 
+    LaunchedEffect(isAudioPermissionGranted) {
+        if (isAudioPermissionGranted) {
+            actions.onPermissionGranted()
+        }
+    }
+
     val bottomPadding = rememberPlayerAwareBottomPadding()
     Box(
         modifier = modifier

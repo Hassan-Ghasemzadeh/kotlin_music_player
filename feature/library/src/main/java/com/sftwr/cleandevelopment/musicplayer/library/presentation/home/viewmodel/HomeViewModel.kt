@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.LibraryAdd
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.MusicRepository
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.PlaylistUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,6 +27,7 @@ import javax.inject.Inject
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     getDeviceSongsUseCase: GetDeviceSongsUseCase,
+    private val musicRepository: MusicRepository,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())
@@ -36,6 +38,17 @@ class HomeViewModel @Inject constructor(
 
     init {
         loadInitialData()
+        syncDeviceSongs()
+    }
+
+    fun syncDeviceSongs() {
+        viewModelScope.launch {
+            try {
+                musicRepository.syncWithDevice()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
     }
 
     // Observe the list of songs reactively from the repository

@@ -9,5 +9,6 @@ data class HomeActions(
     val onAddPlaylistClick: () -> Unit = {},
     val onDismissDialog: () -> Unit = {},
     val onPlaylistNameChanged: (String) -> Unit = {},
-    val onConfirmCreate: () -> Unit = {}
+    val onConfirmCreate: () -> Unit = {},
+    val onPermissionGranted: () -> Unit = {}
 )

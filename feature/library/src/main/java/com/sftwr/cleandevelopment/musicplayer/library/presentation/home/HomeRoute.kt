@@ -47,6 +47,7 @@ fun HomeRoute(
             onPlaylistNameChanged = { viewModel.onNewPlaylistNameChanged(it) },
             onConfirmCreate = { viewModel.confirmCreatePlaylist() },
             onNavigateToTracks = onNavigateToTracks,
+            onPermissionGranted = { viewModel.syncDeviceSongs() },
         ),
         modifier = modifier,
         tracksCount = trackCount.toString(),
