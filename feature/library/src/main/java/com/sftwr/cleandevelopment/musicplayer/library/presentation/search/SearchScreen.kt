@@ -130,6 +130,7 @@ fun SearchScreen(
                                         song.id.toLongOrNull()
                                             ?.let { id -> actions.onTagEditClick(id) }
                                     },
+                                    onShareClick = { actions.onShareClick(song) },
                                 )
                             }
                         }

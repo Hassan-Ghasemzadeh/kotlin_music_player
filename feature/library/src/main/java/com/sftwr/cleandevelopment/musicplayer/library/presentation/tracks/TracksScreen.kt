@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.core.net.toUri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -51,7 +52,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.AlphabetIndexerBar
@@ -95,6 +95,7 @@ fun TracksScreen(
     onSearchClick: () -> Unit,
     onInfoClick: (Long) -> Unit,
     onTagEditClick: (Long) -> Unit,
+    onShareClick: (song: SongUiModel) -> Unit,
     viewModel: TracksViewModel = hiltViewModel(),
 ) {
     val currentSong by viewModel.currentPlayingSong.collectAsState()
@@ -309,7 +310,8 @@ fun TracksScreen(
                                                         onTagEditClick(id)
                                                     }
                                             },
-                                            isPlaying = isThisSongPlaying
+                                            isPlaying = isThisSongPlaying,
+                                            onShareClick = { onShareClick(song) }
                                         )
                                     }
                                 }
@@ -371,8 +373,10 @@ fun TrackItem(
     onDeleteClick: () -> Unit,
     onInfoClick: () -> Unit,
     onTagEditClick: () -> Unit,
+    onShareClick: () -> Unit,
     isPlaying: Boolean = false,
 ) {
+    val ctx = LocalContext.current
     val borderColor = if (isPlaying) Color(0xFF91D8FB) else Color.White.copy(alpha = 0.12f)
     val backgroundColor =
         if (isPlaying) Color(0xFF91D8FB).copy(alpha = 0.15f) else Color.White.copy(alpha = 0.07f)
@@ -395,12 +399,10 @@ fun TrackItem(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.weight(1f)
             ) {
-                val context = LocalContext.current
-
                 // Extract album art bitmap asynchronously on IO thread pool
                 val albumArtBitmap by produceState<Bitmap?>(initialValue = null, key1 = song.uri) {
                     value = withContext(Dispatchers.IO) {
-                        song.uri.toUri().extractAlbumArt(context)
+                        song.uri.toUri().extractAlbumArt(ctx)
                     }
                 }
 
@@ -493,6 +495,7 @@ fun TrackItem(
                         onFavoriteClick = {},
                         onInfoClick = onInfoClick,
                         onTagEditClick = onTagEditClick,
+                        onShareClick = onShareClick,
                         onDeleteClick = onDeleteClick,
                     )
                 }
@@ -524,5 +527,6 @@ fun TracksScreenPreview() {
         onSearchClick = {},
         onTagEditClick = { },
         onInfoClick = { _ -> },
+        onShareClick = {},
     )
 }

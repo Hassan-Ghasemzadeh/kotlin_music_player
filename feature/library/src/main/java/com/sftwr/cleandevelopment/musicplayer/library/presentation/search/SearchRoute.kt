@@ -14,6 +14,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sftwr.cleandevelopment.musicplayer.library.core.util.ShareUtils
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.viewModel.SearchPlayerUiEvent
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.viewModel.SearchViewModel
 
@@ -69,6 +70,9 @@ fun SearchRoute(
             },
             onInfoClick = onInfoClick,
             onTagEditClick = onTagEditClick,
+            onShareClick = { song ->
+                ShareUtils.shareSong(context, song)
+            },
         )
     }
 

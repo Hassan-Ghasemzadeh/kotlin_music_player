@@ -1,5 +1,7 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.search
 
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
+
 // Encapsulates all user interactions for SearchScreen
 data class SearchActions(
     val onQueryChange: (String) -> Unit = {},
@@ -9,4 +11,5 @@ data class SearchActions(
     val onSongClick: (String) -> Unit = {},
     val onInfoClick: (Long) -> Unit,
     val onTagEditClick: (Long) -> Unit,
+    val onShareClick:(song: SongUiModel)-> Unit,
 )

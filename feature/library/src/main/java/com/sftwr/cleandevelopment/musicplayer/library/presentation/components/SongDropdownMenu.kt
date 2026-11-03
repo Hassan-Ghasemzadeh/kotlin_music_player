@@ -27,11 +27,13 @@ fun SongDropdownMenu(
     onFavoriteClick: () -> Unit,
     onInfoClick: () -> Unit,
     onTagEditClick: () -> Unit,
+    onShareClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
     val menuItems = listOf(
         SongMenuItem("افزودن به لیست پخش", Icons.AutoMirrored.Filled.PlaylistAdd, onAddToPlaylist),
         SongMenuItem("افزودن به علاقه‌مندی‌ها", Icons.Default.FavoriteBorder, onFavoriteClick),
+        SongMenuItem("اشتراک‌گذاری", Icons.Default.Share, onShareClick),
         SongMenuItem("مشاهده اطلاعات آهنگ", Icons.Default.Info, onInfoClick),
         SongMenuItem("ویرایش تگ", Icons.Default.Edit, onTagEditClick),
         SongMenuItem("حذف از دستگاه", Icons.Default.Delete, onDeleteClick)
