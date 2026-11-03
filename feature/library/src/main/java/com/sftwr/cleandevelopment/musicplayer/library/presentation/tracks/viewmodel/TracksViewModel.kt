@@ -59,6 +59,8 @@ class TracksViewModel @Inject constructor(
                 year = song.year,
                 album = song.album,
                 genre = song.genre,
+                albumId = song.albumId,
+                albumArtUri = song.albumArtUri,
             )
         }
         playerManager.setSongs(songUiModels)

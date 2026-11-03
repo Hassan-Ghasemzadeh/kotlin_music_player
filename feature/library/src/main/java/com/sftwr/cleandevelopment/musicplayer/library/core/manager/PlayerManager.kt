@@ -131,6 +131,12 @@ class PlayerManager @Inject constructor(
     }
 
     private fun SongUiModel.toMediaItem(): MediaItem {
+        val artUri = albumArtUri?.toUri() ?: if (albumId != -1L) {
+            "content://media/external/audio/albumart/$albumId".toUri()
+        } else {
+            null
+        }
+
         return MediaItem.Builder()
             .setUri(uri.toUri())
             .setMediaId(id)
@@ -139,7 +145,7 @@ class PlayerManager @Inject constructor(
                     .setTitle(title)
                     .setArtist(artist)
                     .setAlbumTitle(album)
-                    .setArtworkUri(if (uri.isNotEmpty()) uri.toUri() else null)
+                    .setArtworkUri(artUri)
                     .build()
             )
             .build()

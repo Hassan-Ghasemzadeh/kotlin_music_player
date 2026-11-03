@@ -77,6 +77,8 @@ data class SongUiModel(
     val genre: String,
     val duration: String,
     val uri: String,
+    val albumId: Long = -1L,
+    val albumArtUri: String? = null,
 )
 
 /**
