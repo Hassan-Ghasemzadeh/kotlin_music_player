@@ -52,8 +52,15 @@ fun HomeScreen(
 ) {
     val permissionState = rememberAudioPermissionState()
 
+    LaunchedEffect(Unit) {
+        if (!permissionState.status.isGranted) {
+            permissionState.launchPermissionRequest()
+        }
+    }
+
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        val notificationPermissionState = rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
+        val notificationPermissionState =
+            rememberPermissionState(permission = Manifest.permission.POST_NOTIFICATIONS)
         LaunchedEffect(Unit) {
             if (!notificationPermissionState.status.isGranted) {
                 notificationPermissionState.launchPermissionRequest()
@@ -116,7 +123,7 @@ fun HomeScreen(
                                         } else {
                                             permissionState.launchPermissionRequest()
                                         }
-                                    },
+                                    }
                                 )
                         )
                         LibraryCard(
