@@ -17,7 +17,9 @@ import com.sftwr.cleandevelopment.musicplayer.library.service.MusicPlaybackServi
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -45,6 +47,7 @@ class PlayerManager @Inject constructor(
 
     private val editedSongsCache = mutableMapOf<String, SongUiModel>()
     private val playerScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private var queueJob: Job? = null
 
     init {
         exoPlayer.addListener(object : Player.Listener {
@@ -98,9 +101,11 @@ class PlayerManager @Inject constructor(
         }
     }
 
-    fun stopPlayback() {
-        exoPlayer.stop()
-        exoPlayer.clearMediaItems()
+    suspend fun stopPlayback() {
+        withContext(Dispatchers.Main) {
+            exoPlayer.stop()
+            exoPlayer.clearMediaItems()
+        }
         _currentSong.value = null
         _isPlaying.value = false
         activeQueue = emptyList()
@@ -182,23 +187,19 @@ class PlayerManager @Inject constructor(
     }
 
     suspend fun setQueue(songs: List<SongUiModel>, startIndex: Int = 0) {
+        queueJob?.cancel()
+
         val processedQueue = withContext(Dispatchers.Default) {
             songs.map { song -> editedSongsCache[song.id] ?: song }
         }
 
-         val mediaItems = withContext(Dispatchers.Default) {
+        if (processedQueue.isEmpty() || startIndex !in processedQueue.indices) {
+            return
+        }
+
+        val mediaItems = withContext(Dispatchers.Default) {
             processedQueue.map { song ->
-                MediaItem.Builder()
-                    .setUri(song.uri.toUri())
-                    .setMediaId(song.id)
-                    .setMediaMetadata(
-                        MediaMetadata.Builder()
-                            .setTitle(song.title)
-                            .setArtist(song.artist)
-                            .setAlbumTitle(song.album)
-                            .build()
-                    )
-                    .build()
+                song.toMediaItem(includeHeavyArt = false)
             }
         }
 
@@ -206,9 +207,8 @@ class PlayerManager @Inject constructor(
         activeQueue = processedQueue
 
         withContext(Dispatchers.Main) {
-            exoPlayer.setMediaItems(mediaItems)
+            exoPlayer.setMediaItems(mediaItems, startIndex, 0L)
             exoPlayer.prepare()
-            exoPlayer.seekTo(startIndex, 0L)
             exoPlayer.play()
 
             if (startIndex in activeQueue.indices) {
@@ -216,19 +216,23 @@ class PlayerManager @Inject constructor(
             }
         }
 
-        playerScope.launch {
+        queueJob = playerScope.launch {
+            if (startIndex !in processedQueue.indices) return@launch
             val currentSongItem = processedQueue[startIndex].toMediaItem(includeHeavyArt = true)
             withContext(Dispatchers.Main) {
-                if (exoPlayer.currentMediaItemIndex == startIndex) {
+                if (startIndex in activeQueue.indices && exoPlayer.currentMediaItemIndex == startIndex) {
                     exoPlayer.replaceMediaItem(startIndex, currentSongItem)
                 }
             }
 
             processedQueue.forEachIndexed { index, song ->
+                ensureActive()
                 if (index != startIndex) {
                     val heavyItem = song.toMediaItem(includeHeavyArt = true)
                     withContext(Dispatchers.Main) {
-                        exoPlayer.replaceMediaItem(index, heavyItem)
+                        if (index in activeQueue.indices) {
+                            exoPlayer.replaceMediaItem(index, heavyItem)
+                        }
                     }
                 }
             }
