@@ -186,8 +186,20 @@ class PlayerManager @Inject constructor(
             songs.map { song -> editedSongsCache[song.id] ?: song }
         }
 
-        val mediaItems = withContext(Dispatchers.Default) {
-            processedQueue.map { song -> song.toMediaItem(includeHeavyArt = false) }
+         val mediaItems = withContext(Dispatchers.Default) {
+            processedQueue.map { song ->
+                MediaItem.Builder()
+                    .setUri(song.uri.toUri())
+                    .setMediaId(song.id)
+                    .setMediaMetadata(
+                        MediaMetadata.Builder()
+                            .setTitle(song.title)
+                            .setArtist(song.artist)
+                            .setAlbumTitle(song.album)
+                            .build()
+                    )
+                    .build()
+            }
         }
 
         startPlaybackService()
