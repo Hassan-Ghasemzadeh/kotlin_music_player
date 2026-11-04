@@ -11,12 +11,18 @@ import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.DeleteSongUseCase
+import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import com.sftwr.cleandevelopment.musicplayer.library.service.MusicPlaybackService
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -38,6 +44,7 @@ class PlayerManager @Inject constructor(
     val hasPrevious: Boolean get() = exoPlayer.hasPreviousMediaItem()
 
     private val editedSongsCache = mutableMapOf<String, SongUiModel>()
+    private val playerScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     init {
         exoPlayer.addListener(object : Player.Listener {
@@ -48,7 +55,18 @@ class PlayerManager @Inject constructor(
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 val currentIndex = exoPlayer.currentMediaItemIndex
                 if (currentIndex in activeQueue.indices) {
-                    _currentSong.value = activeQueue[currentIndex]
+                    val song = activeQueue[currentIndex]
+                    _currentSong.value = song
+
+                    // لود تنبل (Lazy) کاور در پس‌زمینه برای نوتیفیکیشنِ آهنگ‌های بعدی صف
+                    playerScope.launch {
+                        val updatedItem = song.toMediaItem(includeHeavyArt = true)
+                        withContext(Dispatchers.Main) {
+                            if (exoPlayer.currentMediaItemIndex == currentIndex) {
+                                exoPlayer.replaceMediaItem(currentIndex, updatedItem)
+                            }
+                        }
+                    }
                 }
             }
 
@@ -130,12 +148,18 @@ class PlayerManager @Inject constructor(
         }
     }
 
-    private fun SongUiModel.toMediaItem(): MediaItem {
-        val artUri = albumArtUri?.toUri() ?: if (albumId != -1L) {
-            "content://media/external/audio/albumart/$albumId".toUri()
+    private fun SongUiModel.toMediaItem(includeHeavyArt: Boolean): MediaItem {
+        val artBytes = if (includeHeavyArt) {
+            albumArtUri?.takeIf { it.isNotBlank() }?.toUri()?.extractAlbumArt(context)?.let { bitmap ->
+                val stream = java.io.ByteArrayOutputStream()
+                bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 85, stream)
+                stream.toByteArray()
+            }
         } else {
             null
         }
+
+        val artUri = if (!includeHeavyArt) albumArtUri?.takeIf { it.isNotBlank() }?.toUri() else null
 
         return MediaItem.Builder()
             .setUri(uri.toUri())
@@ -145,36 +169,74 @@ class PlayerManager @Inject constructor(
                     .setTitle(title)
                     .setArtist(artist)
                     .setAlbumTitle(album)
-                    .setArtworkUri(artUri)
+                    .apply {
+                        if (artBytes != null) {
+                            setArtworkData(artBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+                        } else if (artUri != null) {
+                            setArtworkUri(artUri)
+                        }
+                    }
                     .build()
             )
             .build()
     }
 
-    fun setQueue(songs: List<SongUiModel>, startIndex: Int = 0) {
-        startPlaybackService() // استارت امن سرویس برای اجرای پس‌زمینه
-        activeQueue = songs.map { song -> editedSongsCache[song.id] ?: song }
-        val mediaItems = activeQueue.map { song -> song.toMediaItem() }
+    suspend fun setQueue(songs: List<SongUiModel>, startIndex: Int = 0) {
+        val processedQueue = withContext(Dispatchers.Default) {
+            songs.map { song -> editedSongsCache[song.id] ?: song }
+        }
 
-        exoPlayer.setMediaItems(mediaItems)
-        exoPlayer.prepare()
-        exoPlayer.seekTo(startIndex, 0L)
-        exoPlayer.play()
+        val mediaItems = withContext(Dispatchers.Default) {
+            processedQueue.map { song -> song.toMediaItem(includeHeavyArt = false) }
+        }
 
-        if (startIndex in activeQueue.indices) {
-            _currentSong.value = activeQueue[startIndex]
+        startPlaybackService()
+        activeQueue = processedQueue
+
+        withContext(Dispatchers.Main) {
+            exoPlayer.setMediaItems(mediaItems)
+            exoPlayer.prepare()
+            exoPlayer.seekTo(startIndex, 0L)
+            exoPlayer.play()
+
+            if (startIndex in activeQueue.indices) {
+                _currentSong.value = activeQueue[startIndex]
+            }
+        }
+
+        playerScope.launch {
+            val currentSongItem = processedQueue[startIndex].toMediaItem(includeHeavyArt = true)
+            withContext(Dispatchers.Main) {
+                if (exoPlayer.currentMediaItemIndex == startIndex) {
+                    exoPlayer.replaceMediaItem(startIndex, currentSongItem)
+                }
+            }
+
+            processedQueue.forEachIndexed { index, song ->
+                if (index != startIndex) {
+                    val heavyItem = song.toMediaItem(includeHeavyArt = true)
+                    withContext(Dispatchers.Main) {
+                        exoPlayer.replaceMediaItem(index, heavyItem)
+                    }
+                }
+            }
         }
     }
 
     fun playSong(song: SongUiModel) {
-        startPlaybackService() // استارت امن سرویس برای اجرای پس‌زمینه
+        startPlaybackService()
         val finalSong = editedSongsCache[song.id] ?: song
         _currentSong.value = finalSong
         activeQueue = listOf(finalSong)
 
-        exoPlayer.setMediaItem(finalSong.toMediaItem())
-        exoPlayer.prepare()
-        exoPlayer.play()
+        playerScope.launch {
+            val mediaItem = finalSong.toMediaItem(includeHeavyArt = true)
+            withContext(Dispatchers.Main) {
+                exoPlayer.setMediaItem(mediaItem)
+                exoPlayer.prepare()
+                exoPlayer.play()
+            }
+        }
     }
 
     fun updateSongMetadata(
@@ -186,22 +248,23 @@ class PlayerManager @Inject constructor(
         newGenre: String
     ) {
         val targetIdStr = songId.toString()
-        val updatedSong = (_allSongs.value.find { it.id == targetIdStr } ?: currentSong.value)?.copy(
-            title = newTitle,
-            artist = newArtist,
-            album = newAlbum,
-            year = newYear,
-            genre = newGenre
-        ) ?: SongUiModel(
-            id = targetIdStr,
-            title = newTitle,
-            artist = newArtist,
-            album = newAlbum,
-            duration = "",
-            uri = "",
-            year = newYear,
-            genre = newGenre
-        )
+        val updatedSong =
+            (_allSongs.value.find { it.id == targetIdStr } ?: currentSong.value)?.copy(
+                title = newTitle,
+                artist = newArtist,
+                album = newAlbum,
+                year = newYear,
+                genre = newGenre
+            ) ?: SongUiModel(
+                id = targetIdStr,
+                title = newTitle,
+                artist = newArtist,
+                album = newAlbum,
+                duration = "",
+                uri = "",
+                year = newYear,
+                genre = newGenre
+            )
 
         editedSongsCache[targetIdStr] = updatedSong
 
@@ -235,10 +298,15 @@ class PlayerManager @Inject constructor(
                 val isPlayingNow = exoPlayer.isPlaying
                 val currentPosition = exoPlayer.currentPosition
 
-                exoPlayer.replaceMediaItem(currentIndex, activeSong.toMediaItem())
-                exoPlayer.seekTo(currentIndex, currentPosition)
-                if (isPlayingNow) {
-                    exoPlayer.play()
+                playerScope.launch {
+                    val updatedMediaItem = activeSong.toMediaItem(includeHeavyArt = true)
+                    withContext(Dispatchers.Main) {
+                        exoPlayer.replaceMediaItem(currentIndex, updatedMediaItem)
+                        exoPlayer.seekTo(currentIndex, currentPosition)
+                        if (isPlayingNow) {
+                            exoPlayer.play()
+                        }
+                    }
                 }
             }
         }
@@ -251,11 +319,18 @@ class PlayerManager @Inject constructor(
             if (exoPlayer.currentMediaItem == null && _currentSong.value != null) {
                 val song = _currentSong.value!!
                 activeQueue = listOf(song)
-                exoPlayer.setMediaItem(song.toMediaItem())
-                exoPlayer.prepare()
+                playerScope.launch {
+                    val mediaItem = song.toMediaItem(includeHeavyArt = true)
+                    withContext(Dispatchers.Main) {
+                        exoPlayer.setMediaItem(mediaItem)
+                        exoPlayer.prepare()
+                        exoPlayer.play()
+                    }
+                }
+            } else {
+                exoPlayer.play()
             }
             startPlaybackService()
-            exoPlayer.play()
         }
     }
 }

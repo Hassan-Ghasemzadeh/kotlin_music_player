@@ -215,7 +215,9 @@ class SearchViewModel @Inject constructor(
         val index = songs.indexOfFirst { it.id == songId }
 
         if (index != -1) {
-            playerManager.setQueue(songs, startIndex = index)
+            viewModelScope.launch {
+                playerManager.setQueue(songs, startIndex = index)
+            }
         }
     }
 
