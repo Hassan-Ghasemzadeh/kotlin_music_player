@@ -1,5 +1,6 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel
 
+import android.os.Build
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -122,13 +123,10 @@ class TracksViewModel @Inject constructor(
     }
 
     fun onSongClicked(songId: String) {
-        val songs = uiState.value.songs
-        val index = songs.indexOfFirst { it.id == songId }
-
-        if (index != -1) {
-           viewModelScope.launch {
-               playerManager.setQueue(songs, startIndex = index)
-           }
+        viewModelScope.launch {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                playerManager.playSongById(songId, uiState.value.songs)
+            }
         }
     }
 

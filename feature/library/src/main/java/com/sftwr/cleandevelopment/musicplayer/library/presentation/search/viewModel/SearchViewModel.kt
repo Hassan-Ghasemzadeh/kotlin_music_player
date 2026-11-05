@@ -211,12 +211,9 @@ class SearchViewModel @Inject constructor(
      * Handles search result item selection, sets active queue, and prepares playback.
      */
     fun onSongClicked(songId: String) {
-        val songs = _uiState.value.searchResults
-        val index = songs.indexOfFirst { it.id == songId }
-
-        if (index != -1) {
-            viewModelScope.launch {
-                playerManager.setQueue(songs, startIndex = index)
+        viewModelScope.launch {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                playerManager.playSongById(songId, uiState.value.songs)
             }
         }
     }
