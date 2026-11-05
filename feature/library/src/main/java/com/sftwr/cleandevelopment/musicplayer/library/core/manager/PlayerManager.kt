@@ -18,10 +18,15 @@ import com.sftwr.cleandevelopment.musicplayer.domain.usecase.DeleteSongUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import com.sftwr.cleandevelopment.musicplayer.library.service.MusicPlaybackService
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
@@ -45,6 +50,9 @@ class PlayerManager @Inject constructor(
     val hasPrevious: Boolean get() = exoPlayer.hasPreviousMediaItem()
 
     private val editedSongsCache = mutableMapOf<String, SongUiModel>()
+    private val playerScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
+    private var queueJob: Job? = null
+    private var isSettingQueue = false
 
     init {
         exoPlayer.addListener(object : Player.Listener {
@@ -53,6 +61,7 @@ class PlayerManager @Inject constructor(
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+                if (isSettingQueue) return
                 val currentIndex = exoPlayer.currentMediaItemIndex
                 if (currentIndex in activeQueue.indices) {
                     val song = activeQueue[currentIndex]
@@ -139,9 +148,29 @@ class PlayerManager @Inject constructor(
             e.printStackTrace()
         }
     }
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun loadArtworkBytes(song: SongUiModel): ByteArray? {
+        runCatching {
+            MediaMetadataRetriever().use { r ->
+                r.setDataSource(context, song.uri.toUri())
+                r.embeddedPicture?.let { return it }
+            }
+        }
+        runCatching {
+            val bmp = context.contentResolver.loadThumbnail(
+                song.uri.toUri(), Size(512, 512), null
+            )
+            val out = ByteArrayOutputStream()
+            bmp.compress(Bitmap.CompressFormat.JPEG, 90, out)
+            return out.toByteArray()
+        }
+        return null
+    }
+    private fun SongUiModel.toMediaItem(artworkBytes: ByteArray? = null): MediaItem {
+        val rawUri = albumArtUri?.takeIf { it.isNotBlank() }
+        val artUri = rawUri?.toUri()
+        val fallbackUri = "android.resource://${context.packageName}/${com.sftwr.cleandevelopment.musicplayer.home.R.drawable.ic_default_album_art}".toUri()
 
-    private fun SongUiModel.toMediaItem(artwork: ByteArray? = null): MediaItem {
-        val artUri = albumArtUri?.takeIf { it.isNotBlank() }?.toUri()
         return MediaItem.Builder()
             .setUri(uri.toUri())
             .setMediaId(id)
@@ -151,11 +180,14 @@ class PlayerManager @Inject constructor(
                     .setArtist(artist)
                     .setAlbumTitle(album)
                     .apply {
-                        if (artwork != null) setArtworkData(
-                            artwork,
-                            MediaMetadata.PICTURE_TYPE_FRONT_COVER
-                        )
-                        else if (artUri != null) setArtworkUri(artUri)
+                        if (artworkBytes != null) {
+                            setArtworkData(artworkBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+                        } else if (artUri != null) {
+                            // در لحظه اول از URI سبک استفاده می‌کنیم تا نوتیفیکیشن آنی عکس را نشان دهد
+                            setArtworkUri(artUri)
+                        } else {
+                            setArtworkUri(fallbackUri)
+                        }
                     }
                     .build()
             )
@@ -163,28 +195,9 @@ class PlayerManager @Inject constructor(
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
-    private fun loadArtworkBytes(song: SongUiModel): ByteArray? {
-        runCatching {
-            MediaMetadataRetriever().use { r ->
-                r.setDataSource(context, song.uri.toUri())
-                r.embeddedPicture?.let { return it }
-            }
-        }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            runCatching {
-                val bmp = context.contentResolver.loadThumbnail(
-                    song.uri.toUri(), Size(512, 512), null
-                )
-                val out = ByteArrayOutputStream()
-                bmp.compress(Bitmap.CompressFormat.JPEG, 90, out)
-                return out.toByteArray()
-            }
-        }
-        return null
-    }
-
-    @RequiresApi(Build.VERSION_CODES.Q)
     suspend fun setQueue(songs: List<SongUiModel>, startIndex: Int = 0) {
+        queueJob?.cancel()
+
         val processedQueue = withContext(Dispatchers.Default) {
             songs.map { song -> editedSongsCache[song.id] ?: song }
         }
@@ -193,20 +206,76 @@ class PlayerManager @Inject constructor(
             return
         }
 
-        val mediaItems = withContext(Dispatchers.IO) {
-            processedQueue.map { it.toMediaItem(loadArtworkBytes(it)) }
-        }
-
         startPlaybackService()
+
+        // ۱. بررسی می‌کنیم که آیا صفِ جدید دقیقاً همان صفِ فعلی است یا خیر
+        val isSameQueue = activeQueue.size == processedQueue.size &&
+                activeQueue.map { it.id } == processedQueue.map { it.id }
         activeQueue = processedQueue
 
-        withContext(Dispatchers.Main) {
-            exoPlayer.setMediaItems(mediaItems, startIndex, 0L)
-            exoPlayer.prepare()
-            exoPlayer.play()
+        val clickedSong = processedQueue[startIndex]
 
-            if (startIndex in activeQueue.indices) {
-                _currentSong.value = activeQueue[startIndex]
+        if (isSameQueue && exoPlayer.mediaItemCount > 0) {
+            // ۲. اگر صف فرقی نکرده، اصلاً پلی‌لیست را از نو نمی‌سازیم! فقط می‌پریم روی همین ایندکس (پرش صفر و بدون چشمک)
+            withContext(Dispatchers.Main) {
+                try {
+                    isSettingQueue = true
+                    _currentSong.value = clickedSong
+                    exoPlayer.seekTo(startIndex, 0L)
+                    exoPlayer.play()
+                } finally {
+                    isSettingQueue = false
+                }
+            }
+        } else {
+            // ۳. اگر صف جدید است، صف مدیاآیتم‌ها را آنی می‌سازیم و پخش را بدون تاخیر شروع می‌کنیم
+            val mediaItems = withContext(Dispatchers.Default) {
+                processedQueue.map { song -> song.toMediaItem(null) }
+            }
+
+            withContext(Dispatchers.Main) {
+                try {
+                    isSettingQueue = true
+                    exoPlayer.setMediaItems(mediaItems, startIndex, 0L)
+                    exoPlayer.prepare()
+                    exoPlayer.play()
+                    _currentSong.value = clickedSong
+                } finally {
+                    isSettingQueue = false
+                }
+            }
+
+            // ۴. بارگذاری کاور آهنگ کلیک‌شده در پس‌زمینه بلافاصله بعد از شروع پخش
+            playerScope.launch(Dispatchers.IO) {
+                val clickedArtwork = loadArtworkBytes(clickedSong)
+                if (clickedArtwork != null) {
+                    val updatedMediaItem = clickedSong.toMediaItem(clickedArtwork)
+                    withContext(Dispatchers.Main) {
+                        if (exoPlayer.currentMediaItemIndex == startIndex) {
+                            exoPlayer.replaceMediaItem(startIndex, updatedMediaItem)
+                        }
+                    }
+                }
+            }
+        }
+
+        // ۴. لود کردن بقیه کاورها در پس‌زمینه بدون دستکاری ایندکس جاری
+        queueJob = playerScope.launch {
+            val currentTargetQueue = processedQueue
+            processedQueue.forEachIndexed { index, song ->
+                ensureActive()
+                if (index != startIndex) {
+                    val artBytes = loadArtworkBytes(song)
+                    ensureActive()
+                    if (activeQueue == currentTargetQueue) {
+                        val heavyItem = song.toMediaItem(artBytes)
+                        withContext(Dispatchers.Main) {
+                            if (activeQueue == currentTargetQueue && exoPlayer.currentMediaItemIndex != index) {
+                                exoPlayer.replaceMediaItem(index, heavyItem)
+                            }
+                        }
+                    }
+                }
             }
         }
     }
