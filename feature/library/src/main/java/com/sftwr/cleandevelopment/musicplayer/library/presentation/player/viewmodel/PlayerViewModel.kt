@@ -115,28 +115,35 @@ class PlayerViewModel @Inject constructor(
     fun toggleShuffle() {
         val newShuffleState = !_isShuffleEnabled.value
         _isShuffleEnabled.value = newShuffleState
-        exoPlayer.shuffleModeEnabled = newShuffleState
+        runOnMainThread {
+            exoPlayer.shuffleModeEnabled = newShuffleState
+        }
     }
 
     /**
      * Cycles through available playback repeat modes (OFF, ALL, ONE).
      */
     fun toggleRepeat() {
-        _repeatMode.value = when (_repeatMode.value) {
-            RepeatMode.OFF -> {
-                exoPlayer.repeatMode = Player.REPEAT_MODE_ALL
-                RepeatMode.ALL
+        val nextMode = when (_repeatMode.value) {
+            RepeatMode.OFF -> RepeatMode.ALL
+            RepeatMode.ALL -> RepeatMode.ONE
+            RepeatMode.ONE -> RepeatMode.OFF
+        }
+        _repeatMode.value = nextMode
+        runOnMainThread {
+            exoPlayer.repeatMode = when (nextMode) {
+                RepeatMode.OFF -> Player.REPEAT_MODE_OFF
+                RepeatMode.ALL -> Player.REPEAT_MODE_ALL
+                RepeatMode.ONE -> Player.REPEAT_MODE_ONE
             }
+        }
+    }
 
-            RepeatMode.ALL -> {
-                exoPlayer.repeatMode = Player.REPEAT_MODE_ONE
-                RepeatMode.ONE
-            }
-
-            RepeatMode.ONE -> {
-                exoPlayer.repeatMode = Player.REPEAT_MODE_OFF
-                RepeatMode.OFF
-            }
+    private inline fun runOnMainThread(crossinline action: () -> Unit) {
+        if (android.os.Looper.myLooper() == android.os.Looper.getMainLooper()) {
+            action()
+        } else {
+            android.os.Handler(android.os.Looper.getMainLooper()).post { action() }
         }
     }
 

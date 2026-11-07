@@ -212,9 +212,7 @@ class SearchViewModel @Inject constructor(
      */
     fun onSongClicked(songId: String) {
         viewModelScope.launch {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                playerManager.playSongById(songId, uiState.value.songs)
-            }
+            playerManager.playSongById(songId, uiState.value.songs)
         }
     }
 

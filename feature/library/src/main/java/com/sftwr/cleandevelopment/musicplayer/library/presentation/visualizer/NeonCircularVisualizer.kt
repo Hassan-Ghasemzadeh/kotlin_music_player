@@ -1,5 +1,6 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.visualizer
 
+import android.graphics.Bitmap
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -36,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -56,13 +60,14 @@ fun NeonCircularVisualizer(
     val infiniteTransition = rememberInfiniteTransition(label = "rotation")
     val context = LocalContext.current
 
-    // Extract embedded album art bytes from the audio file path
-    val albumArtBytes = remember(albumArtUrl) {
-        if (!albumArtUrl.isNullOrBlank()) {
-            albumArtUrl.toUri().extractAlbumArt(context)
-        } else {
-            null
-        }
+    // Extract embedded album art bytes asynchronously on IO thread
+    val albumArtBytes by produceState<Bitmap?>(initialValue = null, key1 = albumArtUrl) {
+        val url = albumArtUrl
+        value = if (!url.isNullOrBlank()) {
+            withContext(Dispatchers.IO) {
+                url.toUri().extractAlbumArt(context)
+            }
+        } else null
     }
 
     // Rotation animation for the vinyl-like album art disc

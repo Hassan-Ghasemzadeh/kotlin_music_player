@@ -10,6 +10,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -46,6 +50,15 @@ fun SongDetailScreen(
     val darkPurple = Color(0xFF0F0B21)
     val glassColor = Color.White.copy(alpha = 0.05f)
 
+    val albumArtBytes by produceState<ByteArray?>(initialValue = null, key1 = songDetail?.path) {
+        val path = songDetail?.path
+        value = if (!path.isNullOrBlank()) {
+            withContext(Dispatchers.IO) {
+                path.extractAlbumArt()
+            }
+        } else null
+    }
+
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -55,7 +68,7 @@ fun SongDetailScreen(
         if (songDetail != null) {
             AsyncImage(
                 model = ImageRequest.Builder(LocalContext.current)
-                    .data(songDetail.path.extractAlbumArt())
+                    .data(albumArtBytes)
                     .crossfade(true)
                     .build(),
                 contentDescription = null,
@@ -178,7 +191,7 @@ fun SongDetailScreen(
                     ) {
                         AsyncImage(
                             model = ImageRequest.Builder(LocalContext.current)
-                                .data(songDetail.path.extractAlbumArt())
+                                .data(albumArtBytes)
                                 .crossfade(true)
                                 .build(),
                             contentDescription = "کاور آلبوم",

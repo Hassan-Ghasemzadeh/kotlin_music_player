@@ -1,5 +1,6 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.edit
 
+import android.graphics.Bitmap
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,6 +27,8 @@ import androidx.core.net.toUri
 import coil.compose.AsyncImage
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.edit.viewmodel.EditTagState
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 @Composable
 fun EditTagScreen(
@@ -105,9 +108,13 @@ fun EditTagScreen(
                         horizontalArrangement = Arrangement.spacedBy(14.dp)
                     ) {
                         val context = LocalContext.current
-                        val albumArtBytes = remember(state.songUri) {
-                            if (state.songUri.isNotEmpty()) state.songUri.toUri()
-                                .extractAlbumArt(context) else null
+                        val albumArtBytes by produceState<Bitmap?>(initialValue = null, key1 = state.songUri) {
+                            val uriStr = state.songUri
+                            value = if (uriStr.isNotEmpty()) {
+                                withContext(Dispatchers.IO) {
+                                    uriStr.toUri().extractAlbumArt(context)
+                                }
+                            } else null
                         }
 
                         if (albumArtBytes != null) {

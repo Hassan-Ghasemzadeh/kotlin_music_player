@@ -8,6 +8,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
+import android.util.Size
 import androidx.annotation.OptIn
 import androidx.media3.common.util.BitmapLoader
 import androidx.media3.common.MediaItem
@@ -28,6 +29,10 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @EntryPoint
 @InstallIn(SingletonComponent::class)
@@ -61,47 +66,70 @@ class MusicPlaybackService : MediaSessionService() {
             }
 
             override fun decodeBitmap(data: ByteArray): ListenableFuture<Bitmap> {
-                return try {
+                val settable = SettableFuture.create<Bitmap>()
+                try {
                     val bitmap = BitmapFactory.decodeByteArray(data, 0, data.size)
                     if (bitmap != null) {
-                        Futures.immediateFuture(bitmap)
+                        settable.set(bitmap)
                     } else {
-                        defaultBitmapLoader.decodeBitmap(data)
+                        val future = defaultBitmapLoader.decodeBitmap(data)
+                        Futures.addCallback(future, object : FutureCallback<Bitmap> {
+                            override fun onSuccess(result: Bitmap?) { settable.set(result ?: loadDefaultBitmap()) }
+                            override fun onFailure(t: Throwable) { settable.set(loadDefaultBitmap()) }
+                        }, MoreExecutors.directExecutor())
                     }
                 } catch (_: Exception) {
-                    defaultBitmapLoader.decodeBitmap(data)
+                    settable.set(loadDefaultBitmap())
                 }
+                return settable
             }
 
             override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> {
-                val future = defaultBitmapLoader.loadBitmap(uri)
                 val settableFuture = SettableFuture.create<Bitmap>()
+                CoroutineScope(Dispatchers.IO).launch {
+                    val bitmap = uri.extractAlbumArt(applicationContext)
+                        ?: runCatching {
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                                applicationContext.contentResolver.loadThumbnail(uri, Size(512, 512), null)
+                            } else null
+                        }.getOrNull()
 
-                Futures.addCallback(
-                    future,
-                    object : FutureCallback<Bitmap> {
-                        override fun onSuccess(result: Bitmap?) {
-                            settableFuture.set(result ?: loadDefaultBitmap())
-                        }
+                    if (bitmap != null) {
+                        settableFuture.set(bitmap)
+                    } else {
+                        val future = defaultBitmapLoader.loadBitmap(uri)
+                        Futures.addCallback(
+                            future,
+                            object : FutureCallback<Bitmap> {
+                                override fun onSuccess(result: Bitmap?) {
+                                    settableFuture.set(result ?: loadDefaultBitmap())
+                                }
 
-                        override fun onFailure(t: Throwable) {
-                            settableFuture.set(loadDefaultBitmap())
-                        }
-                    },
-                    MoreExecutors.directExecutor()
-                )
-
+                                override fun onFailure(t: Throwable) {
+                                    settableFuture.set(loadDefaultBitmap())
+                                }
+                            },
+                            MoreExecutors.directExecutor()
+                        )
+                    }
+                }
                 return settableFuture
             }
 
             override fun loadBitmapFromMetadata(metadata: MediaMetadata): ListenableFuture<Bitmap>? {
-                // خواندن مستقیم بایت‌های تصویر از متادیتا برای نمایش آنی در نوتیفیکیشن بدون تاخیر
                 val artworkData = metadata.artworkData
                 if (artworkData != null) {
-                    val bitmap = BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size)
-                    if (bitmap != null) {
-                        return Futures.immediateFuture(bitmap)
+                    val settable = SettableFuture.create<Bitmap>()
+                    CoroutineScope(Dispatchers.IO).launch {
+                        val bitmap = BitmapFactory.decodeByteArray(artworkData, 0, artworkData.size)
+                        settable.set(bitmap ?: loadDefaultBitmap())
                     }
+                    return settable
+                }
+
+                val artworkUri = metadata.artworkUri
+                if (artworkUri != null) {
+                    return loadBitmap(artworkUri)
                 }
 
                 val future = defaultBitmapLoader.loadBitmapFromMetadata(metadata)

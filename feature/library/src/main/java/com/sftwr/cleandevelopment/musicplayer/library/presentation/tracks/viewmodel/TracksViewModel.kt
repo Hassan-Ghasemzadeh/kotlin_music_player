@@ -1,6 +1,5 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel
 
-import android.os.Build
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -10,7 +9,6 @@ import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -19,7 +17,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -124,9 +121,7 @@ class TracksViewModel @Inject constructor(
 
     fun onSongClicked(songId: String) {
         viewModelScope.launch {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                playerManager.playSongById(songId, uiState.value.songs)
-            }
+            playerManager.playSongById(songId, uiState.value.songs)
         }
     }
 

@@ -1,5 +1,6 @@
 package com.sftwr.cleandevelopment.musicplayer.music_player.navigation
 
+import android.graphics.Bitmap
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.background
@@ -11,7 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.produceState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
@@ -25,6 +26,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.model.Screen
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.InternalSerializationApi
 
 /**
@@ -53,9 +56,14 @@ fun AppRootContent(
     val showBottomBar = currentRoute?.contains("Player") == false
     val context = LocalContext.current
 
-    // Extract and remember album art bitmap efficiently when the current song URI changes
-    val artUri = remember(currentSong?.uri) {
-        currentSong?.uri?.toUri()?.extractAlbumArt(context = context)
+    // Extract album art bitmap asynchronously on IO thread pool when current song changes
+    val artUri by produceState<Bitmap?>(initialValue = null, key1 = currentSong?.uri) {
+        val songUri = currentSong?.uri
+        value = if (songUri != null) {
+            withContext(Dispatchers.IO) {
+                songUri.toUri().extractAlbumArt(context)
+            }
+        } else null
     }
 
     // Root container box holding the navigation graph and layered bottom player bar
