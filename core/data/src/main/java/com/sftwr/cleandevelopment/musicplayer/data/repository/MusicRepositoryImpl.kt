@@ -10,7 +10,6 @@ import android.media.MediaScannerConnection
 import android.os.Build
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
-import androidx.core.net.toUri
 import com.sftwr.cleandevelopment.musicplayer.data.model.SongEntity
 import com.sftwr.cleandevelopment.musicplayer.data.source.local.SongDao
 import com.sftwr.cleandevelopment.musicplayer.data.util.AudioTagEditor
@@ -320,10 +319,7 @@ private fun SongEntity.toDomain() = Song(
     album = album,
     albumId = albumId,
     contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id),
-    albumArtUri = ContentUris.withAppendedId(
-        "content://media/external/audio/albumart".toUri(),
-        albumId
-    ).toString(),
+    albumArtUri = null,
     duration = duration,
     size = size,
     path = path,

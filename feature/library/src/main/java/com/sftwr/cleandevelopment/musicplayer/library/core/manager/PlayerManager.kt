@@ -89,12 +89,16 @@ class PlayerManager @Inject constructor(
         })
     }
 
+    private val artworkCache = mutableMapOf<String, ByteArray>()
+
     private fun loadArtworkBytes(song: SongUiModel): ByteArray? {
-        runCatching {
+        artworkCache[song.id]?.let { return it }
+
+        return runCatching {
             val retriever = MediaMetadataRetriever()
             try {
                 retriever.setDataSource(context, song.uri.toUri())
-                retriever.embeddedPicture?.let { return it }
+                retriever.embeddedPicture
             } finally {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     retriever.close()
@@ -102,20 +106,9 @@ class PlayerManager @Inject constructor(
                     retriever.release()
                 }
             }
+        }.getOrNull()?.also { bytes ->
+            artworkCache[song.id] = bytes
         }
-
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            runCatching {
-                val bmp = context.contentResolver.loadThumbnail(
-                    song.uri.toUri(), Size(512, 512), null
-                )
-                val out = ByteArrayOutputStream()
-                bmp.compress(Bitmap.CompressFormat.JPEG, 90, out)
-                return out.toByteArray()
-            }
-        }
-
-        return null
     }
 
     private fun loadArtworkForIndex(index: Int) {
@@ -217,8 +210,7 @@ class PlayerManager @Inject constructor(
     }
 
     private fun SongUiModel.toMediaItem(artworkBytes: ByteArray? = null): MediaItem {
-        val rawUri = albumArtUri?.takeIf { it.isNotBlank() }
-        val artUri = rawUri?.toUri() ?: uri.toUri()
+        val artUri = uri.toUri()
 
         return MediaItem.Builder()
             .setUri(uri.toUri())
@@ -259,7 +251,10 @@ class PlayerManager @Inject constructor(
         val clickedSong = processedQueue[startIndex]
 
         val mediaItems = withContext(Dispatchers.Default) {
-            processedQueue.map { song -> song.toMediaItem() }
+            processedQueue.map { song ->
+                val artBytes = artworkCache[song.id]
+                song.toMediaItem(artBytes)
+            }
         }
 
         withContext(Dispatchers.Main) {

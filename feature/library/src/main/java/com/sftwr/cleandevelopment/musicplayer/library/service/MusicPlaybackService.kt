@@ -8,14 +8,12 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
-import android.util.Size
 import androidx.annotation.OptIn
 import androidx.media3.common.util.BitmapLoader
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DataSourceBitmapLoader
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaSession
@@ -59,25 +57,16 @@ class MusicPlaybackService : MediaSessionService() {
             MusicPlaybackServiceEntryPoint::class.java
         ).exoPlayer()
 
-        val defaultBitmapLoader = DataSourceBitmapLoader(applicationContext)
         val customBitmapLoader = object : BitmapLoader {
             override fun supportsMimeType(mimeType: String): Boolean {
-                return defaultBitmapLoader.supportsMimeType(mimeType)
+                return true
             }
 
             override fun decodeBitmap(data: ByteArray): ListenableFuture<Bitmap> {
                 val settable = SettableFuture.create<Bitmap>()
                 try {
                     val bitmap = BitmapFactory.decodeByteArray(data, 0, data.size)
-                    if (bitmap != null) {
-                        settable.set(bitmap)
-                    } else {
-                        val future = defaultBitmapLoader.decodeBitmap(data)
-                        Futures.addCallback(future, object : FutureCallback<Bitmap> {
-                            override fun onSuccess(result: Bitmap?) { settable.set(result ?: loadDefaultBitmap()) }
-                            override fun onFailure(t: Throwable) { settable.set(loadDefaultBitmap()) }
-                        }, MoreExecutors.directExecutor())
-                    }
+                    settable.set(bitmap ?: loadDefaultBitmap())
                 } catch (_: Exception) {
                     settable.set(loadDefaultBitmap())
                 }
@@ -88,30 +77,7 @@ class MusicPlaybackService : MediaSessionService() {
                 val settableFuture = SettableFuture.create<Bitmap>()
                 CoroutineScope(Dispatchers.IO).launch {
                     val bitmap = uri.extractAlbumArt(applicationContext)
-                        ?: runCatching {
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                                applicationContext.contentResolver.loadThumbnail(uri, Size(512, 512), null)
-                            } else null
-                        }.getOrNull()
-
-                    if (bitmap != null) {
-                        settableFuture.set(bitmap)
-                    } else {
-                        val future = defaultBitmapLoader.loadBitmap(uri)
-                        Futures.addCallback(
-                            future,
-                            object : FutureCallback<Bitmap> {
-                                override fun onSuccess(result: Bitmap?) {
-                                    settableFuture.set(result ?: loadDefaultBitmap())
-                                }
-
-                                override fun onFailure(t: Throwable) {
-                                    settableFuture.set(loadDefaultBitmap())
-                                }
-                            },
-                            MoreExecutors.directExecutor()
-                        )
-                    }
+                    settableFuture.set(bitmap ?: loadDefaultBitmap())
                 }
                 return settableFuture
             }
@@ -132,25 +98,7 @@ class MusicPlaybackService : MediaSessionService() {
                     return loadBitmap(artworkUri)
                 }
 
-                val future = defaultBitmapLoader.loadBitmapFromMetadata(metadata)
-                    ?: return Futures.immediateFuture(loadDefaultBitmap())
-
-                val settableFuture = SettableFuture.create<Bitmap>()
-                Futures.addCallback(
-                    future,
-                    object : FutureCallback<Bitmap> {
-                        override fun onSuccess(result: Bitmap?) {
-                            settableFuture.set(result ?: loadDefaultBitmap())
-                        }
-
-                        override fun onFailure(t: Throwable) {
-                            settableFuture.set(loadDefaultBitmap())
-                        }
-                    },
-                    MoreExecutors.directExecutor()
-                )
-
-                return settableFuture
+                return Futures.immediateFuture(loadDefaultBitmap())
             }
 
             private fun loadDefaultBitmap(): Bitmap {
