@@ -14,5 +14,9 @@ data class SongEntity(
     val size: Long,
     val path: String,
     val year: String = "",
-    val genre: String = ""
+    val genre: String = "",
+    val isFavorite: Boolean = false,
+    val playCount: Int = 0,
+    val lastPlayedTimestamp: Long = 0L,
+    val dateAdded: Long = System.currentTimeMillis()
 )
