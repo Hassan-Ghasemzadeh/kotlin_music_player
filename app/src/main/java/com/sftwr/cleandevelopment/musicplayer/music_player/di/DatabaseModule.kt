@@ -3,6 +3,7 @@ package com.sftwr.cleandevelopment.musicplayer.music_player.di
 import android.content.Context
 import androidx.room.Room
 import com.sftwr.cleandevelopment.musicplayer.data.source.local.MusicDatabase
+import com.sftwr.cleandevelopment.musicplayer.data.source.local.PlaylistDao
 import com.sftwr.cleandevelopment.musicplayer.data.source.local.SongDao
 import dagger.Module
 import dagger.Provides
@@ -32,5 +33,11 @@ object DatabaseModule {
     @Singleton
     fun provideSongDao(database: MusicDatabase): SongDao {
         return database.songDao()
+    }
+
+    @Provides
+    @Singleton
+    fun providePlaylistDao(database: MusicDatabase): PlaylistDao {
+        return database.playlistDao()
     }
 }
