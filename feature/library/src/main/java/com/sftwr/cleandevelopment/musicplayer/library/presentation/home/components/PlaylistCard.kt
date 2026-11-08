@@ -28,10 +28,11 @@ import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
 fun PlaylistCard(
     title: String,
     subtitle: String,
-    icon: ImageVector
+    icon: ImageVector,
+    modifier: Modifier = Modifier
 ) {
     GlassCard(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .height(72.dp)
     ) {
