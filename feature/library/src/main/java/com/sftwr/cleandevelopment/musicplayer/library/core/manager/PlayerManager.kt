@@ -13,7 +13,10 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.SongPreferencesRepository
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.DeleteSongUseCase
+import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
+import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import com.sftwr.cleandevelopment.musicplayer.library.service.MusicPlaybackService
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -33,6 +36,8 @@ import javax.inject.Singleton
 class PlayerManager @Inject constructor(
     val exoPlayer: ExoPlayer,
     private val deleteSongUseCase: DeleteSongUseCase,
+    private val getDeviceSongsUseCase: GetDeviceSongsUseCase,
+    private val songPreferencesRepository: SongPreferencesRepository,
     @param:ApplicationContext private val context: Context,
 ) {
 
@@ -53,16 +58,64 @@ class PlayerManager @Inject constructor(
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
     private var activeQueue: List<SongUiModel> = emptyList()
-    val hasNext: Boolean get() = Looper.myLooper() == Looper.getMainLooper() && exoPlayer.hasNextMediaItem()
-    val hasPrevious: Boolean get() = Looper.myLooper() == Looper.getMainLooper() && exoPlayer.hasPreviousMediaItem()
+    val hasNext: Boolean
+        get() {
+            if (Looper.myLooper() != Looper.getMainLooper()) return false
+            if (exoPlayer.hasNextMediaItem()) return true
+            val songs = if (activeQueue.isNotEmpty()) activeQueue else _allSongs.value
+            val current = _currentSong.value ?: return false
+            val index = songs.indexOfFirst { it.id == current.id }
+            return index != -1 && index < songs.size - 1
+        }
+    val hasPrevious: Boolean
+        get() {
+            if (Looper.myLooper() != Looper.getMainLooper()) return false
+            if (exoPlayer.hasPreviousMediaItem()) return true
+            val songs = if (activeQueue.isNotEmpty()) activeQueue else _allSongs.value
+            val current = _currentSong.value ?: return false
+            val index = songs.indexOfFirst { it.id == current.id }
+            return index > 0
+        }
 
     private val editedSongsCache = mutableMapOf<String, SongUiModel>()
     private val artworkScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
+    private val playerScope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
+    private var isRestoredOnStartup = false
     private var artworkJob: Job? = null
     private var queueJob: Job? = null
     private var isSettingQueue = false
 
     init {
+        playerScope.launch {
+            getDeviceSongsUseCase().collect { domainSongs ->
+                val songUiModels = domainSongs.map { song ->
+                    SongUiModel(
+                        id = song.id.toString(),
+                        title = song.title,
+                        artist = song.artist,
+                        duration = song.duration.formatTime(),
+                        uri = song.path,
+                        year = song.year,
+                        album = song.album,
+                        genre = song.genre,
+                        albumId = song.albumId,
+                        albumArtUri = song.albumArtUri,
+                    )
+                }
+                setSongs(songUiModels)
+            }
+        }
+
+        playerScope.launch {
+            _currentSong.collect { song ->
+                if (song != null) {
+                    songPreferencesRepository.saveLastPlayedSongId(song.id)
+                } else {
+                    songPreferencesRepository.clearLastPlayedSongId()
+                }
+            }
+        }
+
         exoPlayer.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlayingState: Boolean) {
                 _isPlaying.value = isPlayingState
@@ -132,6 +185,40 @@ class PlayerManager @Inject constructor(
         if (mergedSongs.isNotEmpty() || _allSongs.value.isEmpty()) {
             _allSongs.value = mergedSongs
         }
+        restoreLastPlayedSongIfNeeded()
+    }
+
+    /**
+     * Retrieves the persisted last played song ID from storage.
+     */
+    suspend fun getSavedLastPlayedSongId(): String? {
+        return songPreferencesRepository.getLastPlayedSongId()
+    }
+
+    /**
+     * Checks for a persisted last played song ID and restores the song into [_currentSong]
+     * state without auto-playing or preparing ExoPlayer unless playback is explicitly triggered.
+     */
+    private fun restoreLastPlayedSongIfNeeded() {
+        if (_currentSong.value != null || isRestoredOnStartup) return
+        if (_allSongs.value.isEmpty()) return
+
+        playerScope.launch {
+            val lastSongId = withContext(Dispatchers.IO) {
+                songPreferencesRepository.getLastPlayedSongId()
+            }
+            if (!lastSongId.isNullOrEmpty() && _currentSong.value == null) {
+                val matchingSong = _allSongs.value.find { it.id == lastSongId }
+                if (matchingSong != null && _currentSong.value == null) {
+                    _currentSong.value = matchingSong
+                    isRestoredOnStartup = true
+                } else if (matchingSong == null) {
+                    isRestoredOnStartup = true
+                }
+            } else {
+                isRestoredOnStartup = true
+            }
+        }
     }
 
     private fun checkAndPlayNextOrStop() {
@@ -174,6 +261,24 @@ class PlayerManager @Inject constructor(
             if (exoPlayer.hasNextMediaItem()) {
                 exoPlayer.seekToNextMediaItem()
                 exoPlayer.play()
+            } else {
+                val songs = if (activeQueue.isNotEmpty()) activeQueue else _allSongs.value
+                val current = _currentSong.value
+                if (songs.isNotEmpty() && current != null) {
+                    val currentIndex = songs.indexOfFirst { it.id == current.id }
+                    if (currentIndex != -1 && currentIndex + 1 in songs.indices) {
+                        val nextSong = songs[currentIndex + 1]
+                        val nextIndex = currentIndex + 1
+                        activeQueue = songs
+                        val mediaItems = songs.map { artworkCache[it.id].let { art -> it.toMediaItem(art) } }
+                        _currentSong.value = nextSong
+                        exoPlayer.setMediaItems(mediaItems, nextIndex, 0L)
+                        exoPlayer.prepare()
+                        exoPlayer.play()
+                        startPlaybackService()
+                        loadArtworkForIndex(nextIndex)
+                    }
+                }
             }
         }
     }
@@ -183,6 +288,24 @@ class PlayerManager @Inject constructor(
             if (exoPlayer.hasPreviousMediaItem()) {
                 exoPlayer.seekToPreviousMediaItem()
                 exoPlayer.play()
+            } else {
+                val songs = if (activeQueue.isNotEmpty()) activeQueue else _allSongs.value
+                val current = _currentSong.value
+                if (songs.isNotEmpty() && current != null) {
+                    val currentIndex = songs.indexOfFirst { it.id == current.id }
+                    if (currentIndex != -1 && currentIndex - 1 in songs.indices) {
+                        val prevSong = songs[currentIndex - 1]
+                        val prevIndex = currentIndex - 1
+                        activeQueue = songs
+                        val mediaItems = songs.map { artworkCache[it.id].let { art -> it.toMediaItem(art) } }
+                        _currentSong.value = prevSong
+                        exoPlayer.setMediaItems(mediaItems, prevIndex, 0L)
+                        exoPlayer.prepare()
+                        exoPlayer.play()
+                        startPlaybackService()
+                        loadArtworkForIndex(prevIndex)
+                    }
+                }
             }
         }
     }
@@ -387,9 +510,11 @@ class PlayerManager @Inject constructor(
             } else {
                 if (exoPlayer.currentMediaItem == null && _currentSong.value != null) {
                     val song = _currentSong.value!!
-                    activeQueue = listOf(song)
-                    val mediaItem = song.toMediaItem()
-                    exoPlayer.setMediaItem(mediaItem)
+                    val targetQueue = if (activeQueue.isNotEmpty()) activeQueue else if (_allSongs.value.isNotEmpty()) _allSongs.value else listOf(song)
+                    val index = targetQueue.indexOfFirst { it.id == song.id }.coerceAtLeast(0)
+                    activeQueue = targetQueue
+                    val mediaItems = targetQueue.map { artworkCache[it.id].let { art -> it.toMediaItem(art) } }
+                    exoPlayer.setMediaItems(mediaItems, index, 0L)
                     exoPlayer.prepare()
                     exoPlayer.play()
                 } else {
