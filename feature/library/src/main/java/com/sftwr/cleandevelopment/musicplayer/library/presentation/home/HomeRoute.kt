@@ -8,11 +8,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.viewmodel.HomeUiEvent
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.viewmodel.HomeViewModel
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.viewmodel.PlaylistsViewModel
 import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun HomeRoute(
     viewModel: HomeViewModel = hiltViewModel(),
+    playlistsViewModel: PlaylistsViewModel = hiltViewModel(),
     onNavigateToPlayer: (String) -> Unit,
     onNavigateToSearch: () -> Unit,
     onNavigateToTracks: () -> Unit,
@@ -21,7 +23,7 @@ fun HomeRoute(
 ) {
     // Collect UI state safely with lifecycle awareness
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
+    val playlistsState by playlistsViewModel.uiState.collectAsStateWithLifecycle()
     val trackCount by viewModel.trackCount.collectAsStateWithLifecycle()
 
     // Handle one-time UI events (Navigation side-effects)
@@ -38,14 +40,15 @@ fun HomeRoute(
     // Pass state and action callbacks down to the stateless UI screen
     HomeScreen(
         uiState = uiState,
+        playlistsState = playlistsState,
         actions = HomeActions(
             onPlaylistClick = { viewModel.onPlaylistClicked(it) },
             onSearchClick = { viewModel.onSearchClicked() },
             onSongClick = { viewModel.onSongPlayClicked(it) },
-            onAddPlaylistClick = { viewModel.onAddPlaylistClicked() },
-            onDismissDialog = { viewModel.onDismissCreateDialog() },
-            onPlaylistNameChanged = { viewModel.onNewPlaylistNameChanged(it) },
-            onConfirmCreate = { viewModel.confirmCreatePlaylist() },
+            onAddPlaylistClick = { playlistsViewModel.onAddPlaylistClick() },
+            onDismissDialog = { playlistsViewModel.onDismissDialog() },
+            onPlaylistNameChanged = { playlistsViewModel.onPlaylistNameChanged(it) },
+            onConfirmCreate = { playlistsViewModel.confirmCreatePlaylist() },
             onNavigateToTracks = onNavigateToTracks,
             onPermissionGranted = { viewModel.syncDeviceSongs() },
         ),
