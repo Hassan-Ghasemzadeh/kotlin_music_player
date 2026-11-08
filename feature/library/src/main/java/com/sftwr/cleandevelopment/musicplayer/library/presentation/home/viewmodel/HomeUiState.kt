@@ -1,15 +1,10 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.home.viewmodel
 
-import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.PlaylistUiModel
-
 // Represents the current UI state of the home screen
 data class HomeUiState(
-    val playlists: List<PlaylistUiModel> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val isCreateDialogVisible: Boolean = false,
-    val newPlaylistName: String = "",
-    val tracksCount: String="",
+    val tracksCount: String = "",
 )
 
 // Represents one-time UI events like navigation or showing a snackbar
