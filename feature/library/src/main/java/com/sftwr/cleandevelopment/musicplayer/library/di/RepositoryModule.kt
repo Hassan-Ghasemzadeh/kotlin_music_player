@@ -1,9 +1,11 @@
 package com.sftwr.cleandevelopment.musicplayer.library.di
 
-import com.sftwr.cleandevelopment.musicplayer.domain.repository.MusicRepository
-import com.sftwr.cleandevelopment.musicplayer.domain.repository.SongPreferencesRepository
 import com.sftwr.cleandevelopment.musicplayer.data.repository.MusicRepositoryImpl
+import com.sftwr.cleandevelopment.musicplayer.data.repository.PlaylistRepositoryImpl
 import com.sftwr.cleandevelopment.musicplayer.data.repository.SongPreferencesRepositoryImpl
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.MusicRepository
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.PlaylistRepository
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.SongPreferencesRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -31,4 +33,13 @@ abstract class RepositoryModule {
     abstract fun bindSongPreferencesRepository(
         songPreferencesRepositoryImpl: SongPreferencesRepositoryImpl,
     ): SongPreferencesRepository
+
+    /**
+     * Binds the implementation of PlaylistRepository to its interface.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindPlaylistRepository(
+        playlistRepositoryImpl: PlaylistRepositoryImpl,
+    ): PlaylistRepository
 }
