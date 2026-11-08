@@ -15,7 +15,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -27,25 +26,18 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.componen
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components.PlaylistCard
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components.TopBarSection
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.viewmodel.HomeUiState
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.viewmodel.PlaylistsUiState
 
 /**
- * Data class representing a playlist item with title, track count, and icon.
- */
-data class PlaylistUiModel(
-    val title: String,
-    val subtitle: String,
-    val icon: ImageVector
-)
-
-/**
- * MusicPlayerScreen featuring library grid, dynamic custom playlists creation,
- * and a bottom music player bar (Stateless UI Component).
+ * MusicPlayerScreen featuring library grid, dynamic default & custom playlists,
+ * and playlist creation dialog (Stateless UI Component).
  */
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
     uiState: HomeUiState,
+    playlistsState: PlaylistsUiState = PlaylistsUiState(),
     actions: HomeActions,
     tracksCount: String,
 ) {
@@ -178,7 +170,7 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Playlist(${uiState.playlists.size})",
+                            text = "Playlist(${playlistsState.totalPlaylistCount})",
                             color = Color.White,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
@@ -195,19 +187,20 @@ fun HomeScreen(
                     }
                 }
 
-                // Dynamic list of playlist cards from ViewModel state
-                items(uiState.playlists) { playlist ->
+                // Dynamic list of playlist cards (Default playlists + Custom user playlists)
+                items(playlistsState.playlists, key = { it.id }) { playlist ->
                     PlaylistCard(
                         title = playlist.title,
                         subtitle = playlist.subtitle,
-                        icon = playlist.icon
+                        icon = playlist.icon,
+                        modifier = Modifier.clickable { actions.onPlaylistClick(playlist.title) }
                     )
                 }
             }
         }
 
         // Dialog for creating a new custom playlist (Controlled by ViewModel state)
-        if (uiState.isCreateDialogVisible) {
+        if (playlistsState.isCreateDialogVisible) {
             AlertDialog(
                 onDismissRequest = actions.onDismissDialog,
                 title = { Text(text = "Create New Playlist") },
@@ -216,11 +209,20 @@ fun HomeScreen(
                         Text(text = "Enter a name for your new playlist:")
                         Spacer(modifier = Modifier.height(8.dp))
                         OutlinedTextField(
-                            value = uiState.newPlaylistName,
+                            value = playlistsState.newPlaylistName,
                             onValueChange = actions.onPlaylistNameChanged,
                             singleLine = true,
+                            isError = playlistsState.nameError != null,
                             placeholder = { Text("Playlist Name") }
                         )
+                        if (playlistsState.nameError != null) {
+                            Text(
+                                text = playlistsState.nameError,
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                                modifier = Modifier.padding(start = 4.dp, top = 4.dp)
+                            )
+                        }
                     }
                 },
                 confirmButton = {
