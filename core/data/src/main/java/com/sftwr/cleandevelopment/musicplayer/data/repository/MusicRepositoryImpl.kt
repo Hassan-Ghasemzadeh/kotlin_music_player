@@ -57,16 +57,31 @@ class MusicRepositoryImpl @Inject constructor(
         try {
             val deviceEntities = fetchSongsFromMediaStore()
             val cachedSongs = songDao.getAllSongsOnce()
+            val cachedMap = cachedSongs.associateBy { it.id }
+
+            val mergedEntities = deviceEntities.map { deviceEntity ->
+                val cached = cachedMap[deviceEntity.id]
+                if (cached != null) {
+                    deviceEntity.copy(
+                        isFavorite = cached.isFavorite,
+                        playCount = cached.playCount,
+                        lastPlayedTimestamp = cached.lastPlayedTimestamp,
+                        dateAdded = if (cached.dateAdded > 0) cached.dateAdded else deviceEntity.dateAdded
+                    )
+                } else {
+                    deviceEntity
+                }
+            }
 
             val cachedDomainSongs = cachedSongs.map { it.toDomain() }
-            val deviceDomainSongs = deviceEntities.map { it.toDomain() }
+            val deviceDomainSongs = mergedEntities.map { it.toDomain() }
             val hasChanges = deviceDomainSongs != cachedDomainSongs
 
-            if (deviceEntities.isNotEmpty()) {
+            if (mergedEntities.isNotEmpty()) {
                 if (hasChanges) {
-                    songDao.upsertSongs(deviceEntities)
+                    songDao.upsertSongs(mergedEntities)
                 }
-                songDao.deleteStaleSongs(deviceEntities.map { it.path })
+                songDao.deleteStaleSongs(mergedEntities.map { it.path })
             }
         } catch (e: Exception) {
             e.printStackTrace()
