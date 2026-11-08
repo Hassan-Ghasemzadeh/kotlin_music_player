@@ -1,0 +1,132 @@
+package com.sftwr.cleandevelopment.musicplayer.data.repository
+
+import android.content.ContentUris
+import android.provider.MediaStore
+import com.sftwr.cleandevelopment.musicplayer.data.model.PlaylistEntity
+import com.sftwr.cleandevelopment.musicplayer.data.model.PlaylistSongCrossRef
+import com.sftwr.cleandevelopment.musicplayer.data.model.SongEntity
+import com.sftwr.cleandevelopment.musicplayer.data.source.local.PlaylistDao
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
+import com.sftwr.cleandevelopment.musicplayer.domain.model.PlaylistType
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.PlaylistRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
+
+class PlaylistRepositoryImpl @Inject constructor(
+    private val playlistDao: PlaylistDao
+) : PlaylistRepository {
+
+    override fun getPlaylists(): Flow<List<Playlist>> {
+        val recentlyAddedCount = playlistDao.getRecentlyAddedCountFlow()
+        val recentlyPlayedCount = playlistDao.getRecentlyPlayedCountFlow()
+        val mostPlayedCount = playlistDao.getMostPlayedCountFlow()
+        val favoriteCount = playlistDao.getFavoriteCountFlow()
+        val customPlaylists = playlistDao.getCustomPlaylistsWithCountFlow()
+
+        return combine(
+            recentlyAddedCount,
+            recentlyPlayedCount,
+            mostPlayedCount,
+            favoriteCount,
+            customPlaylists
+        ) { recAdded, recPlayed, mostPlayed, favorites, customs ->
+            val defaultPlaylists = listOf(
+                Playlist.Default(
+                    id = -1L,
+                    name = "Recently Added",
+                    trackCount = recAdded,
+                    type = PlaylistType.RECENTLY_ADDED
+                ),
+                Playlist.Default(
+                    id = -2L,
+                    name = "Recently Played",
+                    trackCount = recPlayed,
+                    type = PlaylistType.RECENTLY_PLAYED
+                ),
+                Playlist.Default(
+                    id = -3L,
+                    name = "Most Played",
+                    trackCount = mostPlayed,
+                    type = PlaylistType.MOST_PLAYED
+                ),
+                Playlist.Default(
+                    id = -4L,
+                    name = "Favorite Tracks",
+                    trackCount = favorites,
+                    type = PlaylistType.FAVORITES
+                )
+            )
+
+            val customDomainPlaylists = customs.map { custom ->
+                Playlist.Custom(
+                    id = custom.id,
+                    name = custom.name,
+                    trackCount = custom.trackCount,
+                    createdAt = custom.createdAt
+                )
+            }
+
+            defaultPlaylists + customDomainPlaylists
+        }.flowOn(Dispatchers.IO)
+    }
+
+    override fun getPlaylistSongs(playlistId: Long, playlistType: PlaylistType): Flow<List<Song>> {
+        val entityFlow = when (playlistType) {
+            PlaylistType.RECENTLY_ADDED -> playlistDao.getRecentlyAddedSongsFlow()
+            PlaylistType.RECENTLY_PLAYED -> playlistDao.getRecentlyPlayedSongsFlow()
+            PlaylistType.MOST_PLAYED -> playlistDao.getMostPlayedSongsFlow()
+            PlaylistType.FAVORITES -> playlistDao.getFavoriteSongsFlow()
+            PlaylistType.CUSTOM -> playlistDao.getPlaylistSongsFlow(playlistId)
+        }
+        return entityFlow.map { entities ->
+            entities.map { it.toDomain() }
+        }.flowOn(Dispatchers.IO)
+    }
+
+    override suspend fun createCustomPlaylist(name: String): Long = withContext(Dispatchers.IO) {
+        val entity = PlaylistEntity(name = name)
+        playlistDao.insertPlaylist(entity)
+    }
+
+    override suspend fun deleteCustomPlaylist(playlistId: Long) = withContext(Dispatchers.IO) {
+        playlistDao.deletePlaylist(playlistId)
+    }
+
+    override suspend fun addSongToPlaylist(playlistId: Long, songId: Long) = withContext(Dispatchers.IO) {
+        val crossRef = PlaylistSongCrossRef(playlistId = playlistId, songId = songId)
+        playlistDao.insertPlaylistSongCrossRef(crossRef)
+    }
+
+    override suspend fun removeSongFromPlaylist(playlistId: Long, songId: Long) = withContext(Dispatchers.IO) {
+        playlistDao.deletePlaylistSongCrossRef(playlistId = playlistId, songId = songId)
+    }
+
+    override suspend fun toggleFavorite(songId: Long, isFavorite: Boolean) = withContext(Dispatchers.IO) {
+        playlistDao.setFavorite(songId, isFavorite)
+    }
+
+    override suspend fun recordSongPlayed(songId: Long) = withContext(Dispatchers.IO) {
+        playlistDao.recordSongPlayed(songId)
+    }
+}
+
+private fun SongEntity.toDomain() = Song(
+    id = id,
+    title = title,
+    artist = artist,
+    album = album,
+    albumId = albumId,
+    contentUri = ContentUris.withAppendedId(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id),
+    albumArtUri = null,
+    duration = duration,
+    size = size,
+    path = path,
+    year = year,
+    genre = genre
+)
