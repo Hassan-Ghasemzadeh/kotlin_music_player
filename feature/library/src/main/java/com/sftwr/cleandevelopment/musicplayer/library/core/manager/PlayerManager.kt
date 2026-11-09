@@ -216,6 +216,12 @@ class PlayerManager @Inject constructor(
         if (mergedSongs.isNotEmpty() || _allSongs.value.isEmpty()) {
             _allSongs.value = mergedSongs
         }
+        _currentSong.value?.let { current ->
+            val updatedCurrent = mergedSongs.find { it.id == current.id }
+            if (updatedCurrent != null) {
+                _currentSong.value = updatedCurrent
+            }
+        }
         restoreLastPlayedSongIfNeeded()
     }
 

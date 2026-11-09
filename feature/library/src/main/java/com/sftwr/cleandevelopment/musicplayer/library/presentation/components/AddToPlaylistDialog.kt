@@ -8,11 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
-import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.LibraryAdd
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -20,16 +16,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
-import com.sftwr.cleandevelopment.musicplayer.domain.model.PlaylistType
 
 /**
- * Dark glassmorphic dialog for adding a song to a selected playlist or favorites.
+ * Dark glassmorphic dialog for adding a song to custom playlists.
  */
 @Composable
 fun AddToPlaylistDialog(
@@ -112,13 +108,14 @@ fun AddToPlaylistDialog(
                         Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .height(100.dp),
+                                .height(120.dp),
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "لیست پخشی یافت نشد",
-                                color = Color.White.copy(alpha = 0.5f),
-                                fontSize = 14.sp
+                                text = "هیچ لیست پخش سفارشی یافت نشد.\nابتدا یکی بسازید!",
+                                color = Color.White.copy(alpha = 0.6f),
+                                fontSize = 14.sp,
+                                textAlign = TextAlign.Center
                             )
                         }
                     } else {
@@ -129,14 +126,6 @@ fun AddToPlaylistDialog(
                             verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(playlists, key = { it.id }) { playlist ->
-                                val icon = when (playlist.type) {
-                                    PlaylistType.RECENTLY_ADDED -> Icons.Default.LibraryAdd
-                                    PlaylistType.RECENTLY_PLAYED -> Icons.Default.History
-                                    PlaylistType.MOST_PLAYED -> Icons.AutoMirrored.Filled.TrendingUp
-                                    PlaylistType.FAVORITES -> Icons.Default.Favorite
-                                    PlaylistType.CUSTOM -> Icons.AutoMirrored.Filled.QueueMusic
-                                }
-
                                 Surface(
                                     onClick = { onSelectPlaylist(playlist) },
                                     modifier = Modifier.fillMaxWidth(),
@@ -151,7 +140,7 @@ fun AddToPlaylistDialog(
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Icon(
-                                            imageVector = icon,
+                                            imageVector = Icons.AutoMirrored.Filled.QueueMusic,
                                             contentDescription = playlist.name,
                                             tint = Color(0xFF91D8FB),
                                             modifier = Modifier.size(24.dp)

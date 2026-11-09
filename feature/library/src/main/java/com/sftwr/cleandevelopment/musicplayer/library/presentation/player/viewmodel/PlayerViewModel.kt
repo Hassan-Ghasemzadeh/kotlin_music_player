@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -30,7 +31,7 @@ import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * PlayerViewModel manages the audio playback states, transport controls (play, pause, skip, seek),
- * repeat/shuffle configurations, favorites, sharing, playlist adding, and periodic progress tracking.
+ * repeat/shuffle configurations, favorites, sharing, custom playlist adding, and periodic progress tracking.
  */
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
@@ -57,7 +58,9 @@ class PlayerViewModel @Inject constructor(
     val isPlaying: StateFlow<Boolean> = playerManager.isPlaying
     val currentSong: StateFlow<SongUiModel?> = playerManager.currentSong
 
+    // Only custom playlists are shown in the Add to Playlist dialog
     val playlists: StateFlow<List<Playlist>> = getPlaylistsUseCase()
+        .map { list -> list.filter { it is Playlist.Custom } }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
