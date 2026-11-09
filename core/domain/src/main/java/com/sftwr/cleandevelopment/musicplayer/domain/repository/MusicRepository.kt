@@ -1,5 +1,6 @@
 package com.sftwr.cleandevelopment.musicplayer.domain.repository
 
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
 import kotlinx.coroutines.flow.Flow
 
@@ -13,6 +14,16 @@ interface MusicRepository {
      * Observes and returns a reactive stream of device audio songs.
      */
     fun getDeviceSongs(): Flow<List<Song>>
+
+    /**
+     * Observes and returns a reactive stream of music albums derived from device songs.
+     */
+    fun getAlbums(): Flow<List<Album>>
+
+    /**
+     * Observes and returns songs belonging to a specific album ID.
+     */
+    fun getAlbumSongs(albumId: Long): Flow<List<Song>>
 
     /**
      * Searches for songs matching the given query string.
