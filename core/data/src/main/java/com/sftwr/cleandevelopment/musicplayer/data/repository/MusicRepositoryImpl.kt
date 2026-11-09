@@ -13,6 +13,7 @@ import androidx.annotation.RequiresApi
 import com.sftwr.cleandevelopment.musicplayer.data.model.SongEntity
 import com.sftwr.cleandevelopment.musicplayer.data.source.local.SongDao
 import com.sftwr.cleandevelopment.musicplayer.data.util.AudioTagEditor
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.MusicRepository
@@ -42,6 +43,34 @@ class MusicRepositoryImpl @Inject constructor(
         // Ui Source is local cache always
         return songDao.getAllSongsFlow()
             .map { entities -> entities.map { it.toDomain() } }
+            .flowOn(Dispatchers.IO)
+    }
+
+    override fun getAlbums(): Flow<List<Album>> {
+        return songDao.getAllSongsFlow()
+            .map { entities ->
+                entities.groupBy { it.albumId }
+                    .map { (albumId, songEntities) ->
+                        val first = songEntities.first()
+                        Album(
+                            albumId = albumId,
+                            title = first.album.ifBlank { "Unknown Album" },
+                            artist = first.artist.ifBlank { "Unknown Artist" },
+                            trackCount = songEntities.size,
+                            albumArtUri = "content://media/external/audio/albumart/$albumId"
+                        )
+                    }
+                    .sortedBy { it.title }
+            }
+            .flowOn(Dispatchers.IO)
+    }
+
+    override fun getAlbumSongs(albumId: Long): Flow<List<Song>> {
+        return songDao.getAllSongsFlow()
+            .map { entities ->
+                entities.filter { it.albumId == albumId }
+                    .map { it.toDomain() }
+            }
             .flowOn(Dispatchers.IO)
     }
 
