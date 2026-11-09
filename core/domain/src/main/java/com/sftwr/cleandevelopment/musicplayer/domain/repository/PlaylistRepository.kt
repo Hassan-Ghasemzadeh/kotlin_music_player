@@ -21,9 +21,9 @@ interface PlaylistRepository {
     fun getPlaylistSongs(playlistId: Long, playlistType: PlaylistType): Flow<List<Song>>
 
     /**
-     * Creates a new custom playlist with the specified name in Room database.
+     * Creates a new custom playlist with the specified name and initial track IDs in Room database.
      */
-    suspend fun createCustomPlaylist(name: String): Long
+    suspend fun createCustomPlaylist(name: String, songIds: List<Long> = emptyList()): Long
 
     /**
      * Deletes a custom playlist by its unique identifier.
