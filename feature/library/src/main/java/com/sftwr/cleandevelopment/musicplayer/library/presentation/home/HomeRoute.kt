@@ -18,6 +18,7 @@ fun HomeRoute(
     onNavigateToPlayer: (String) -> Unit,
     onNavigateToSearch: () -> Unit,
     onNavigateToTracks: () -> Unit,
+    onNavigateToAlbums: () -> Unit,
     onOpenPlaylist: (String) -> Unit,
     onOpenPlaylistDetail: (id: Long, title: String, typeName: String) -> Unit = { _, _, _ -> },
     modifier: Modifier = Modifier
@@ -26,6 +27,7 @@ fun HomeRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val playlistsState by playlistsViewModel.uiState.collectAsStateWithLifecycle()
     val trackCount by viewModel.trackCount.collectAsStateWithLifecycle()
+    val albumCount by viewModel.albumCount.collectAsStateWithLifecycle()
 
     // Handle one-time UI events (Navigation side-effects)
     LaunchedEffect(key1 = true) {
@@ -58,9 +60,11 @@ fun HomeRoute(
             onTrackSearchQueryChanged = { query -> playlistsViewModel.onTrackSearchQueryChanged(query) },
             onConfirmCreate = { playlistsViewModel.confirmCreatePlaylist() },
             onNavigateToTracks = onNavigateToTracks,
+            onNavigateToAlbums = onNavigateToAlbums,
             onPermissionGranted = { viewModel.syncDeviceSongs() },
         ),
         modifier = modifier,
         tracksCount = trackCount.toString(),
+        albumsCount = albumCount.toString(),
     )
 }
