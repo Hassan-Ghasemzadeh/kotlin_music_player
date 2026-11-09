@@ -31,6 +31,9 @@ interface PlaylistDao {
     @Insert(onConflict = OnConflictStrategy.IGNORE)
     suspend fun insertPlaylistSongCrossRef(crossRef: PlaylistSongCrossRef)
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertPlaylistSongCrossRefs(crossRefs: List<PlaylistSongCrossRef>)
+
     @Query("DELETE FROM playlist_song_cross_ref WHERE playlistId = :playlistId AND songId = :songId")
     suspend fun deletePlaylistSongCrossRef(playlistId: Long, songId: Long)
 
@@ -46,7 +49,7 @@ interface PlaylistDao {
     fun getPlaylistSongsFlow(playlistId: Long): Flow<List<SongEntity>>
 
     // Smart / Default Playlist Queries
-    @Query("SELECT * FROM songs_cache ORDER BY dateAdded DESC, id DESC LIMIT 50")
+    @Query("SELECT * FROM songs_cache ORDER BY dateAdded DESC, id DESC")
     fun getRecentlyAddedSongsFlow(): Flow<List<SongEntity>>
 
     @Query("SELECT COUNT(*) FROM songs_cache")
