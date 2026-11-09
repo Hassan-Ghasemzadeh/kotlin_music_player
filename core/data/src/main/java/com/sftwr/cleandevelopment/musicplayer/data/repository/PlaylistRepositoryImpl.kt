@@ -6,6 +6,7 @@ import com.sftwr.cleandevelopment.musicplayer.data.model.PlaylistEntity
 import com.sftwr.cleandevelopment.musicplayer.data.model.PlaylistSongCrossRef
 import com.sftwr.cleandevelopment.musicplayer.data.model.SongEntity
 import com.sftwr.cleandevelopment.musicplayer.data.source.local.PlaylistDao
+import com.sftwr.cleandevelopment.musicplayer.data.source.local.SongDao
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.PlaylistType
@@ -20,7 +21,8 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 class PlaylistRepositoryImpl @Inject constructor(
-    private val playlistDao: PlaylistDao
+    private val playlistDao: PlaylistDao,
+    private val songDao: SongDao
 ) : PlaylistRepository {
 
     override fun getPlaylists(): Flow<List<Playlist>> {
@@ -91,9 +93,12 @@ class PlaylistRepositoryImpl @Inject constructor(
     }
 
     override fun getFavoriteAlbums(): Flow<List<Album>> {
-        return playlistDao.getFavoriteSongsFlow()
+        return songDao.getAllSongsFlow()
             .map { entities ->
                 entities.groupBy { it.albumId }
+                    .filter { (_, songEntities) ->
+                        songEntities.isNotEmpty() && songEntities.all { it.isFavorite }
+                    }
                     .map { (albumId, songEntities) ->
                         val first = songEntities.first()
                         Album(
