@@ -57,8 +57,10 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.AlphabetIndexerBar
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.AddToPlaylistDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.ScrollToTopButton
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.SongDropdownMenu
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.viewmodel.TracksViewModel
@@ -91,6 +93,8 @@ data class SongUiModel(
 fun TracksScreen(
     modifier: Modifier = Modifier,
     songs: List<SongUiModel>,
+    playlists: List<Playlist> = emptyList(),
+    targetSongForPlaylist: SongUiModel? = null,
     isLoading: Boolean = false,
     onSongClick: (String) -> Unit,
     onBackClick: () -> Unit,
@@ -98,6 +102,11 @@ fun TracksScreen(
     onInfoClick: (Long) -> Unit,
     onTagEditClick: (Long) -> Unit,
     onShareClick: (song: SongUiModel) -> Unit,
+    onAddToPlaylistClick: (SongUiModel) -> Unit = {},
+    onFavoriteClick: (SongUiModel) -> Unit = {},
+    onSelectPlaylistForAdd: (songId: Long, Playlist) -> Unit = { _, _ -> },
+    onToggleFavoriteForAdd: (songId: Long, isFavorite: Boolean) -> Unit = { _, _ -> },
+    onDismissAddToPlaylistDialog: () -> Unit = {},
     viewModel: TracksViewModel = hiltViewModel(),
 ) {
     val currentSong by viewModel.currentPlayingSong.collectAsState()
@@ -312,6 +321,12 @@ fun TracksScreen(
                                                         onTagEditClick(id)
                                                     }
                                             },
+                                            onAddToPlaylistClick = {
+                                                onAddToPlaylistClick(song)
+                                            },
+                                            onFavoriteClick = {
+                                                onFavoriteClick(song)
+                                            },
                                             isPlaying = isThisSongPlaying,
                                             onShareClick = { onShareClick(song) }
                                         )
@@ -357,6 +372,27 @@ fun TracksScreen(
                     }
                 }
             }
+
+            // Add to Playlist Dialog prompt
+            if (targetSongForPlaylist != null) {
+                val songIdLong = targetSongForPlaylist.id.toLongOrNull() ?: -1L
+                AddToPlaylistDialog(
+                    songTitle = targetSongForPlaylist.title,
+                    playlists = playlists,
+                    isFavorite = false,
+                    onSelectPlaylist = { playlist ->
+                        if (songIdLong != -1L) {
+                            onSelectPlaylistForAdd(songIdLong, playlist)
+                        }
+                    },
+                    onToggleFavorite = {
+                        if (songIdLong != -1L) {
+                            onToggleFavoriteForAdd(songIdLong, true)
+                        }
+                    },
+                    onDismissRequest = onDismissAddToPlaylistDialog
+                )
+            }
         }
     }
 }
@@ -376,6 +412,8 @@ fun TrackItem(
     onInfoClick: () -> Unit,
     onTagEditClick: () -> Unit,
     onShareClick: () -> Unit,
+    onAddToPlaylistClick: () -> Unit = {},
+    onFavoriteClick: () -> Unit = {},
     isPlaying: Boolean = false,
 ) {
     val ctx = LocalContext.current
@@ -489,12 +527,12 @@ fun TrackItem(
                         )
                     }
 
-                    // Dropdown menu containing song actions (Info, Edit Tag, Delete, etc.)
+                    // Dropdown menu containing song actions (Info, Edit Tag, Delete, Add to Playlist, etc.)
                     SongDropdownMenu(
                         expanded = isMenuExpanded,
                         onDismissRequest = onDismissMenu,
-                        onAddToPlaylist = {},
-                        onFavoriteClick = {},
+                        onAddToPlaylist = onAddToPlaylistClick,
+                        onFavoriteClick = onFavoriteClick,
                         onInfoClick = onInfoClick,
                         onTagEditClick = onTagEditClick,
                         onShareClick = onShareClick,

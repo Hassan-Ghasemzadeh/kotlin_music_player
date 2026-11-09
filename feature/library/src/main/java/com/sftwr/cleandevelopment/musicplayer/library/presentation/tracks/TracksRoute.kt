@@ -92,6 +92,8 @@ fun TracksRoute(
     // Pass immutable state and action callbacks down to the stateless UI screen
     TracksScreen(
         songs = uiState.songs,
+        playlists = uiState.playlists,
+        targetSongForPlaylist = uiState.targetSongForPlaylist,
         isLoading = uiState.isLoading,
         onSongClick = { songId -> viewModel.onSongClicked(songId) },
         onBackClick = onBackClick,
@@ -100,6 +102,23 @@ fun TracksRoute(
         onTagEditClick = onTagEditClick,
         onShareClick = { song ->
             ShareUtils.shareSong(context, song)
+        },
+        onAddToPlaylistClick = { song ->
+            viewModel.openAddToPlaylistDialog(song)
+        },
+        onFavoriteClick = { song ->
+            song.id.toLongOrNull()?.let { songId ->
+                viewModel.toggleFavorite(songId, true)
+            }
+        },
+        onSelectPlaylistForAdd = { songId, playlist ->
+            viewModel.addSongToPlaylist(songId, playlist)
+        },
+        onToggleFavoriteForAdd = { songId, isFav ->
+            viewModel.toggleFavorite(songId, isFav)
+        },
+        onDismissAddToPlaylistDialog = {
+            viewModel.closeAddToPlaylistDialog()
         }
     )
 }
