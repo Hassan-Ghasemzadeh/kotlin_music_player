@@ -13,6 +13,7 @@ data class PlaylistDetailUiState(
     val playlistType: PlaylistType = PlaylistType.CUSTOM,
     val songs: List<SongUiModel> = emptyList(),
     val playlists: List<Playlist> = emptyList(),
+    val customPlaylists: List<Playlist> = emptyList(),
     val targetSongForPlaylist: SongUiModel? = null,
     val isLoading: Boolean = false,
     val isCustomPlaylist: Boolean = false,

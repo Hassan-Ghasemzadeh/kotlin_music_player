@@ -76,6 +76,7 @@ class PlaylistDetailViewModel @Inject constructor(
             playlistType = playlistType,
             songs = songUiModels,
             playlists = playlists,
+            customPlaylists = playlists.filter { it is Playlist.Custom },
             targetSongForPlaylist = targetSong,
             isLoading = isLoading,
             isCustomPlaylist = playlistType == PlaylistType.CUSTOM

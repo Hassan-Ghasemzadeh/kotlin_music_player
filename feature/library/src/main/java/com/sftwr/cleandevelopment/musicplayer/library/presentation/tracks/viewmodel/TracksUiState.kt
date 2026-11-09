@@ -9,6 +9,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUi
 data class TracksUiState(
     val songs: List<SongUiModel> = emptyList(),
     val playlists: List<Playlist> = emptyList(),
+    val customPlaylists: List<Playlist> = emptyList(),
     val targetSongForPlaylist: SongUiModel? = null,
     val isLoading: Boolean = false,
     val isRefreshing: Boolean = false,

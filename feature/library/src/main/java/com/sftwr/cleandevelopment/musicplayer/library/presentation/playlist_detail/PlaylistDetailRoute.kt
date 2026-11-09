@@ -50,6 +50,7 @@ fun PlaylistDetailRoute(
         playlistType = uiState.playlistType,
         songs = uiState.songs,
         playlists = uiState.playlists,
+        customPlaylists = uiState.customPlaylists,
         targetSongForPlaylist = uiState.targetSongForPlaylist,
         isLoading = uiState.isLoading,
         currentPlayingSongId = currentSong?.id,
@@ -68,7 +69,7 @@ fun PlaylistDetailRoute(
         onAddToPlaylistClick = { song -> viewModel.openAddToPlaylistDialog(song) },
         onFavoriteClick = { song ->
             song.id.toLongOrNull()?.let { songId ->
-                viewModel.toggleFavorite(songId, true)
+                viewModel.toggleFavorite(songId, !song.isFavorite)
             }
         },
         onSelectPlaylistForAdd = { songId, playlist ->
@@ -79,9 +80,6 @@ fun PlaylistDetailRoute(
         },
         onDismissAddToPlaylistDialog = {
             viewModel.closeAddToPlaylistDialog()
-        },
-        onToggleFavoriteClick = { songId ->
-            viewModel.toggleFavorite(songId, true)
         },
         onInfoClick = onInfoClick,
         onTagEditClick = onTagEditClick,

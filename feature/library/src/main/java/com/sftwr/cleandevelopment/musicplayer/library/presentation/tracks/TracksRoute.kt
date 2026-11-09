@@ -93,6 +93,7 @@ fun TracksRoute(
     TracksScreen(
         songs = uiState.songs,
         playlists = uiState.playlists,
+        customPlaylists = uiState.customPlaylists,
         targetSongForPlaylist = uiState.targetSongForPlaylist,
         isLoading = uiState.isLoading,
         onSongClick = { songId -> viewModel.onSongClicked(songId) },

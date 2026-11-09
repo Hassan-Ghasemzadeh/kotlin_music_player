@@ -95,6 +95,7 @@ fun TracksScreen(
     modifier: Modifier = Modifier,
     songs: List<SongUiModel>,
     playlists: List<Playlist> = emptyList(),
+    customPlaylists: List<Playlist> = emptyList(),
     targetSongForPlaylist: SongUiModel? = null,
     isLoading: Boolean = false,
     onSongClick: (String) -> Unit,
@@ -379,7 +380,7 @@ fun TracksScreen(
                 val songIdLong = targetSongForPlaylist.id.toLongOrNull() ?: -1L
                 AddToPlaylistDialog(
                     songTitle = targetSongForPlaylist.title,
-                    playlists = playlists,
+                    playlists = customPlaylists,
                     isFavorite = false,
                     onSelectPlaylist = { playlist ->
                         if (songIdLong != -1L) {

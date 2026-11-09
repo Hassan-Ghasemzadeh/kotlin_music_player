@@ -76,6 +76,7 @@ class TracksViewModel @Inject constructor(
         TracksUiState(
             songs = songUiModels,
             playlists = playlists,
+            customPlaylists = playlists.filter { it is Playlist.Custom },
             targetSongForPlaylist = targetSong,
             isLoading = isLoading,
             isRefreshing = isRefreshing

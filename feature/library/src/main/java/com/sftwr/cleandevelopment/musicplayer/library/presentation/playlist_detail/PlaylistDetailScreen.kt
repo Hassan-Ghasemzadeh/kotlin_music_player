@@ -48,6 +48,7 @@ fun PlaylistDetailScreen(
     playlistType: PlaylistType,
     songs: List<SongUiModel>,
     playlists: List<Playlist> = emptyList(),
+    customPlaylists: List<Playlist> = emptyList(),
     targetSongForPlaylist: SongUiModel? = null,
     isLoading: Boolean = false,
     currentPlayingSongId: String? = null,
@@ -64,7 +65,6 @@ fun PlaylistDetailScreen(
     onSelectPlaylistForAdd: (songId: Long, Playlist) -> Unit = { _, _ -> },
     onToggleFavoriteForAdd: (songId: Long, isFavorite: Boolean) -> Unit = { _, _ -> },
     onDismissAddToPlaylistDialog: () -> Unit = {},
-    onToggleFavoriteClick: (Long) -> Unit,
     onInfoClick: (Long) -> Unit,
     onTagEditClick: (Long) -> Unit,
     onShareClick: (SongUiModel) -> Unit,
@@ -313,7 +313,8 @@ fun PlaylistDetailScreen(
                                                 onDeleteClick = { onDeleteSongClick(songIdLong) },
                                                 onRemoveFromPlaylist = if (isCustomPlaylist && onRemoveFromPlaylistClick != null) {
                                                     { onRemoveFromPlaylistClick(songIdLong) }
-                                                } else null
+                                                } else null,
+                                                isFavorite = song.isFavorite
                                             )
                                         }
                                     }
@@ -329,7 +330,7 @@ fun PlaylistDetailScreen(
                 val songIdLong = targetSongForPlaylist.id.toLongOrNull() ?: -1L
                 AddToPlaylistDialog(
                     songTitle = targetSongForPlaylist.title,
-                    playlists = playlists,
+                    playlists = customPlaylists,
                     isFavorite = false,
                     onSelectPlaylist = { playlist ->
                         if (songIdLong != -1L) {
