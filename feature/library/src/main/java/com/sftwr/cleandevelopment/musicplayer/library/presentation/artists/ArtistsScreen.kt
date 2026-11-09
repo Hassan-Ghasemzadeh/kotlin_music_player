@@ -10,7 +10,6 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -33,16 +32,13 @@ import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAw
 @Composable
 fun ArtistsScreen(
     artists: List<Artist>,
-    searchQuery: String,
     isLoading: Boolean,
     onArtistClick: (String) -> Unit,
     onBackClick: () -> Unit,
     onSearchClick: () -> Unit,
-    onSearchQueryChanged: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val bottomPadding = rememberPlayerAwareBottomPadding()
-    var isSearchActive by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -82,46 +78,16 @@ fun ArtistsScreen(
                         )
                     }
 
-                    if (isSearchActive) {
-                        OutlinedTextField(
-                            value = searchQuery,
-                            onValueChange = onSearchQueryChanged,
-                            placeholder = { Text("Search artists...", color = Color.White.copy(alpha = 0.5f)) },
-                            singleLine = true,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                cursorColor = Color(0xFF91D8FB),
-                                focusedBorderColor = Color(0xFF91D8FB),
-                                unfocusedBorderColor = Color.White.copy(alpha = 0.3f)
-                            ),
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(50.dp)
-                                .padding(horizontal = 8.dp)
-                        )
-                    } else {
-                        Text(
-                            text = "Artists",
-                            color = Color.White,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                    Text(
+                        text = "Artists",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
 
-                    IconButton(
-                        onClick = {
-                            if (isSearchActive) {
-                                isSearchActive = false
-                                onSearchQueryChanged("")
-                            } else {
-                                isSearchActive = true
-                            }
-                            onSearchClick()
-                        }
-                    ) {
+                    IconButton(onClick = onSearchClick) {
                         Icon(
-                            imageVector = if (isSearchActive) Icons.Default.Close else Icons.Default.Search,
+                            imageVector = Icons.Default.Search,
                             contentDescription = "Search",
                             tint = Color.White
                         )
