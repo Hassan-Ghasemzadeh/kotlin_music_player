@@ -13,6 +13,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.PlaylistRepository
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.SongPreferencesRepository
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.DeleteSongUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
@@ -38,6 +39,7 @@ class PlayerManager @Inject constructor(
     private val deleteSongUseCase: DeleteSongUseCase,
     private val getDeviceSongsUseCase: GetDeviceSongsUseCase,
     private val songPreferencesRepository: SongPreferencesRepository,
+    private val playlistRepository: PlaylistRepository,
     @param:ApplicationContext private val context: Context,
 ) {
 
@@ -116,9 +118,23 @@ class PlayerManager @Inject constructor(
             }
         }
 
+        var lastRecordedId: String? = null
+
         exoPlayer.addListener(object : Player.Listener {
             override fun onIsPlayingChanged(isPlayingState: Boolean) {
                 _isPlaying.value = isPlayingState
+                if (isPlayingState) {
+                    _currentSong.value?.let { song ->
+                        if (lastRecordedId != song.id) {
+                            lastRecordedId = song.id
+                            song.id.toLongOrNull()?.let { songId ->
+                                playerScope.launch(Dispatchers.IO) {
+                                    playlistRepository.recordSongPlayed(songId)
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -128,6 +144,14 @@ class PlayerManager @Inject constructor(
                     val song = activeQueue[currentIndex]
                     _currentSong.value = song
                     loadArtworkForIndex(currentIndex)
+                    if (exoPlayer.isPlaying && lastRecordedId != song.id) {
+                        lastRecordedId = song.id
+                        song.id.toLongOrNull()?.let { songId ->
+                            playerScope.launch(Dispatchers.IO) {
+                                playlistRepository.recordSongPlayed(songId)
+                            }
+                        }
+                    }
                 }
             }
 
@@ -137,6 +161,12 @@ class PlayerManager @Inject constructor(
                 }
             }
         })
+    }
+
+    fun toggleFavorite(songId: Long, isFavorite: Boolean) {
+        playerScope.launch(Dispatchers.IO) {
+            playlistRepository.toggleFavorite(songId, isFavorite)
+        }
     }
 
     private val artworkCache = mutableMapOf<String, ByteArray>()
