@@ -19,11 +19,9 @@ fun AlbumsRoute(
 
     AlbumsScreen(
         albums = uiState.albums,
-        searchQuery = uiState.searchQuery,
         isLoading = uiState.isLoading,
         onAlbumClick = onAlbumClick,
         onBackClick = onBackClick,
-        onSearchClick = onSearchClick,
-        onSearchQueryChanged = { viewModel.onSearchQueryChanged(it) }
+        onSearchClick = onSearchClick
     )
 }
