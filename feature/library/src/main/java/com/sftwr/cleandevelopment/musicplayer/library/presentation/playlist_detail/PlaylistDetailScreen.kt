@@ -1,16 +1,10 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.playlist_detail
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
-import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -36,8 +30,10 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.PlaylistType
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.AddToPlaylistDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.SongDropdownMenu
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.TrackItem
@@ -51,6 +47,8 @@ fun PlaylistDetailScreen(
     playlistTitle: String,
     playlistType: PlaylistType,
     songs: List<SongUiModel>,
+    playlists: List<Playlist> = emptyList(),
+    targetSongForPlaylist: SongUiModel? = null,
     isLoading: Boolean = false,
     currentPlayingSongId: String? = null,
     isPlayingGlobal: Boolean = false,
@@ -61,6 +59,11 @@ fun PlaylistDetailScreen(
     onSearchClick: () -> Unit,
     onDeletePlaylistClick: (() -> Unit)? = null,
     onRemoveFromPlaylistClick: ((Long) -> Unit)? = null,
+    onAddToPlaylistClick: (SongUiModel) -> Unit = {},
+    onFavoriteClick: (SongUiModel) -> Unit = {},
+    onSelectPlaylistForAdd: (songId: Long, Playlist) -> Unit = { _, _ -> },
+    onToggleFavoriteForAdd: (songId: Long, isFavorite: Boolean) -> Unit = { _, _ -> },
+    onDismissAddToPlaylistDialog: () -> Unit = {},
     onToggleFavoriteClick: (Long) -> Unit,
     onInfoClick: (Long) -> Unit,
     onTagEditClick: (Long) -> Unit,
@@ -298,13 +301,12 @@ fun PlaylistDetailScreen(
                                             onShareClick = { onShareClick(song) }
                                         )
 
-                                        // Custom Menu wrapper to inject remove from playlist action if applicable
                                         if (isMenuExpanded) {
                                             SongDropdownMenu(
                                                 expanded = isMenuExpanded,
                                                 onDismissRequest = { expandedSongId = null },
-                                                onAddToPlaylist = {},
-                                                onFavoriteClick = { onToggleFavoriteClick(songIdLong) },
+                                                onAddToPlaylist = { onAddToPlaylistClick(song) },
+                                                onFavoriteClick = { onFavoriteClick(song) },
                                                 onInfoClick = { onInfoClick(songIdLong) },
                                                 onTagEditClick = { onTagEditClick(songIdLong) },
                                                 onShareClick = { onShareClick(song) },
@@ -320,6 +322,27 @@ fun PlaylistDetailScreen(
                         }
                     }
                 }
+            }
+
+            // Add to Playlist Dialog prompt
+            if (targetSongForPlaylist != null) {
+                val songIdLong = targetSongForPlaylist.id.toLongOrNull() ?: -1L
+                AddToPlaylistDialog(
+                    songTitle = targetSongForPlaylist.title,
+                    playlists = playlists,
+                    isFavorite = false,
+                    onSelectPlaylist = { playlist ->
+                        if (songIdLong != -1L) {
+                            onSelectPlaylistForAdd(songIdLong, playlist)
+                        }
+                    },
+                    onToggleFavorite = {
+                        if (songIdLong != -1L) {
+                            onToggleFavoriteForAdd(songIdLong, true)
+                        }
+                    },
+                    onDismissRequest = onDismissAddToPlaylistDialog
+                )
             }
 
             // Delete Playlist Confirmation Dialog

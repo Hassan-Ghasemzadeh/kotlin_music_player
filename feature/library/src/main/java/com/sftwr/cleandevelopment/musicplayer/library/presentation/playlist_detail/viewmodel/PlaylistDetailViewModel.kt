@@ -3,17 +3,22 @@ package com.sftwr.cleandevelopment.musicplayer.library.presentation.playlist_det
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.PlaylistType
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.PlaylistRepository
+import com.sftwr.cleandevelopment.musicplayer.domain.usecase.AddSongToPlaylistUseCase
+import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetPlaylistsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetPlaylistSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -21,6 +26,8 @@ import javax.inject.Inject
 @HiltViewModel
 class PlaylistDetailViewModel @Inject constructor(
     private val getPlaylistSongsUseCase: GetPlaylistSongsUseCase,
+    private val getPlaylistsUseCase: GetPlaylistsUseCase,
+    private val addSongToPlaylistUseCase: AddSongToPlaylistUseCase,
     private val playlistRepository: PlaylistRepository,
     private val playerManager: PlayerManager,
     savedStateHandle: SavedStateHandle
@@ -37,11 +44,17 @@ class PlaylistDetailViewModel @Inject constructor(
     }
 
     private val _isLoading = MutableStateFlow(false)
+    private val _targetSongForPlaylist = MutableStateFlow<SongUiModel?>(null)
+
+    private val _toastChannel = Channel<String>()
+    val toastEvent = _toastChannel.receiveAsFlow()
 
     val uiState: StateFlow<PlaylistDetailUiState> = combine(
         getPlaylistSongsUseCase(playlistId, playlistType),
+        getPlaylistsUseCase(),
+        _targetSongForPlaylist,
         _isLoading
-    ) { domainSongs, isLoading ->
+    ) { domainSongs, playlists, targetSong, isLoading ->
         val songUiModels = domainSongs.map { song ->
             SongUiModel(
                 id = song.id.toString(),
@@ -61,6 +74,8 @@ class PlaylistDetailViewModel @Inject constructor(
             playlistName = playlistName,
             playlistType = playlistType,
             songs = songUiModels,
+            playlists = playlists,
+            targetSongForPlaylist = targetSong,
             isLoading = isLoading,
             isCustomPlaylist = playlistType == PlaylistType.CUSTOM
         )
@@ -75,6 +90,35 @@ class PlaylistDetailViewModel @Inject constructor(
             isCustomPlaylist = playlistType == PlaylistType.CUSTOM
         )
     )
+
+    fun openAddToPlaylistDialog(song: SongUiModel) {
+        _targetSongForPlaylist.value = song
+    }
+
+    fun closeAddToPlaylistDialog() {
+        _targetSongForPlaylist.value = null
+    }
+
+    fun addSongToPlaylist(songId: Long, playlist: Playlist) {
+        viewModelScope.launch {
+            val result = addSongToPlaylistUseCase(playlist.id, songId)
+            if (result.isSuccess) {
+                _toastChannel.send("به لیست ${playlist.name} اضافه شد")
+            } else {
+                _toastChannel.send("خطا در افزودن به لیست پخش")
+            }
+            closeAddToPlaylistDialog()
+        }
+    }
+
+    fun toggleFavorite(songId: Long, isFavorite: Boolean) {
+        viewModelScope.launch {
+            playlistRepository.toggleFavorite(songId, isFavorite)
+            val msg = if (isFavorite) "به لیست علاقه‌مندی‌ها اضافه شد" else "از علاقه‌مندی‌ها حذف شد"
+            _toastChannel.send(msg)
+            closeAddToPlaylistDialog()
+        }
+    }
 
     fun onSongClicked(songId: String) {
         viewModelScope.launch {
@@ -97,12 +141,6 @@ class PlaylistDetailViewModel @Inject constructor(
             viewModelScope.launch {
                 playlistRepository.removeSongFromPlaylist(playlistId, songId)
             }
-        }
-    }
-
-    fun toggleFavorite(songId: Long, currentFavorite: Boolean) {
-        viewModelScope.launch {
-            playlistRepository.toggleFavorite(songId, !currentFavorite)
         }
     }
 

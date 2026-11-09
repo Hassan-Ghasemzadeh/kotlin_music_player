@@ -1,11 +1,11 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.playlist_detail
 
-import android.content.Intent
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -13,6 +13,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.ShareUtils
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.playlist_detail.viewmodel.PlaylistDetailViewModel
+import kotlinx.coroutines.flow.collectLatest
 
 @Composable
 fun PlaylistDetailRoute(
@@ -28,6 +29,12 @@ fun PlaylistDetailRoute(
     val currentSong by playerManager.currentSong.collectAsStateWithLifecycle()
     val isPlayingGlobal by playerManager.isPlaying.collectAsStateWithLifecycle()
 
+    LaunchedEffect(key1 = true) {
+        viewModel.toastEvent.collectLatest { message ->
+            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+        }
+    }
+
     val deletePermissionLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartIntentSenderForResult()
     ) { result ->
@@ -42,6 +49,8 @@ fun PlaylistDetailRoute(
         playlistTitle = uiState.playlistName,
         playlistType = uiState.playlistType,
         songs = uiState.songs,
+        playlists = uiState.playlists,
+        targetSongForPlaylist = uiState.targetSongForPlaylist,
         isLoading = uiState.isLoading,
         currentPlayingSongId = currentSong?.id,
         isPlayingGlobal = isPlayingGlobal,
@@ -56,9 +65,23 @@ fun PlaylistDetailRoute(
         onRemoveFromPlaylistClick = if (uiState.isCustomPlaylist) {
             { songId -> viewModel.removeSongFromPlaylist(songId) }
         } else null,
+        onAddToPlaylistClick = { song -> viewModel.openAddToPlaylistDialog(song) },
+        onFavoriteClick = { song ->
+            song.id.toLongOrNull()?.let { songId ->
+                viewModel.toggleFavorite(songId, true)
+            }
+        },
+        onSelectPlaylistForAdd = { songId, playlist ->
+            viewModel.addSongToPlaylist(songId, playlist)
+        },
+        onToggleFavoriteForAdd = { songId, isFav ->
+            viewModel.toggleFavorite(songId, isFav)
+        },
+        onDismissAddToPlaylistDialog = {
+            viewModel.closeAddToPlaylistDialog()
+        },
         onToggleFavoriteClick = { songId ->
-            val song = uiState.songs.find { it.id == songId.toString() }
-            viewModel.toggleFavorite(songId, false)
+            viewModel.toggleFavorite(songId, true)
         },
         onInfoClick = onInfoClick,
         onTagEditClick = onTagEditClick,
