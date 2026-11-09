@@ -68,6 +68,7 @@ class TracksViewModel @Inject constructor(
                 genre = song.genre,
                 albumId = song.albumId,
                 albumArtUri = song.albumArtUri,
+                isFavorite = song.isFavorite,
             )
         }
         playerManager.setSongs(songUiModels)
@@ -123,7 +124,7 @@ class TracksViewModel @Inject constructor(
     fun toggleFavorite(songId: Long, isFavorite: Boolean) {
         viewModelScope.launch {
             playlistRepository.toggleFavorite(songId, isFavorite)
-            val msg = if (isFavorite) "به لیست علاقه‌مندی‌ها اضافه شد" else "از علاقه‌مندی‌ها حذف شد"
+            val msg = if (isFavorite) "به لیست دلخواه اضافه شد" else "از لیست دلخواه حذف شد"
             _deleteEvent.send(PlayerUiEvent.ShowToast(msg))
             closeAddToPlaylistDialog()
         }

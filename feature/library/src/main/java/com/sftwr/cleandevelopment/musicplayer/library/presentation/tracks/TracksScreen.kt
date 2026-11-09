@@ -83,6 +83,7 @@ data class SongUiModel(
     val uri: String,
     val albumId: Long = -1L,
     val albumArtUri: String? = null,
+    val isFavorite: Boolean = false,
 )
 
 /**
@@ -537,6 +538,7 @@ fun TrackItem(
                         onTagEditClick = onTagEditClick,
                         onShareClick = onShareClick,
                         onDeleteClick = onDeleteClick,
+                        isFavorite = song.isFavorite
                     )
                 }
             }

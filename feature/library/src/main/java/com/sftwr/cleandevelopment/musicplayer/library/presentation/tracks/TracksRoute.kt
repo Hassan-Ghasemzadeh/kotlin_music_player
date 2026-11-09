@@ -108,7 +108,7 @@ fun TracksRoute(
         },
         onFavoriteClick = { song ->
             song.id.toLongOrNull()?.let { songId ->
-                viewModel.toggleFavorite(songId, true)
+                viewModel.toggleFavorite(songId, !song.isFavorite)
             }
         },
         onSelectPlaylistForAdd = { songId, playlist ->
