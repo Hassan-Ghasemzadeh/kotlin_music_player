@@ -8,6 +8,8 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.albums.albumDetailGraph
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.albums.albumsGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.edit.editTagScreenGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.homeGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.PlayerScreen
@@ -49,8 +51,41 @@ fun AppNavGraph(
                 // Navigate to tracks library screen when card is selected
                 navController.navigate(TracksRouteKey)
             },
+            onNavigateToAlbums = {
+                navController.navigate(Screen.Albums)
+            },
             onOpenPlaylistDetail = { id, title, typeName ->
                 navController.navigate(Screen.PlaylistDetail(id, title, typeName))
+            }
+        )
+
+        // Albums feature navigation graph
+        albumsGraph(
+            onAlbumClick = { albumId, albumTitle ->
+                navController.navigate(Screen.AlbumDetail(albumId, albumTitle))
+            },
+            onBackClick = {
+                navController.popBackStack()
+            },
+            onSearchClick = {
+                navController.navigate(Screen.Search)
+            }
+        )
+
+        // Album Detail feature navigation graph
+        albumDetailGraph(
+            playerManager = playerManager,
+            onBackClick = {
+                navController.popBackStack()
+            },
+            onSearchClick = {
+                navController.navigate(Screen.Search)
+            },
+            onInfoClick = { songId ->
+                navController.navigate(Screen.SongDetail(songId))
+            },
+            onTagEditClick = { songId ->
+                navController.navigate(Screen.EditTagScreen(songId))
             }
         )
 
