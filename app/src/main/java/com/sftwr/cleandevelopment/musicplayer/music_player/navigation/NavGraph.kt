@@ -11,6 +11,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.albums.albumDetailGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.albums.albumsGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.edit.editTagScreenGraph
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.favorites.favoritesGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.homeGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.PlayerScreen
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.playlist_detail.playlistDetailGraph
@@ -54,8 +55,31 @@ fun AppNavGraph(
             onNavigateToAlbums = {
                 navController.navigate(Screen.Albums)
             },
+            onNavigateToFavorites = {
+                navController.navigate(Screen.Favorites)
+            },
             onOpenPlaylistDetail = { id, title, typeName ->
                 navController.navigate(Screen.PlaylistDetail(id, title, typeName))
+            }
+        )
+
+        // Favorites feature navigation graph
+        favoritesGraph(
+            playerManager = playerManager,
+            onBackClick = {
+                navController.popBackStack()
+            },
+            onSearchClick = {
+                navController.navigate(Screen.Search)
+            },
+            onAlbumClick = { albumId, albumTitle ->
+                navController.navigate(Screen.AlbumDetail(albumId, albumTitle))
+            },
+            onInfoClick = { songId ->
+                navController.navigate(Screen.SongDetail(songId))
+            },
+            onTagEditClick = { songId ->
+                navController.navigate(Screen.EditTagScreen(songId))
             }
         )
 
