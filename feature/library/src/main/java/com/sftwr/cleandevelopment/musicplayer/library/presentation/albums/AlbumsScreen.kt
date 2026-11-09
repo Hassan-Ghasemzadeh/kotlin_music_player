@@ -20,20 +20,13 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -56,16 +49,13 @@ import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAw
 @Composable
 fun AlbumsScreen(
     albums: List<Album>,
-    searchQuery: String,
     isLoading: Boolean,
     onAlbumClick: (Long, String) -> Unit,
     onBackClick: () -> Unit,
     onSearchClick: () -> Unit,
-    onSearchQueryChanged: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val bottomPadding = rememberPlayerAwareBottomPadding()
-    var isSearchActive by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -106,46 +96,16 @@ fun AlbumsScreen(
                         )
                     }
 
-                    if (isSearchActive) {
-                        OutlinedTextField(
-                            value = searchQuery,
-                            onValueChange = onSearchQueryChanged,
-                            placeholder = { Text("Search albums...", color = Color.White.copy(alpha = 0.5f)) },
-                            singleLine = true,
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedTextColor = Color.White,
-                                unfocusedTextColor = Color.White,
-                                cursorColor = Color(0xFF91D8FB),
-                                focusedBorderColor = Color(0xFF91D8FB),
-                                unfocusedBorderColor = Color.White.copy(alpha = 0.3f)
-                            ),
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(50.dp)
-                                .padding(horizontal = 8.dp)
-                        )
-                    } else {
-                        Text(
-                            text = "Albums",
-                            color = Color.White,
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
+                    Text(
+                        text = "Albums",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
 
-                    IconButton(
-                        onClick = {
-                            if (isSearchActive) {
-                                isSearchActive = false
-                                onSearchQueryChanged("")
-                            } else {
-                                isSearchActive = true
-                            }
-                            onSearchClick()
-                        }
-                    ) {
+                    IconButton(onClick = onSearchClick) {
                         Icon(
-                            imageVector = if (isSearchActive) Icons.Default.Close else Icons.Default.Search,
+                            imageVector = Icons.Default.Search,
                             contentDescription = "Search",
                             tint = Color.White
                         )
