@@ -1,5 +1,6 @@
 package com.sftwr.cleandevelopment.musicplayer.domain.repository
 
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.PlaylistType
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
@@ -19,6 +20,11 @@ interface PlaylistRepository {
      * Emits a reactive list of songs for a specific playlist.
      */
     fun getPlaylistSongs(playlistId: Long, playlistType: PlaylistType): Flow<List<Song>>
+
+    /**
+     * Emits a reactive list of favorite albums.
+     */
+    fun getFavoriteAlbums(): Flow<List<Album>>
 
     /**
      * Creates a new custom playlist with the specified name and initial track IDs in Room database.
@@ -44,6 +50,11 @@ interface PlaylistRepository {
      * Toggles the favorite status of a song.
      */
     suspend fun toggleFavorite(songId: Long, isFavorite: Boolean)
+
+    /**
+     * Bulk toggles the favorite status of all songs in an album in a single transaction.
+     */
+    suspend fun toggleAlbumFavorite(albumId: Long, isFavorite: Boolean)
 
     /**
      * Records a playback event for a song to update play count and last played timestamp.

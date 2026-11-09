@@ -8,5 +8,6 @@ data class Album(
     val title: String,
     val artist: String,
     val trackCount: Int,
-    val albumArtUri: String? = null
+    val albumArtUri: String? = null,
+    val isFavorite: Boolean = false
 )
