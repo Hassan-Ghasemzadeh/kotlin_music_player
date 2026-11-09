@@ -27,5 +27,12 @@ sealed interface Screen {
     data class EditTagScreen(val songId: Long = -1L) : Screen
 
     @Serializable
+    data class PlaylistDetail(
+        val playlistId: Long,
+        val playlistName: String,
+        val playlistTypeString: String
+    ) : Screen
+
+    @Serializable
     data object Settings : Screen
 }
