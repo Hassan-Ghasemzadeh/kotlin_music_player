@@ -16,11 +16,9 @@ fun ArtistsRoute(
 
     ArtistsScreen(
         artists = uiState.artists,
-        searchQuery = uiState.searchQuery,
         isLoading = uiState.isLoading,
         onArtistClick = onArtistClick,
         onBackClick = onBackClick,
-        onSearchClick = onSearchClick,
-        onSearchQueryChanged = { viewModel.onSearchQueryChanged(it) }
+        onSearchClick = onSearchClick
     )
 }
