@@ -1,31 +1,44 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.player.viewmodel
 
+import android.content.Context
 import androidx.annotation.OptIn
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.PlaylistRepository
+import com.sftwr.cleandevelopment.musicplayer.domain.usecase.AddSongToPlaylistUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
+import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetPlaylistsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
+import com.sftwr.cleandevelopment.musicplayer.library.core.util.ShareUtils
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * PlayerViewModel manages the audio playback states, transport controls (play, pause, skip, seek),
- * repeat/shuffle configurations, and periodic progress tracking for the media player screen.
+ * repeat/shuffle configurations, favorites, sharing, playlist adding, and periodic progress tracking.
  */
 @HiltViewModel
 class PlayerViewModel @Inject constructor(
     private val playerManager: PlayerManager,
-    private val getDeviceSongsUseCase: GetDeviceSongsUseCase
+    private val getDeviceSongsUseCase: GetDeviceSongsUseCase,
+    private val playlistRepository: PlaylistRepository,
+    getPlaylistsUseCase: GetPlaylistsUseCase,
+    private val addSongToPlaylistUseCase: AddSongToPlaylistUseCase
 ) : ViewModel() {
 
     // Expose underlying ExoPlayer instance for audio session management
@@ -43,6 +56,19 @@ class PlayerViewModel @Inject constructor(
     // States are directly driven by PlayerManager or connected StateFlows
     val isPlaying: StateFlow<Boolean> = playerManager.isPlaying
     val currentSong: StateFlow<SongUiModel?> = playerManager.currentSong
+
+    val playlists: StateFlow<List<Playlist>> = getPlaylistsUseCase()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
+    private val _isAddToPlaylistDialogVisible = MutableStateFlow(false)
+    val isAddToPlaylistDialogVisible: StateFlow<Boolean> = _isAddToPlaylistDialogVisible.asStateFlow()
+
+    private val _toastChannel = Channel<String>()
+    val toastEvent = _toastChannel.receiveAsFlow()
 
     private val _currentPosition = MutableStateFlow(0L)
     val currentPosition: StateFlow<Long> = _currentPosition.asStateFlow()
@@ -85,6 +111,49 @@ class PlayerViewModel @Inject constructor(
             getDeviceSongsUseCase().collect { deviceSongs ->
                 _songs.value = deviceSongs
             }
+        }
+    }
+
+    fun toggleFavorite() {
+        currentSong.value?.let { song ->
+            song.id.toLongOrNull()?.let { songId ->
+                viewModelScope.launch {
+                    val newFavoriteState = !song.isFavorite
+                    playlistRepository.toggleFavorite(songId, newFavoriteState)
+                    val msg = if (newFavoriteState) "به لیست دلخواه اضافه شد" else "از لیست دلخواه حذف شد"
+                    _toastChannel.send(msg)
+                }
+            }
+        }
+    }
+
+    fun openAddToPlaylistDialog() {
+        _isAddToPlaylistDialogVisible.value = true
+    }
+
+    fun closeAddToPlaylistDialog() {
+        _isAddToPlaylistDialogVisible.value = false
+    }
+
+    fun addSongToPlaylist(playlist: Playlist) {
+        currentSong.value?.let { song ->
+            song.id.toLongOrNull()?.let { songId ->
+                viewModelScope.launch {
+                    val result = addSongToPlaylistUseCase(playlist.id, songId)
+                    if (result.isSuccess) {
+                        _toastChannel.send("به لیست ${playlist.name} اضافه شد")
+                    } else {
+                        _toastChannel.send("خطا در افزودن به لیست پخش")
+                    }
+                    closeAddToPlaylistDialog()
+                }
+            }
+        }
+    }
+
+    fun shareSong(context: Context) {
+        currentSong.value?.let { song ->
+            ShareUtils.shareSong(context, song)
         }
     }
 
