@@ -6,6 +6,7 @@ import com.sftwr.cleandevelopment.musicplayer.data.model.PlaylistEntity
 import com.sftwr.cleandevelopment.musicplayer.data.model.PlaylistSongCrossRef
 import com.sftwr.cleandevelopment.musicplayer.data.model.SongEntity
 import com.sftwr.cleandevelopment.musicplayer.data.source.local.PlaylistDao
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.PlaylistType
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
@@ -89,6 +90,26 @@ class PlaylistRepositoryImpl @Inject constructor(
         }.flowOn(Dispatchers.IO)
     }
 
+    override fun getFavoriteAlbums(): Flow<List<Album>> {
+        return playlistDao.getFavoriteSongsFlow()
+            .map { entities ->
+                entities.groupBy { it.albumId }
+                    .map { (albumId, songEntities) ->
+                        val first = songEntities.first()
+                        Album(
+                            albumId = albumId,
+                            title = first.album.ifBlank { "Unknown Album" },
+                            artist = first.artist.ifBlank { "Unknown Artist" },
+                            trackCount = songEntities.size,
+                            albumArtUri = "content://media/external/audio/albumart/$albumId",
+                            isFavorite = true
+                        )
+                    }
+                    .sortedBy { it.title }
+            }
+            .flowOn(Dispatchers.IO)
+    }
+
     override suspend fun createCustomPlaylist(name: String, songIds: List<Long>): Long = withContext(Dispatchers.IO) {
         val entity = PlaylistEntity(name = name)
         val playlistId = playlistDao.insertPlaylist(entity)
@@ -116,6 +137,10 @@ class PlaylistRepositoryImpl @Inject constructor(
 
     override suspend fun toggleFavorite(songId: Long, isFavorite: Boolean) = withContext(Dispatchers.IO) {
         playlistDao.setFavorite(songId, isFavorite)
+    }
+
+    override suspend fun toggleAlbumFavorite(albumId: Long, isFavorite: Boolean) = withContext(Dispatchers.IO) {
+        playlistDao.setAlbumFavorite(albumId, isFavorite)
     }
 
     override suspend fun recordSongPlayed(songId: Long) = withContext(Dispatchers.IO) {

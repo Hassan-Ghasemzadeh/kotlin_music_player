@@ -76,6 +76,9 @@ interface PlaylistDao {
     @Query("UPDATE songs_cache SET isFavorite = :isFavorite WHERE id = :songId")
     suspend fun setFavorite(songId: Long, isFavorite: Boolean)
 
+    @Query("UPDATE songs_cache SET isFavorite = :isFavorite WHERE albumId = :albumId")
+    suspend fun setAlbumFavorite(albumId: Long, isFavorite: Boolean)
+
     @Query("UPDATE songs_cache SET playCount = playCount + 1, lastPlayedTimestamp = :timestamp WHERE id = :songId")
     suspend fun recordSongPlayed(songId: Long, timestamp: Long = System.currentTimeMillis())
 }
