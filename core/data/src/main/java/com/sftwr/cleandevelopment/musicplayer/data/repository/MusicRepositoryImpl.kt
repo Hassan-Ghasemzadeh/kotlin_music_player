@@ -14,6 +14,7 @@ import com.sftwr.cleandevelopment.musicplayer.data.model.SongEntity
 import com.sftwr.cleandevelopment.musicplayer.data.source.local.SongDao
 import com.sftwr.cleandevelopment.musicplayer.data.util.AudioTagEditor
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Artist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.MusicRepository
@@ -70,6 +71,58 @@ class MusicRepositoryImpl @Inject constructor(
             .map { entities ->
                 entities.filter { it.albumId == albumId }
                     .map { it.toDomain() }
+            }
+            .flowOn(Dispatchers.IO)
+    }
+
+    override fun getArtists(): Flow<List<Artist>> {
+        return songDao.getAllSongsFlow()
+            .map { entities ->
+                entities.groupBy { it.artist.ifBlank { "Unknown Artist" } }
+                    .map { (artistName, songEntities) ->
+                        val first = songEntities.first()
+                        val albumCount = songEntities.map { it.albumId }.distinct().size
+                        val isFav = songEntities.isNotEmpty() && songEntities.all { it.isFavorite }
+                        Artist(
+                            name = artistName,
+                            trackCount = songEntities.size,
+                            albumCount = albumCount,
+                            artistArtUri = "content://media/external/audio/albumart/${first.albumId}",
+                            isFavorite = isFav
+                        )
+                    }
+                    .sortedBy { it.name }
+            }
+            .flowOn(Dispatchers.IO)
+    }
+
+    override fun getArtistSongs(artistName: String): Flow<List<Song>> {
+        return songDao.getAllSongsFlow()
+            .map { entities ->
+                entities.filter { it.artist.ifBlank { "Unknown Artist" } == artistName }
+                    .map { it.toDomain() }
+            }
+            .flowOn(Dispatchers.IO)
+    }
+
+    override fun getArtistAlbums(artistName: String): Flow<List<Album>> {
+        return songDao.getAllSongsFlow()
+            .map { entities ->
+                entities.filter { it.artist.ifBlank { "Unknown Artist" } == artistName }
+                    .groupBy { it.albumId }
+                    .map { (albumId, songEntities) ->
+                        val first = songEntities.first()
+                        val isFav = songEntities.isNotEmpty() && songEntities.all { it.isFavorite }
+                        Album(
+                            albumId = albumId,
+                            title = first.album.ifBlank { "Unknown Album" },
+                            artist = first.artist.ifBlank { "Unknown Artist" },
+                            trackCount = songEntities.size,
+                            albumArtUri = "content://media/external/audio/albumart/$albumId",
+                            isFavorite = isFav
+                        )
+                    }
+                    .sortedBy { it.title }
             }
             .flowOn(Dispatchers.IO)
     }

@@ -8,6 +8,7 @@ import com.sftwr.cleandevelopment.musicplayer.data.model.SongEntity
 import com.sftwr.cleandevelopment.musicplayer.data.source.local.PlaylistDao
 import com.sftwr.cleandevelopment.musicplayer.data.source.local.SongDao
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Artist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.PlaylistType
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
@@ -115,6 +116,29 @@ class PlaylistRepositoryImpl @Inject constructor(
             .flowOn(Dispatchers.IO)
     }
 
+    override fun getFavoriteArtists(): Flow<List<Artist>> {
+        return songDao.getAllSongsFlow()
+            .map { entities ->
+                entities.groupBy { it.artist.ifBlank { "Unknown Artist" } }
+                    .filter { (_, songEntities) ->
+                        songEntities.isNotEmpty() && songEntities.all { it.isFavorite }
+                    }
+                    .map { (artistName, songEntities) ->
+                        val first = songEntities.first()
+                        val albumCount = songEntities.map { it.albumId }.distinct().size
+                        Artist(
+                            name = artistName,
+                            trackCount = songEntities.size,
+                            albumCount = albumCount,
+                            artistArtUri = "content://media/external/audio/albumart/${first.albumId}",
+                            isFavorite = true
+                        )
+                    }
+                    .sortedBy { it.name }
+            }
+            .flowOn(Dispatchers.IO)
+    }
+
     override suspend fun createCustomPlaylist(name: String, songIds: List<Long>): Long = withContext(Dispatchers.IO) {
         val entity = PlaylistEntity(name = name)
         val playlistId = playlistDao.insertPlaylist(entity)
@@ -146,6 +170,10 @@ class PlaylistRepositoryImpl @Inject constructor(
 
     override suspend fun toggleAlbumFavorite(albumId: Long, isFavorite: Boolean) = withContext(Dispatchers.IO) {
         playlistDao.setAlbumFavorite(albumId, isFavorite)
+    }
+
+    override suspend fun toggleArtistFavorite(artistName: String, isFavorite: Boolean) = withContext(Dispatchers.IO) {
+        playlistDao.setArtistFavorite(artistName, isFavorite)
     }
 
     override suspend fun recordSongPlayed(songId: Long) = withContext(Dispatchers.IO) {
