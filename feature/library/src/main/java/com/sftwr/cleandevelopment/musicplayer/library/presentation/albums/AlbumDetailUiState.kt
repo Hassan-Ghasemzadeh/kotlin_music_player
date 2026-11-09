@@ -13,5 +13,6 @@ data class AlbumDetailUiState(
     val songs: List<SongUiModel> = emptyList(),
     val playlists: List<Playlist> = emptyList(),
     val targetSongForPlaylist: SongUiModel? = null,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
+    val isFavorite: Boolean = false
 )

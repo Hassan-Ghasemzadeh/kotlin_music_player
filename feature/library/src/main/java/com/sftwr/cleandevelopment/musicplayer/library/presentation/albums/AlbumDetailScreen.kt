@@ -9,6 +9,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Album
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
@@ -60,7 +62,9 @@ fun AlbumDetailScreen(
     onInfoClick: (Long) -> Unit,
     onTagEditClick: (Long) -> Unit,
     onShareClick: (SongUiModel) -> Unit,
-    onDeleteSongClick: (Long) -> Unit
+    onDeleteSongClick: (Long) -> Unit,
+    isFavorite: Boolean = false,
+    onToggleAlbumFavorite: (Boolean) -> Unit = {}
 ) {
     val bottomPadding = rememberPlayerAwareBottomPadding()
     var expandedSongId by remember { mutableStateOf<String?>(null) }
@@ -110,12 +114,21 @@ fun AlbumDetailScreen(
                         maxLines = 1
                     )
 
-                    IconButton(onClick = onSearchClick) {
-                        Icon(
-                            imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
-                            tint = Color.White
-                        )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        IconButton(onClick = { onToggleAlbumFavorite(!isFavorite) }) {
+                            Icon(
+                                imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                                contentDescription = if (isFavorite) "Remove from Favorites" else "Add to Favorites",
+                                tint = if (isFavorite) Color(0xFFFF5252) else Color.White
+                            )
+                        }
+                        IconButton(onClick = onSearchClick) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = "Search",
+                                tint = Color.White
+                            )
+                        }
                     }
                 }
 

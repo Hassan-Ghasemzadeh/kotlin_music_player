@@ -70,6 +70,15 @@ class HomeViewModel @Inject constructor(
             initialValue = 0
         )
 
+    // Automatically calculate and expose the total favorite song count as a reactive StateFlow
+    val favoriteCount: StateFlow<Int> = songsState
+        .map { songs -> songs.count { it.isFavorite } }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 0
+        )
+
     private fun loadInitialData() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(

@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.AddSongToPlaylistUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetAlbumSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetPlaylistsUseCase
+import com.sftwr.cleandevelopment.musicplayer.domain.usecase.ToggleAlbumFavoriteUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.PlaylistRepository
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
@@ -24,6 +25,7 @@ class AlbumDetailViewModel @Inject constructor(
     getAlbumSongsUseCase: GetAlbumSongsUseCase,
     getPlaylistsUseCase: GetPlaylistsUseCase,
     private val addSongToPlaylistUseCase: AddSongToPlaylistUseCase,
+    private val toggleAlbumFavoriteUseCase: ToggleAlbumFavoriteUseCase,
     private val playlistRepository: PlaylistRepository,
     private val playerManager: PlayerManager,
     savedStateHandle: SavedStateHandle
@@ -60,6 +62,7 @@ class AlbumDetailViewModel @Inject constructor(
             )
         }
         val artist = songUiModels.firstOrNull()?.artist ?: "Unknown Artist"
+        val isAlbumFavorite = songUiModels.isNotEmpty() && songUiModels.all { it.isFavorite }
         AlbumDetailUiState(
             albumId = albumId,
             albumTitle = albumTitle,
@@ -67,7 +70,8 @@ class AlbumDetailViewModel @Inject constructor(
             songs = songUiModels,
             playlists = playlists,
             targetSongForPlaylist = targetSong,
-            isLoading = isLoading
+            isLoading = isLoading,
+            isFavorite = isAlbumFavorite
         )
     }.stateIn(
         scope = viewModelScope,
@@ -116,6 +120,18 @@ class AlbumDetailViewModel @Inject constructor(
             val msg = if (isFavorite) "Added to Favorites" else "Removed from Favorites"
             _toastChannel.send(msg)
             closeAddToPlaylistDialog()
+        }
+    }
+
+    fun toggleAlbumFavorite(isFavorite: Boolean) {
+        viewModelScope.launch {
+            val result = toggleAlbumFavoriteUseCase(albumId, isFavorite)
+            if (result.isSuccess) {
+                val msg = if (isFavorite) "Album added to favorites" else "Album removed from favorites"
+                _toastChannel.send(msg)
+            } else {
+                _toastChannel.send("Failed to update album favorites")
+            }
         }
     }
 

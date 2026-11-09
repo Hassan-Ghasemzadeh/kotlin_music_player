@@ -68,6 +68,10 @@ fun AlbumDetailRoute(
         onShareClick = { song -> ShareUtils.shareSong(context, song) },
         onDeleteSongClick = { songId ->
             viewModel.deleteSong(songId)
+        },
+        isFavorite = uiState.isFavorite,
+        onToggleAlbumFavorite = { fav ->
+            viewModel.toggleAlbumFavorite(fav)
         }
     )
 }

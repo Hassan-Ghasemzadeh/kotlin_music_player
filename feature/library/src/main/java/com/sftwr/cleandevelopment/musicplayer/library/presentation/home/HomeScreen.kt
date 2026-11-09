@@ -43,6 +43,7 @@ fun HomeScreen(
     actions: HomeActions,
     tracksCount: String,
     albumsCount: String,
+    favoriteCount: String = "0",
 ) {
     val permissionsState = rememberAppPermissionsState()
 
@@ -100,7 +101,7 @@ fun HomeScreen(
                     bottom = bottomPadding
                 )
             ) {
-                // First Row of Library Grid (Tracks, Albums, Artists)
+                // First Row of Library Grid (Tracks, Albums, Favorites)
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -139,20 +140,36 @@ fun HomeScreen(
                                 )
                         )
                         LibraryCard(
-                            title = "ARTISTS",
-                            subtitle = "(31)",
-                            icon = Icons.Default.Person,
-                            modifier = Modifier.weight(1f)
+                            title = "FAVORITES",
+                            subtitle = "($favoriteCount)",
+                            icon = Icons.Default.Favorite,
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable(
+                                    onClick = {
+                                        if (isAudioPermissionGranted) {
+                                            actions.onNavigateToFavorites()
+                                        } else {
+                                            permissionsState.launchMultiplePermissionRequest()
+                                        }
+                                    }
+                                )
                         )
                     }
                 }
 
-                // Second Row of Library Grid (Folders, Genres, Videos)
+                // Second Row of Library Grid (Artists, Folders, Genres)
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
+                        LibraryCard(
+                            title = "ARTISTS",
+                            subtitle = "(31)",
+                            icon = Icons.Default.Person,
+                            modifier = Modifier.weight(1f)
+                        )
                         LibraryCard(
                             title = "FOLDERS",
                             subtitle = "(2)",
@@ -163,12 +180,6 @@ fun HomeScreen(
                             title = "GENRES",
                             subtitle = "(13)",
                             icon = Icons.Default.MusicVideo,
-                            modifier = Modifier.weight(1f)
-                        )
-                        LibraryCard(
-                            title = "VIDEOS",
-                            subtitle = "(8)",
-                            icon = Icons.Default.Videocam,
                             modifier = Modifier.weight(1f)
                         )
                     }
