@@ -305,9 +305,10 @@ fun AlbumDetailScreen(
             // Add to Playlist Dialog prompt
             if (targetSongForPlaylist != null) {
                 val songIdLong = targetSongForPlaylist.id.toLongOrNull() ?: -1L
+                val customPlaylists = playlists.filterIsInstance<Playlist.Custom>()
                 AddToPlaylistDialog(
                     songTitle = targetSongForPlaylist.title,
-                    playlists = playlists,
+                    playlists = customPlaylists,
                     isFavorite = false,
                     onSelectPlaylist = { playlist ->
                         if (songIdLong != -1L) {

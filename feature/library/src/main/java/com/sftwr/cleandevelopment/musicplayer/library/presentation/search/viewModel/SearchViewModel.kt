@@ -4,8 +4,12 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.PlaylistRepository
+import com.sftwr.cleandevelopment.musicplayer.domain.usecase.AddSongToPlaylistUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
+import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetPlaylistsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.SearchSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
@@ -20,18 +24,20 @@ import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 /**
  * ViewModel responsible for managing search query inputs, executing song search use cases,
- * handling audio track deletions, and mapping query result sets to UI models.
+ * handling audio track deletions, playlists, favorites, and mapping query result sets to UI models.
  */
 @RequiresApi(Build.VERSION_CODES.S)
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val getDeviceSongsUseCase: GetDeviceSongsUseCase,
     private val searchSongsUseCase: SearchSongsUseCase,
+    private val getPlaylistsUseCase: GetPlaylistsUseCase,
+    private val addSongToPlaylistUseCase: AddSongToPlaylistUseCase,
+    private val playlistRepository: PlaylistRepository,
     private val playerManager: PlayerManager
 ) : ViewModel() {
 
@@ -43,10 +49,44 @@ class SearchViewModel @Inject constructor(
 
     init {
         loadTracks()
+        loadPlaylists()
     }
 
     private var pendingDeleteSongId: Long? = null
     private var pendingDeleteSongStringId: String? = null
+
+    private fun loadPlaylists() {
+        viewModelScope.launch {
+            getPlaylistsUseCase().collect { playlists ->
+                _uiState.update { it.copy(playlists = playlists) }
+            }
+        }
+    }
+
+    fun openAddToPlaylistDialog(song: SongUiModel) {
+        _uiState.update { it.copy(targetSongForPlaylist = song) }
+    }
+
+    fun closeAddToPlaylistDialog() {
+        _uiState.update { it.copy(targetSongForPlaylist = null) }
+    }
+
+    fun addSongToPlaylist(songId: Long, playlist: Playlist) {
+        viewModelScope.launch {
+            val result = addSongToPlaylistUseCase(playlist.id, songId)
+            val msg = if (result.isSuccess) "Added to ${playlist.name}" else "Failed to add to playlist"
+            _deleteEvent.send(SearchPlayerUiEvent.ShowToast(msg))
+            closeAddToPlaylistDialog()
+        }
+    }
+
+    fun toggleFavorite(songId: Long, isFavorite: Boolean) {
+        viewModelScope.launch {
+            playlistRepository.toggleFavorite(songId, isFavorite)
+            val msg = if (isFavorite) "Added to Favorites" else "Removed from Favorites"
+            _deleteEvent.send(SearchPlayerUiEvent.ShowToast(msg))
+        }
+    }
 
     /**
      * Initiates deletion workflow for the selected track and caches its identifiers for permission handling.
@@ -92,6 +132,9 @@ class SearchViewModel @Inject constructor(
                             year = song.year,
                             album = song.album,
                             genre = song.genre,
+                            albumId = song.albumId,
+                            albumArtUri = song.albumArtUri,
+                            isFavorite = song.isFavorite
                         )
                     }
 
@@ -237,6 +280,9 @@ class SearchViewModel @Inject constructor(
                         year = song.year,
                         album = song.album,
                         genre = song.genre,
+                        albumId = song.albumId,
+                        albumArtUri = song.albumArtUri,
+                        isFavorite = song.isFavorite
                     )
                 }
 

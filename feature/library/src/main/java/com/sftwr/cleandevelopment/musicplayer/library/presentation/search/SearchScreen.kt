@@ -15,9 +15,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.AddToPlaylistDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.components.NeonSearchBar
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.components.SearchEmptyState
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.TrackItem
 
 /**
@@ -28,6 +31,11 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.TrackI
 fun SearchScreen(
     uiState: SearchUiState,
     actions: SearchActions,
+    onAddToPlaylistClick: (SongUiModel) -> Unit = {},
+    onFavoriteClick: (SongUiModel) -> Unit = {},
+    onSelectPlaylistForAdd: (songId: Long, Playlist) -> Unit = { _, _ -> },
+    onToggleFavoriteForAdd: (songId: Long, isFavorite: Boolean) -> Unit = { _, _ -> },
+    onDismissAddToPlaylistDialog: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // Track which song's options dropdown menu is currently expanded in search results
@@ -131,11 +139,35 @@ fun SearchScreen(
                                             ?.let { id -> actions.onTagEditClick(id) }
                                     },
                                     onShareClick = { actions.onShareClick(song) },
+                                    onAddToPlaylistClick = { onAddToPlaylistClick(song) },
+                                    onFavoriteClick = { onFavoriteClick(song) }
                                 )
                             }
                         }
                     }
                 }
+            }
+
+            // Add to Playlist Dialog prompt
+            if (uiState.targetSongForPlaylist != null) {
+                val songIdLong = uiState.targetSongForPlaylist.id.toLongOrNull() ?: -1L
+                val customPlaylists = uiState.playlists.filterIsInstance<Playlist.Custom>()
+                AddToPlaylistDialog(
+                    songTitle = uiState.targetSongForPlaylist.title,
+                    playlists = customPlaylists,
+                    isFavorite = false,
+                    onSelectPlaylist = { playlist ->
+                        if (songIdLong != -1L) {
+                            onSelectPlaylistForAdd(songIdLong, playlist)
+                        }
+                    },
+                    onToggleFavorite = {
+                        if (songIdLong != -1L) {
+                            onToggleFavoriteForAdd(songIdLong, true)
+                        }
+                    },
+                    onDismissRequest = onDismissAddToPlaylistDialog
+                )
             }
         }
     }

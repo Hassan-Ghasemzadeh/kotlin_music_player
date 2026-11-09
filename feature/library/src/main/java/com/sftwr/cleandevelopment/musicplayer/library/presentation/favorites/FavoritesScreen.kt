@@ -303,9 +303,10 @@ fun FavoritesScreen(
             // Add to Playlist Dialog prompt
             if (uiState.targetSongForPlaylist != null) {
                 val songIdLong = uiState.targetSongForPlaylist.id.toLongOrNull() ?: -1L
+                val customPlaylists = uiState.playlists.filterIsInstance<Playlist.Custom>()
                 AddToPlaylistDialog(
                     songTitle = uiState.targetSongForPlaylist.title,
-                    playlists = uiState.playlists,
+                    playlists = customPlaylists,
                     isFavorite = false,
                     onSelectPlaylist = { playlist ->
                         if (songIdLong != -1L) {
