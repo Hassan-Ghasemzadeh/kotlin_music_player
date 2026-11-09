@@ -79,6 +79,7 @@ fun AppRootContent(
                 .fillMaxSize()
                 .statusBarsPadding(),
             navController = navController,
+            playerManager = playerManager
         )
 
         // Conditionally render the bottom mini player bar if a song is loaded and visibility rules allow

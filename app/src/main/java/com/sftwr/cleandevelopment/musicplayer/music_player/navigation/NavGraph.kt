@@ -7,9 +7,11 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.edit.editTagScreenGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.homeGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.PlayerScreen
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.playlist_detail.playlistDetailGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.SearchRoute
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.song_detail.SongDetailRoute
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.TracksRouteKey
@@ -24,6 +26,7 @@ import com.sftwr.cleandevelopment.musicplayer.model.Screen
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
+    playerManager: PlayerManager,
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -33,18 +36,38 @@ fun AppNavGraph(
     ) {
         // Home feature navigation graph
         homeGraph(
-            onNavigateToPlayer = {
+            onNavigateToPlayer = { songId ->
                 navController.navigate(Screen.Player)
-            },
-            onOpenPlaylist = {
-                // Placeholder for future playlist detail navigation
             },
             onNavigateToSearch = {
                 navController.navigate(Screen.Search)
             },
+            onOpenPlaylist = {
+                // Legacy callback
+            },
             onNavigateToTracks = {
                 // Navigate to tracks library screen when card is selected
                 navController.navigate(TracksRouteKey)
+            },
+            onOpenPlaylistDetail = { id, title, typeName ->
+                navController.navigate(Screen.PlaylistDetail(id, title, typeName))
+            }
+        )
+
+        // Playlist Detail feature navigation graph
+        playlistDetailGraph(
+            playerManager = playerManager,
+            onBackClick = {
+                navController.popBackStack()
+            },
+            onNavigateToSearch = {
+                navController.navigate(Screen.Search)
+            },
+            onInfoClick = { songId ->
+                navController.navigate(Screen.SongDetail(songId))
+            },
+            onTagEditClick = { songId ->
+                navController.navigate(Screen.EditTagScreen(songId))
             }
         )
 
