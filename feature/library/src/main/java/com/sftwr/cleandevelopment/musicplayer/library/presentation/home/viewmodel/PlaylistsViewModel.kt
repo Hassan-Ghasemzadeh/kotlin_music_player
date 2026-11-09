@@ -11,7 +11,10 @@ import androidx.lifecycle.viewModelScope
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.PlaylistType
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.CreateCustomPlaylistUseCase
+import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetPlaylistsUseCase
+import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -23,35 +26,67 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * ViewModel managing playlist state, user custom playlist creation,
- * input validation, and real-time Room database updates.
+ * ViewModel managing playlist state, custom playlist creation flow,
+ * track multi-selection, and real-time Room database updates.
  */
 @HiltViewModel
 class PlaylistsViewModel @Inject constructor(
     getPlaylistsUseCase: GetPlaylistsUseCase,
+    getDeviceSongsUseCase: GetDeviceSongsUseCase,
     private val createCustomPlaylistUseCase: CreateCustomPlaylistUseCase,
 ) : ViewModel() {
 
     private val _dialogState = MutableStateFlow(DialogState())
 
     private data class DialogState(
-        val isVisible: Boolean = false,
+        val isNameDialogVisible: Boolean = false,
+        val isTrackSelectionVisible: Boolean = false,
         val name: String = "",
-        val error: String? = null
+        val error: String? = null,
+        val selectedSongIds: Set<Long> = emptySet(),
+        val searchQuery: String = ""
     )
 
     val uiState: StateFlow<PlaylistsUiState> = combine(
         getPlaylistsUseCase(),
+        getDeviceSongsUseCase(),
         _dialogState
-    ) { playlists, dialog ->
+    ) { playlists, domainSongs, dialog ->
         val items = playlists.map { it.toUiItem() }
+        val songModels = domainSongs.map { song ->
+            SongUiModel(
+                id = song.id.toString(),
+                title = song.title,
+                artist = song.artist,
+                duration = song.duration.formatTime(),
+                uri = song.path,
+                year = song.year,
+                album = song.album,
+                genre = song.genre,
+                albumId = song.albumId,
+                albumArtUri = song.albumArtUri,
+            )
+        }
+        val filteredSongs = if (dialog.searchQuery.isBlank()) {
+            songModels
+        } else {
+            songModels.filter {
+                it.title.contains(dialog.searchQuery, ignoreCase = true) ||
+                        it.artist.contains(dialog.searchQuery, ignoreCase = true)
+            }
+        }
+
         PlaylistsUiState(
             playlists = items,
             totalPlaylistCount = items.size,
             isLoading = false,
-            isCreateDialogVisible = dialog.isVisible,
+            isNameDialogVisible = dialog.isNameDialogVisible,
+            isTrackSelectionVisible = dialog.isTrackSelectionVisible,
             newPlaylistName = dialog.name,
-            nameError = dialog.error
+            nameError = dialog.error,
+            availableSongs = filteredSongs,
+            selectedSongIds = dialog.selectedSongIds,
+            trackSearchQuery = dialog.searchQuery
         )
     }.stateIn(
         scope = viewModelScope,
@@ -60,11 +95,29 @@ class PlaylistsViewModel @Inject constructor(
     )
 
     fun onAddPlaylistClick() {
-        _dialogState.update { it.copy(isVisible = true, name = "", error = null) }
+        _dialogState.update {
+            it.copy(
+                isNameDialogVisible = true,
+                isTrackSelectionVisible = false,
+                name = "",
+                error = null,
+                selectedSongIds = emptySet(),
+                searchQuery = ""
+            )
+        }
     }
 
     fun onDismissDialog() {
-        _dialogState.update { it.copy(isVisible = false, name = "", error = null) }
+        _dialogState.update {
+            it.copy(
+                isNameDialogVisible = false,
+                isTrackSelectionVisible = false,
+                name = "",
+                error = null,
+                selectedSongIds = emptySet(),
+                searchQuery = ""
+            )
+        }
     }
 
     fun onPlaylistNameChanged(name: String) {
@@ -76,17 +129,60 @@ class PlaylistsViewModel @Inject constructor(
         _dialogState.update { it.copy(name = name, error = error) }
     }
 
+    fun onProceedToTrackSelection() {
+        val name = _dialogState.value.name.trim()
+        if (name.isBlank()) {
+            _dialogState.update { it.copy(error = "Playlist name cannot be empty") }
+            return
+        }
+        _dialogState.update {
+            it.copy(
+                isNameDialogVisible = false,
+                isTrackSelectionVisible = true,
+                error = null
+            )
+        }
+    }
+
+    fun onToggleSongSelection(songId: Long) {
+        _dialogState.update { state ->
+            val updatedSet = if (state.selectedSongIds.contains(songId)) {
+                state.selectedSongIds - songId
+            } else {
+                state.selectedSongIds + songId
+            }
+            state.copy(selectedSongIds = updatedSet)
+        }
+    }
+
+    fun onToggleSelectAll(allSongIds: List<Long>) {
+        _dialogState.update { state ->
+            val isAllSelected = state.selectedSongIds.containsAll(allSongIds)
+            val updatedSet = if (isAllSelected) {
+                emptySet()
+            } else {
+                allSongIds.toSet()
+            }
+            state.copy(selectedSongIds = updatedSet)
+        }
+    }
+
+    fun onTrackSearchQueryChanged(query: String) {
+        _dialogState.update { it.copy(searchQuery = query) }
+    }
+
     fun confirmCreatePlaylist() {
         val name = _dialogState.value.name.trim()
         if (name.isBlank()) {
             _dialogState.update { it.copy(error = "Playlist name cannot be empty") }
             return
         }
+        val selectedIds = _dialogState.value.selectedSongIds.toList()
 
         viewModelScope.launch {
-            val result = createCustomPlaylistUseCase(name)
+            val result = createCustomPlaylistUseCase(name, selectedIds)
             if (result.isSuccess) {
-                _dialogState.update { it.copy(isVisible = false, name = "", error = null) }
+                onDismissDialog()
             } else {
                 val errorMsg = result.exceptionOrNull()?.message ?: "Failed to create playlist"
                 _dialogState.update { it.copy(error = errorMsg) }
