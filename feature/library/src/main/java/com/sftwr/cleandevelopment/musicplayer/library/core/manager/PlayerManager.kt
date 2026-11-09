@@ -13,6 +13,7 @@ import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.MusicRepository
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.PlaylistRepository
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.SongPreferencesRepository
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.DeleteSongUseCase
@@ -40,6 +41,7 @@ class PlayerManager @Inject constructor(
     private val getDeviceSongsUseCase: GetDeviceSongsUseCase,
     private val songPreferencesRepository: SongPreferencesRepository,
     private val playlistRepository: PlaylistRepository,
+    private val musicRepository: MusicRepository,
     @param:ApplicationContext private val context: Context,
 ) {
 
@@ -88,6 +90,12 @@ class PlayerManager @Inject constructor(
     private var isSettingQueue = false
 
     init {
+        playerScope.launch(Dispatchers.IO) {
+            runCatching {
+                musicRepository.syncWithDevice()
+            }
+        }
+
         playerScope.launch {
             getDeviceSongsUseCase().collect { domainSongs ->
                 val songUiModels = domainSongs.map { song ->
