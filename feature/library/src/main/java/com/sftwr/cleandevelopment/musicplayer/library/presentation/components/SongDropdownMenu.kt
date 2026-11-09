@@ -28,16 +28,26 @@ fun SongDropdownMenu(
     onInfoClick: () -> Unit,
     onTagEditClick: () -> Unit,
     onShareClick: () -> Unit,
-    onDeleteClick: () -> Unit
+    onDeleteClick: () -> Unit,
+    onRemoveFromPlaylist: (() -> Unit)? = null,
+    isFavorite: Boolean = false
 ) {
-    val menuItems = listOf(
+    val favoriteTitle = if (isFavorite) "حذف از علاقه‌مندی‌ها" else "افزودن به علاقه‌مندی‌ها"
+    val favoriteIcon = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder
+
+    val menuItems = mutableListOf(
         SongMenuItem("افزودن به لیست پخش", Icons.AutoMirrored.Filled.PlaylistAdd, onAddToPlaylist),
-        SongMenuItem("افزودن به علاقه‌مندی‌ها", Icons.Default.FavoriteBorder, onFavoriteClick),
+        SongMenuItem(favoriteTitle, favoriteIcon, onFavoriteClick),
         SongMenuItem("اشتراک‌گذاری", Icons.Default.Share, onShareClick),
         SongMenuItem("مشاهده اطلاعات آهنگ", Icons.Default.Info, onInfoClick),
         SongMenuItem("ویرایش تگ", Icons.Default.Edit, onTagEditClick),
-        SongMenuItem("حذف از دستگاه", Icons.Default.Delete, onDeleteClick)
     )
+
+    if (onRemoveFromPlaylist != null) {
+        menuItems.add(SongMenuItem("حذف از لیست پخش", Icons.Default.RemoveCircleOutline, onRemoveFromPlaylist))
+    }
+
+    menuItems.add(SongMenuItem("حذف از دستگاه", Icons.Default.Delete, onDeleteClick))
 
     DropdownMenu(
         expanded = expanded,
