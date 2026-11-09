@@ -146,7 +146,8 @@ class MusicRepositoryImpl @Inject constructor(
         MediaStore.Audio.Media.ALBUM_ID,
         MediaStore.Audio.Media.DURATION,
         MediaStore.Audio.Media.SIZE,
-        MediaStore.Audio.Media.DATA
+        MediaStore.Audio.Media.DATA,
+        MediaStore.Audio.Media.DATE_ADDED
     )
 
     private fun parseSongEntitiesFromCursor(cursor: Cursor): List<SongEntity> {
@@ -159,6 +160,7 @@ class MusicRepositoryImpl @Inject constructor(
         val durationCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DURATION)
         val sizeCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.SIZE)
         val dataCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA)
+        val dateAddedCol = cursor.getColumnIndex(MediaStore.Audio.Media.DATE_ADDED)
 
         while (cursor.moveToNext()) {
             val id = cursor.getLong(idCol)
@@ -169,6 +171,8 @@ class MusicRepositoryImpl @Inject constructor(
             val duration = cursor.getLong(durationCol)
             val size = cursor.getLong(sizeCol)
             val path = cursor.getString(dataCol) ?: ""
+            val rawDateAdded = if (dateAddedCol != -1) cursor.getLong(dateAddedCol) else 0L
+            val dateAdded = if (rawDateAdded > 0) rawDateAdded * 1000L else System.currentTimeMillis()
 
             // Extract extra metadata (year and genre) once during device scan/sync
             val (year, genre) = extractMetadataFromFile(path)
@@ -184,7 +188,8 @@ class MusicRepositoryImpl @Inject constructor(
                     size = size,
                     path = path,
                     year = year,
-                    genre = genre
+                    genre = genre,
+                    dateAdded = dateAdded
                 )
             )
         }
@@ -339,7 +344,11 @@ private fun SongEntity.toDomain() = Song(
     size = size,
     path = path,
     year = year,
-    genre = genre
+    genre = genre,
+    isFavorite = isFavorite,
+    playCount = playCount,
+    lastPlayedTimestamp = lastPlayedTimestamp,
+    dateAdded = dateAdded
 )
 
 private fun Song.toEntity() = SongEntity(
@@ -352,5 +361,9 @@ private fun Song.toEntity() = SongEntity(
     size = size,
     path = path,
     year = year,
-    genre = genre
+    genre = genre,
+    isFavorite = isFavorite,
+    playCount = playCount,
+    lastPlayedTimestamp = lastPlayedTimestamp,
+    dateAdded = dateAdded
 )
