@@ -61,6 +61,15 @@ class HomeViewModel @Inject constructor(
             initialValue = 0
         )
 
+    // Automatically calculate and expose the total album count as a reactive StateFlow
+    val albumCount: StateFlow<Int> = songsState
+        .map { songs -> songs.map { it.albumId }.distinct().size }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 0
+        )
+
     private fun loadInitialData() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
