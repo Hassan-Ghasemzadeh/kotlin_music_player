@@ -19,6 +19,7 @@ fun HomeRoute(
     onNavigateToSearch: () -> Unit,
     onNavigateToTracks: () -> Unit,
     onOpenPlaylist: (String) -> Unit,
+    onOpenPlaylistDetail: (id: Long, title: String, typeName: String) -> Unit = { _, _, _ -> },
     modifier: Modifier = Modifier
 ) {
     // Collect UI state safely with lifecycle awareness
@@ -43,11 +44,18 @@ fun HomeRoute(
         playlistsState = playlistsState,
         actions = HomeActions(
             onPlaylistClick = { viewModel.onPlaylistClicked(it) },
+            onPlaylistCardClick = { id, title, typeName ->
+                onOpenPlaylistDetail(id, title, typeName)
+            },
             onSearchClick = { viewModel.onSearchClicked() },
             onSongClick = { viewModel.onSongPlayClicked(it) },
             onAddPlaylistClick = { playlistsViewModel.onAddPlaylistClick() },
             onDismissDialog = { playlistsViewModel.onDismissDialog() },
             onPlaylistNameChanged = { playlistsViewModel.onPlaylistNameChanged(it) },
+            onProceedToTrackSelection = { playlistsViewModel.onProceedToTrackSelection() },
+            onToggleSongSelection = { songId -> playlistsViewModel.onToggleSongSelection(songId) },
+            onToggleSelectAll = { songIds -> playlistsViewModel.onToggleSelectAll(songIds) },
+            onTrackSearchQueryChanged = { query -> playlistsViewModel.onTrackSearchQueryChanged(query) },
             onConfirmCreate = { playlistsViewModel.confirmCreatePlaylist() },
             onNavigateToTracks = onNavigateToTracks,
             onPermissionGranted = { viewModel.syncDeviceSongs() },

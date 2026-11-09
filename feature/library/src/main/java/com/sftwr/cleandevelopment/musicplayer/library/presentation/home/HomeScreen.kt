@@ -22,15 +22,17 @@ import com.google.accompanist.permissions.ExperimentalPermissionsApi
 import com.google.accompanist.permissions.isGranted
 import com.sftwr.cleandevelopment.musicplayer.library.core.permissions.rememberAppPermissionsState
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components.CreatePlaylistNameDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components.LibraryCard
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components.PlaylistCard
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components.TopBarSection
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components.TrackSelectionDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.viewmodel.HomeUiState
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.viewmodel.PlaylistsUiState
 
 /**
  * MusicPlayerScreen featuring library grid, dynamic default & custom playlists,
- * and playlist creation dialog (Stateless UI Component).
+ * and dark glassmorphic playlist creation & track selection dialogs (Stateless UI Component).
  */
 @OptIn(ExperimentalPermissionsApi::class)
 @Composable
@@ -193,48 +195,37 @@ fun HomeScreen(
                         title = playlist.title,
                         subtitle = playlist.subtitle,
                         icon = playlist.icon,
-                        modifier = Modifier.clickable { actions.onPlaylistClick(playlist.title) }
+                        modifier = Modifier.clickable {
+                            actions.onPlaylistCardClick(playlist.id, playlist.title, playlist.type.name)
+                        }
                     )
                 }
             }
         }
 
-        // Dialog for creating a new custom playlist (Controlled by ViewModel state)
-        if (playlistsState.isCreateDialogVisible) {
-            AlertDialog(
-                onDismissRequest = actions.onDismissDialog,
-                title = { Text(text = "Create New Playlist") },
-                text = {
-                    Column {
-                        Text(text = "Enter a name for your new playlist:")
-                        Spacer(modifier = Modifier.height(8.dp))
-                        OutlinedTextField(
-                            value = playlistsState.newPlaylistName,
-                            onValueChange = actions.onPlaylistNameChanged,
-                            singleLine = true,
-                            isError = playlistsState.nameError != null,
-                            placeholder = { Text("Playlist Name") }
-                        )
-                        if (playlistsState.nameError != null) {
-                            Text(
-                                text = playlistsState.nameError,
-                                color = MaterialTheme.colorScheme.error,
-                                style = MaterialTheme.typography.bodySmall,
-                                modifier = Modifier.padding(start = 4.dp, top = 4.dp)
-                            )
-                        }
-                    }
-                },
-                confirmButton = {
-                    TextButton(onClick = actions.onConfirmCreate) {
-                        Text("Create")
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = actions.onDismissDialog) {
-                        Text("Cancel")
-                    }
-                }
+        // Step 1: Glassmorphic Dialog to enter Playlist Name
+        if (playlistsState.isNameDialogVisible) {
+            CreatePlaylistNameDialog(
+                playlistName = playlistsState.newPlaylistName,
+                nameError = playlistsState.nameError,
+                onNameChanged = actions.onPlaylistNameChanged,
+                onNextClick = actions.onProceedToTrackSelection,
+                onDismissRequest = actions.onDismissDialog
+            )
+        }
+
+        // Step 2: Dark Glassmorphic Multi-Selection Dialog for choosing tracks
+        if (playlistsState.isTrackSelectionVisible) {
+            TrackSelectionDialog(
+                playlistName = playlistsState.newPlaylistName,
+                availableSongs = playlistsState.availableSongs,
+                selectedSongIds = playlistsState.selectedSongIds,
+                searchQuery = playlistsState.trackSearchQuery,
+                onSearchQueryChanged = actions.onTrackSearchQueryChanged,
+                onToggleSongSelection = actions.onToggleSongSelection,
+                onToggleSelectAll = actions.onToggleSelectAll,
+                onSavePlaylistClick = actions.onConfirmCreate,
+                onDismissRequest = actions.onDismissDialog
             )
         }
     }
