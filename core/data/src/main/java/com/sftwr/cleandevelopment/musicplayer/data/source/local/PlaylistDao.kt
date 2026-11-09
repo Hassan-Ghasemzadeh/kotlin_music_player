@@ -61,7 +61,7 @@ interface PlaylistDao {
     @Query("SELECT COUNT(*) FROM songs_cache WHERE lastPlayedTimestamp > 0")
     fun getRecentlyPlayedCountFlow(): Flow<Int>
 
-    @Query("SELECT * FROM songs_cache WHERE playCount > 0 ORDER BY playCount DESC")
+    @Query("SELECT * FROM songs_cache WHERE playCount > 0 ORDER BY playCount DESC, lastPlayedTimestamp DESC")
     fun getMostPlayedSongsFlow(): Flow<List<SongEntity>>
 
     @Query("SELECT COUNT(*) FROM songs_cache WHERE playCount > 0")
