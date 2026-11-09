@@ -43,6 +43,7 @@ fun HomeScreen(
     actions: HomeActions,
     tracksCount: String,
     albumsCount: String,
+    artistsCount: String,
     favoriteCount: String = "0",
 ) {
     val permissionsState = rememberAppPermissionsState()
@@ -101,7 +102,7 @@ fun HomeScreen(
                     bottom = bottomPadding
                 )
             ) {
-                // First Row of Library Grid (Tracks, Albums, Favorites)
+                // First Row of Library Grid (Tracks, Albums, Artists)
                 item {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -140,6 +141,43 @@ fun HomeScreen(
                                 )
                         )
                         LibraryCard(
+                            title = "ARTISTS",
+                            subtitle = "($artistsCount)",
+                            icon = Icons.Default.Person,
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable(
+                                    onClick = {
+                                        if (isAudioPermissionGranted) {
+                                            actions.onNavigateToArtists()
+                                        } else {
+                                            permissionsState.launchMultiplePermissionRequest()
+                                        }
+                                    }
+                                )
+                        )
+                    }
+                }
+
+                // Second Row of Library Grid (Folders, Genres, Favorites)
+                item {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        LibraryCard(
+                            title = "FOLDERS",
+                            subtitle = "(2)",
+                            icon = Icons.Default.Folder,
+                            modifier = Modifier.weight(1f)
+                        )
+                        LibraryCard(
+                            title = "GENRES",
+                            subtitle = "(13)",
+                            icon = Icons.Default.MusicVideo,
+                            modifier = Modifier.weight(1f)
+                        )
+                        LibraryCard(
                             title = "FAVORITES",
                             subtitle = "($favoriteCount)",
                             icon = Icons.Default.Favorite,
@@ -154,33 +192,6 @@ fun HomeScreen(
                                         }
                                     }
                                 )
-                        )
-                    }
-                }
-
-                // Second Row of Library Grid (Artists, Folders, Genres)
-                item {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        LibraryCard(
-                            title = "ARTISTS",
-                            subtitle = "(31)",
-                            icon = Icons.Default.Person,
-                            modifier = Modifier.weight(1f)
-                        )
-                        LibraryCard(
-                            title = "FOLDERS",
-                            subtitle = "(2)",
-                            icon = Icons.Default.Folder,
-                            modifier = Modifier.weight(1f)
-                        )
-                        LibraryCard(
-                            title = "GENRES",
-                            subtitle = "(13)",
-                            icon = Icons.Default.MusicVideo,
-                            modifier = Modifier.weight(1f)
                         )
                     }
                 }

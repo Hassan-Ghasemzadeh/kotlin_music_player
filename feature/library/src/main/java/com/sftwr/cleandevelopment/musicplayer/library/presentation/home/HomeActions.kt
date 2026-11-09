@@ -7,6 +7,7 @@ data class HomeActions(
     val onSearchClick: () -> Unit = {},
     val onNavigateToTracks: () -> Unit = {},
     val onNavigateToAlbums: () -> Unit = {},
+    val onNavigateToArtists: () -> Unit = {},
     val onNavigateToFavorites: () -> Unit = {},
     val onSongClick: (String) -> Unit = {},
     val onAddPlaylistClick: () -> Unit = {},

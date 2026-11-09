@@ -16,6 +16,7 @@ fun NavGraphBuilder.homeGraph(
     onOpenPlaylist: (String) -> Unit,
     onNavigateToTracks: () -> Unit,
     onNavigateToAlbums: () -> Unit = {},
+    onNavigateToArtists: () -> Unit = {},
     onNavigateToFavorites: () -> Unit = {},
     onOpenPlaylistDetail: (id: Long, title: String, typeName: String) -> Unit = { _, _, _ -> },
 ) {
@@ -27,6 +28,7 @@ fun NavGraphBuilder.homeGraph(
             onOpenPlaylist = onOpenPlaylist,
             onNavigateToTracks = onNavigateToTracks,
             onNavigateToAlbums = onNavigateToAlbums,
+            onNavigateToArtists = onNavigateToArtists,
             onNavigateToFavorites = onNavigateToFavorites,
             onOpenPlaylistDetail = onOpenPlaylistDetail
         )

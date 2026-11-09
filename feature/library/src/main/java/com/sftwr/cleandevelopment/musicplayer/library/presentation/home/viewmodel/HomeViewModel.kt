@@ -70,6 +70,15 @@ class HomeViewModel @Inject constructor(
             initialValue = 0
         )
 
+    // Automatically calculate and expose the total artist count as a reactive StateFlow
+    val artistCount: StateFlow<Int> = songsState
+        .map { songs -> songs.map { it.artist.ifBlank { "Unknown Artist" } }.distinct().size }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 0
+        )
+
     // Automatically calculate and expose the total favorite song count as a reactive StateFlow
     val favoriteCount: StateFlow<Int> = songsState
         .map { songs -> songs.count { it.isFavorite } }
