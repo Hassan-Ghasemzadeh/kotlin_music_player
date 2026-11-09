@@ -7,6 +7,8 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -32,10 +34,11 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.artists.Artis
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.AddToPlaylistDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.TrackItem
+import kotlinx.coroutines.launch
 
 /**
  * Stateless screen for Favorites featuring tabs for Favorite Tracks, Favorite Albums,
- * Favorite Artists, and future placeholders for Favorite Genres.
+ * Favorite Artists, and future placeholders for Favorite Genres, with smooth HorizontalPager swiping.
  */
 @Composable
 fun FavoritesScreen(
@@ -62,6 +65,20 @@ fun FavoritesScreen(
 ) {
     val bottomPadding = rememberPlayerAwareBottomPadding()
     var expandedSongId by remember { mutableStateOf<String?>(null) }
+    val pagerState = rememberPagerState(pageCount = { 4 }, initialPage = uiState.selectedTabIndex)
+    val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(pagerState.currentPage) {
+        if (uiState.selectedTabIndex != pagerState.currentPage) {
+            onTabSelected(pagerState.currentPage)
+        }
+    }
+
+    LaunchedEffect(uiState.selectedTabIndex) {
+        if (pagerState.currentPage != uiState.selectedTabIndex) {
+            pagerState.animateScrollToPage(uiState.selectedTabIndex)
+        }
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -135,28 +152,40 @@ fun FavoritesScreen(
                 ) {
                     Tab(
                         selected = uiState.selectedTabIndex == 0,
-                        onClick = { onTabSelected(0) },
+                        onClick = {
+                            onTabSelected(0)
+                            coroutineScope.launch { pagerState.animateScrollToPage(0) }
+                        },
                         text = { Text("Tracks (${uiState.favoriteSongs.size})", fontWeight = FontWeight.Bold) },
                         selectedContentColor = Color(0xFF91D8FB),
                         unselectedContentColor = Color.White.copy(alpha = 0.6f)
                     )
                     Tab(
                         selected = uiState.selectedTabIndex == 1,
-                        onClick = { onTabSelected(1) },
+                        onClick = {
+                            onTabSelected(1)
+                            coroutineScope.launch { pagerState.animateScrollToPage(1) }
+                        },
                         text = { Text("Albums (${uiState.favoriteAlbums.size})", fontWeight = FontWeight.Bold) },
                         selectedContentColor = Color(0xFF91D8FB),
                         unselectedContentColor = Color.White.copy(alpha = 0.6f)
                     )
                     Tab(
                         selected = uiState.selectedTabIndex == 2,
-                        onClick = { onTabSelected(2) },
+                        onClick = {
+                            onTabSelected(2)
+                            coroutineScope.launch { pagerState.animateScrollToPage(2) }
+                        },
                         text = { Text("Artists (${uiState.favoriteArtists.size})", fontWeight = FontWeight.Bold) },
                         selectedContentColor = Color(0xFF91D8FB),
                         unselectedContentColor = Color.White.copy(alpha = 0.6f)
                     )
                     Tab(
                         selected = uiState.selectedTabIndex == 3,
-                        onClick = { onTabSelected(3) },
+                        onClick = {
+                            onTabSelected(3)
+                            coroutineScope.launch { pagerState.animateScrollToPage(3) }
+                        },
                         text = { Text("Genres (Coming Soon)", fontWeight = FontWeight.Bold) },
                         selectedContentColor = Color(0xFF91D8FB),
                         unselectedContentColor = Color.White.copy(alpha = 0.6f)
@@ -165,9 +194,14 @@ fun FavoritesScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Tab Content
-                Box(modifier = Modifier.fillMaxSize()) {
-                    when (uiState.selectedTabIndex) {
+                // Horizontal Pager Tab Content
+                HorizontalPager(
+                    state = pagerState,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                ) { page ->
+                    when (page) {
                         0 -> {
                             // Favorite Tracks Tab
                             if (uiState.favoriteSongs.isEmpty()) {
