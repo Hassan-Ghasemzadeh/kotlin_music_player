@@ -28,13 +28,14 @@ import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.albums.AlbumItemCard
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.artists.ArtistItemCard
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.AddToPlaylistDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.TrackItem
 
 /**
  * Stateless screen for Favorites featuring tabs for Favorite Tracks, Favorite Albums,
- * and future placeholders for Favorite Artists and Favorite Genres.
+ * Favorite Artists, and future placeholders for Favorite Genres.
  */
 @Composable
 fun FavoritesScreen(
@@ -46,6 +47,7 @@ fun FavoritesScreen(
     onSongClick: (String) -> Unit,
     onPlayAllClick: () -> Unit,
     onAlbumClick: (Long, String) -> Unit,
+    onArtistClick: (String) -> Unit,
     onBackClick: () -> Unit,
     onSearchClick: () -> Unit,
     onAddToPlaylistClick: (SongUiModel) -> Unit = {},
@@ -148,7 +150,7 @@ fun FavoritesScreen(
                     Tab(
                         selected = uiState.selectedTabIndex == 2,
                         onClick = { onTabSelected(2) },
-                        text = { Text("Artists (Coming Soon)", fontWeight = FontWeight.Bold) },
+                        text = { Text("Artists (${uiState.favoriteArtists.size})", fontWeight = FontWeight.Bold) },
                         selectedContentColor = Color(0xFF91D8FB),
                         unselectedContentColor = Color.White.copy(alpha = 0.6f)
                     )
@@ -282,11 +284,28 @@ fun FavoritesScreen(
                         }
 
                         2 -> {
-                            // Favorite Artists Placeholder Tab
-                            PlaceholderTabContent(
-                                title = "Favorite Artists",
-                                description = "Architecture prepared for future Favorite Artists feature."
-                            )
+                            // Favorite Artists Tab
+                            if (uiState.favoriteArtists.isEmpty()) {
+                                EmptyFavoritesState(
+                                    title = "No Favorite Artists",
+                                    subtitle = "Favorite an artist from the artist detail screen to see it here."
+                                )
+                            } else {
+                                LazyVerticalGrid(
+                                    columns = GridCells.Fixed(2),
+                                    modifier = Modifier.fillMaxSize(),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                                    contentPadding = PaddingValues(bottom = bottomPadding)
+                                ) {
+                                    items(uiState.favoriteArtists, key = { it.name }) { artist ->
+                                        ArtistItemCard(
+                                            artist = artist,
+                                            onClick = { onArtistClick(artist.name) }
+                                        )
+                                    }
+                                }
+                            }
                         }
 
                         3 -> {

@@ -15,6 +15,7 @@ fun NavGraphBuilder.favoritesGraph(
     onBackClick: () -> Unit,
     onSearchClick: () -> Unit,
     onAlbumClick: (Long, String) -> Unit,
+    onArtistClick: (String) -> Unit,
     onInfoClick: (Long) -> Unit,
     onTagEditClick: (Long) -> Unit
 ) {
@@ -24,6 +25,7 @@ fun NavGraphBuilder.favoritesGraph(
             onBackClick = onBackClick,
             onSearchClick = onSearchClick,
             onAlbumClick = onAlbumClick,
+            onArtistClick = onArtistClick,
             onInfoClick = onInfoClick,
             onTagEditClick = onTagEditClick
         )

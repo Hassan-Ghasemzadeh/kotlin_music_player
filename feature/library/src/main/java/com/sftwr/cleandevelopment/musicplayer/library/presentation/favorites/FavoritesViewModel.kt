@@ -3,6 +3,7 @@ package com.sftwr.cleandevelopment.musicplayer.library.presentation.favorites
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Artist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.PlaylistType
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
@@ -55,7 +56,7 @@ class FavoritesViewModel @Inject constructor(
         @Suppress("UNCHECKED_CAST")
         val albums = args[2] as List<Album>
         @Suppress("UNCHECKED_CAST")
-        val artists = args[3] as List<String>
+        val artists = args[3] as List<Artist>
         @Suppress("UNCHECKED_CAST")
         val genres = args[4] as List<String>
         @Suppress("UNCHECKED_CAST")
