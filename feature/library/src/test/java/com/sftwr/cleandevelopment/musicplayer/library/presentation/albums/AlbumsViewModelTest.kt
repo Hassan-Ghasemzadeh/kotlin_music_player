@@ -1,6 +1,7 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.albums
 
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Artist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.MusicRepository
@@ -30,6 +31,9 @@ class AlbumsViewModelTest {
         override fun getDeviceSongs(): Flow<List<Song>> = error("Not implemented")
         override fun getAlbums(): Flow<List<Album>> = albumsFlow
         override fun getAlbumSongs(albumId: Long): Flow<List<Song>> = error("Not implemented")
+        override fun getArtists(): Flow<List<Artist>> = error("Not implemented")
+        override fun getArtistSongs(artistName: String): Flow<List<Song>> = error("Not implemented")
+        override fun getArtistAlbums(artistName: String): Flow<List<Album>> = error("Not implemented")
         override suspend fun searchSongs(query: String): List<Song> = emptyList()
         override suspend fun deleteSong(songId: Long): DeleteResult = DeleteResult.Success
         override suspend fun updateSongTags(
