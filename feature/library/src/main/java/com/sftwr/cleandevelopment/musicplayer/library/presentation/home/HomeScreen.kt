@@ -42,6 +42,7 @@ fun HomeScreen(
     playlistsState: PlaylistsUiState = PlaylistsUiState(),
     actions: HomeActions,
     tracksCount: String,
+    albumsCount: String,
 ) {
     val permissionsState = rememberAppPermissionsState()
 
@@ -123,9 +124,19 @@ fun HomeScreen(
                         )
                         LibraryCard(
                             title = "ALBUMS",
-                            subtitle = "(39)",
+                            subtitle = "($albumsCount)",
                             icon = Icons.Default.Album,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable(
+                                    onClick = {
+                                        if (isAudioPermissionGranted) {
+                                            actions.onNavigateToAlbums()
+                                        } else {
+                                            permissionsState.launchMultiplePermissionRequest()
+                                        }
+                                    }
+                                )
                         )
                         LibraryCard(
                             title = "ARTISTS",
