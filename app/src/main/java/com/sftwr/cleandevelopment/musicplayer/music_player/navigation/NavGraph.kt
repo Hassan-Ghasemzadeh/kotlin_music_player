@@ -10,6 +10,8 @@ import androidx.navigation.compose.composable
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.albums.albumDetailGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.albums.albumsGraph
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.artists.artistDetailGraph
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.artists.artistsGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.edit.editTagScreenGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.favorites.favoritesGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.homeGraph
@@ -55,6 +57,9 @@ fun AppNavGraph(
             onNavigateToAlbums = {
                 navController.navigate(Screen.Albums)
             },
+            onNavigateToArtists = {
+                navController.navigate(Screen.Artists)
+            },
             onNavigateToFavorites = {
                 navController.navigate(Screen.Favorites)
             },
@@ -74,6 +79,9 @@ fun AppNavGraph(
             },
             onAlbumClick = { albumId, albumTitle ->
                 navController.navigate(Screen.AlbumDetail(albumId, albumTitle))
+            },
+            onArtistClick = { artistName ->
+                navController.navigate(Screen.ArtistDetail(artistName))
             },
             onInfoClick = { songId ->
                 navController.navigate(Screen.SongDetail(songId))
@@ -96,6 +104,19 @@ fun AppNavGraph(
             }
         )
 
+        // Artists feature navigation graph
+        artistsGraph(
+            onArtistClick = { artistName ->
+                navController.navigate(Screen.ArtistDetail(artistName))
+            },
+            onBackClick = {
+                navController.popBackStack()
+            },
+            onSearchClick = {
+                navController.navigate(Screen.Search)
+            }
+        )
+
         // Album Detail feature navigation graph
         albumDetailGraph(
             playerManager = playerManager,
@@ -104,6 +125,26 @@ fun AppNavGraph(
             },
             onSearchClick = {
                 navController.navigate(Screen.Search)
+            },
+            onInfoClick = { songId ->
+                navController.navigate(Screen.SongDetail(songId))
+            },
+            onTagEditClick = { songId ->
+                navController.navigate(Screen.EditTagScreen(songId))
+            }
+        )
+
+        // Artist Detail feature navigation graph
+        artistDetailGraph(
+            playerManager = playerManager,
+            onBackClick = {
+                navController.popBackStack()
+            },
+            onSearchClick = {
+                navController.navigate(Screen.Search)
+            },
+            onAlbumClick = { albumId, albumTitle ->
+                navController.navigate(Screen.AlbumDetail(albumId, albumTitle))
             },
             onInfoClick = { songId ->
                 navController.navigate(Screen.SongDetail(songId))
