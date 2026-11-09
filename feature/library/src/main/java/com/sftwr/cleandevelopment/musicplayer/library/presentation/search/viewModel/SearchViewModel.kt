@@ -10,65 +10,93 @@ import com.sftwr.cleandevelopment.musicplayer.domain.repository.PlaylistReposito
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.AddSongToPlaylistUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetPlaylistsUseCase
-import com.sftwr.cleandevelopment.musicplayer.domain.usecase.SearchSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.SearchUiState
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.firstOrNull
-import kotlinx.coroutines.flow.receiveAsFlow
-import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * ViewModel responsible for managing search query inputs, executing song search use cases,
+ * ViewModel responsible for managing search query inputs reactively, executing song search,
  * handling audio track deletions, playlists, favorites, and mapping query result sets to UI models.
  */
 @RequiresApi(Build.VERSION_CODES.S)
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val getDeviceSongsUseCase: GetDeviceSongsUseCase,
-    private val searchSongsUseCase: SearchSongsUseCase,
     private val getPlaylistsUseCase: GetPlaylistsUseCase,
     private val addSongToPlaylistUseCase: AddSongToPlaylistUseCase,
     private val playlistRepository: PlaylistRepository,
     private val playerManager: PlayerManager
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(SearchUiState())
-    val uiState: StateFlow<SearchUiState> = _uiState.asStateFlow()
+    private val _query = MutableStateFlow("")
+    private val _targetSongForPlaylist = MutableStateFlow<SongUiModel?>(null)
 
     private val _deleteEvent = Channel<SearchPlayerUiEvent>()
     val deleteEvent = _deleteEvent.receiveAsFlow()
 
-    init {
-        loadTracks()
-        loadPlaylists()
-    }
+    val uiState: StateFlow<SearchUiState> = combine(
+        _query,
+        getDeviceSongsUseCase(),
+        getPlaylistsUseCase(),
+        _targetSongForPlaylist
+    ) { query, domainSongs, playlists, targetSong ->
+        val songUiModels = domainSongs.map { song ->
+            SongUiModel(
+                id = song.id.toString(),
+                title = song.title,
+                artist = song.artist,
+                duration = song.duration.formatTime(),
+                uri = song.path,
+                year = song.year,
+                album = song.album,
+                genre = song.genre,
+                albumId = song.albumId,
+                albumArtUri = song.albumArtUri,
+                isFavorite = song.isFavorite
+            )
+        }
+
+        val searchResults = if (query.isBlank()) {
+            emptyList()
+        } else {
+            val trimmed = query.trim().lowercase()
+            songUiModels.filter { song ->
+                song.title.lowercase().contains(trimmed) ||
+                song.artist.lowercase().contains(trimmed) ||
+                song.album.lowercase().contains(trimmed)
+            }
+        }
+
+        SearchUiState(
+            songs = songUiModels,
+            query = query,
+            searchResults = searchResults,
+            playlists = playlists,
+            targetSongForPlaylist = targetSong,
+            isLoading = false,
+            isSearching = query.isNotBlank()
+        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = SearchUiState(isLoading = true)
+    )
 
     private var pendingDeleteSongId: Long? = null
     private var pendingDeleteSongStringId: String? = null
 
-    private fun loadPlaylists() {
-        viewModelScope.launch {
-            getPlaylistsUseCase().collect { playlists ->
-                _uiState.update { it.copy(playlists = playlists) }
-            }
-        }
-    }
-
     fun openAddToPlaylistDialog(song: SongUiModel) {
-        _uiState.update { it.copy(targetSongForPlaylist = song) }
+        _targetSongForPlaylist.value = song
     }
 
     fun closeAddToPlaylistDialog() {
-        _uiState.update { it.copy(targetSongForPlaylist = null) }
+        _targetSongForPlaylist.value = null
     }
 
     fun addSongToPlaylist(songId: Long, playlist: Playlist) {
@@ -115,82 +143,7 @@ class SearchViewModel @Inject constructor(
      */
     @RequiresApi(Build.VERSION_CODES.S)
     fun refreshSearch() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-
-            try {
-                val rawResults = getDeviceSongsUseCase().firstOrNull()
-
-                if (rawResults != null) {
-                    val mappedResults = rawResults.map { song ->
-                        SongUiModel(
-                            id = song.id.toString(),
-                            title = song.title,
-                            artist = song.artist,
-                            duration = song.duration.formatTime(),
-                            uri = song.path,
-                            year = song.year,
-                            album = song.album,
-                            genre = song.genre,
-                            albumId = song.albumId,
-                            albumArtUri = song.albumArtUri,
-                            isFavorite = song.isFavorite
-                        )
-                    }
-
-                    _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            isSearching = true,
-                            searchResults = mappedResults
-                        )
-                    }
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        searchResults = emptyList()
-                    )
-                }
-            }
-        }
-    }
-
-    /**
-     * Fetches raw device songs from domain use case and populates base song models.
-     */
-    @RequiresApi(Build.VERSION_CODES.S)
-    private fun loadTracks() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-
-            getDeviceSongsUseCase().collect { domainSongs ->
-                val songUiModels = domainSongs.map { song ->
-                    SongUiModel(
-                        id = song.id.toString(),
-                        title = song.title,
-                        artist = song.artist,
-                        duration = song.duration.formatTime(),
-                        uri = song.path,
-                        year = song.year,
-                        album = song.album,
-                        genre = song.genre,
-                        albumId = song.albumId,
-                        albumArtUri = song.albumArtUri,
-                        isFavorite = song.isFavorite,
-                    )
-                }
-
-                _uiState.update {
-                    it.copy(
-                        songs = songUiModels,
-                        isLoading = false
-                    )
-                }
-            }
-        }
+        // Handled reactively by getDeviceSongsUseCase flow collection
     }
 
     /**
@@ -201,14 +154,6 @@ class SearchViewModel @Inject constructor(
             when (result) {
                 is DeleteResult.Success -> {
                     _deleteEvent.send(SearchPlayerUiEvent.ShowToast("آهنگ با موفقیت حذف شد"))
-
-                    // Filter out the deleted song from search results state
-                    _uiState.update { currentState ->
-                        val targetId = pendingDeleteSongStringId
-                        val updatedResults = currentState.searchResults.filter { it.id != targetId }
-                        currentState.copy(searchResults = updatedResults)
-                    }
-
                     pendingDeleteSongId = null
                     pendingDeleteSongStringId = null
                 }
@@ -228,27 +173,14 @@ class SearchViewModel @Inject constructor(
      * Handles text changes in the search input query field.
      */
     fun onQueryChanged(query: String) {
-        _uiState.update { it.copy(query = query, isLoading = query.isNotBlank()) }
-
-        if (query.isNotBlank()) {
-            performSearch(query)
-        } else {
-            _uiState.update { it.copy(searchResults = emptyList(), isLoading = false) }
-        }
+        _query.value = query
     }
 
     /**
      * Clears active search query input and resets search results.
      */
     fun onClearQuery() {
-        _uiState.update {
-            it.copy(
-                query = "",
-                searchResults = emptyList(),
-                isLoading = false,
-                isSearching = false
-            )
-        }
+        _query.value = ""
     }
 
     /**
@@ -257,51 +189,6 @@ class SearchViewModel @Inject constructor(
     fun onSongClicked(songId: String) {
         viewModelScope.launch {
             playerManager.playSongById(songId, uiState.value.songs)
-        }
-    }
-
-    /**
-     * Executes the search query using search use-cases and maps matching results on IO thread pool.
-     */
-    private fun performSearch(query: String) {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-
-            try {
-                val rawResults = searchSongsUseCase(query)
-
-                val mappedResults = rawResults.map { song ->
-                    SongUiModel(
-                        id = song.id.toString(),
-                        title = song.title,
-                        artist = song.artist,
-                        duration = song.duration.formatTime(),
-                        uri = song.path,
-                        year = song.year,
-                        album = song.album,
-                        genre = song.genre,
-                        albumId = song.albumId,
-                        albumArtUri = song.albumArtUri,
-                        isFavorite = song.isFavorite
-                    )
-                }
-
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        isSearching = true,
-                        searchResults = mappedResults
-                    )
-                }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        searchResults = emptyList()
-                    )
-                }
-            }
         }
     }
 }
