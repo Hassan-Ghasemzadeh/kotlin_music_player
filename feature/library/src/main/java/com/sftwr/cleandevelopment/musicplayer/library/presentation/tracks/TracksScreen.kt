@@ -414,8 +414,9 @@ fun TrackItem(
     onInfoClick: () -> Unit,
     onTagEditClick: () -> Unit,
     onShareClick: () -> Unit,
-    onAddToPlaylistClick: () -> Unit = {},
-    onFavoriteClick: () -> Unit = {},
+    onAddToPlaylistClick: (SongUiModel) -> Unit = {},
+    onFavoriteClick: (SongUiModel) -> Unit = {},
+    onRemoveFromPlaylist: (() -> Unit)? = null,
     isPlaying: Boolean = false,
 ) {
     val ctx = LocalContext.current
@@ -533,12 +534,13 @@ fun TrackItem(
                     SongDropdownMenu(
                         expanded = isMenuExpanded,
                         onDismissRequest = onDismissMenu,
-                        onAddToPlaylist = onAddToPlaylistClick,
-                        onFavoriteClick = onFavoriteClick,
+                        onAddToPlaylist = { onAddToPlaylistClick(song) },
+                        onFavoriteClick = { onFavoriteClick(song) },
                         onInfoClick = onInfoClick,
                         onTagEditClick = onTagEditClick,
                         onShareClick = onShareClick,
                         onDeleteClick = onDeleteClick,
+                        onRemoveFromPlaylist = onRemoveFromPlaylist,
                         isFavorite = song.isFavorite
                     )
                 }

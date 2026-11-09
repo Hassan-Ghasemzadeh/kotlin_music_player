@@ -287,37 +287,23 @@ fun PlaylistDetailScreen(
                                         (currentPlayingSongId == song.id) && isPlayingGlobal
                                     val songIdLong = song.id.toLongOrNull() ?: -1L
 
-                                    Box {
-                                        TrackItem(
-                                            song = song,
-                                            onClick = { onSongClick(song.id) },
-                                            isMenuExpanded = isMenuExpanded,
-                                            onMenuClick = { expandedSongId = song.id },
-                                            onDismissMenu = { expandedSongId = null },
-                                            onDeleteClick = { onDeleteSongClick(songIdLong) },
-                                            onInfoClick = { onInfoClick(songIdLong) },
-                                            onTagEditClick = { onTagEditClick(songIdLong) },
-                                            isPlaying = isThisSongPlaying,
-                                            onShareClick = { onShareClick(song) }
-                                        )
-
-                                        if (isMenuExpanded) {
-                                            SongDropdownMenu(
-                                                expanded = isMenuExpanded,
-                                                onDismissRequest = { expandedSongId = null },
-                                                onAddToPlaylist = { onAddToPlaylistClick(song) },
-                                                onFavoriteClick = { onFavoriteClick(song) },
-                                                onInfoClick = { onInfoClick(songIdLong) },
-                                                onTagEditClick = { onTagEditClick(songIdLong) },
-                                                onShareClick = { onShareClick(song) },
-                                                onDeleteClick = { onDeleteSongClick(songIdLong) },
-                                                onRemoveFromPlaylist = if (isCustomPlaylist && onRemoveFromPlaylistClick != null) {
-                                                    { onRemoveFromPlaylistClick(songIdLong) }
-                                                } else null,
-                                                isFavorite = song.isFavorite
-                                            )
-                                        }
-                                    }
+                                    TrackItem(
+                                        song = song,
+                                        onClick = { onSongClick(song.id) },
+                                        isMenuExpanded = isMenuExpanded,
+                                        onMenuClick = { expandedSongId = song.id },
+                                        onDismissMenu = { expandedSongId = null },
+                                        onDeleteClick = { onDeleteSongClick(songIdLong) },
+                                        onInfoClick = { onInfoClick(songIdLong) },
+                                        onTagEditClick = { onTagEditClick(songIdLong) },
+                                        onShareClick = { onShareClick(song) },
+                                        onAddToPlaylistClick = { onAddToPlaylistClick(song) },
+                                        onFavoriteClick = { onFavoriteClick(song) },
+                                        onRemoveFromPlaylist = if (isCustomPlaylist && onRemoveFromPlaylistClick != null) {
+                                            { onRemoveFromPlaylistClick(songIdLong) }
+                                        } else null,
+                                        isPlaying = isThisSongPlaying
+                                    )
                                 }
                             }
                         }
