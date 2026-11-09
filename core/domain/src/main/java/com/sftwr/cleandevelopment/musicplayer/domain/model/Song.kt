@@ -17,5 +17,9 @@ data class Song(
     val size: Long = 0L,            // File size in bytes
     val path: String = "",          // Full absolute path on device storage (useful for folder or filter management)
     val year: String = "",          // Track release year
-    val genre: String = ""          // Track genre
+    val genre: String = "",         // Track genre
+    val isFavorite: Boolean = false,
+    val playCount: Int = 0,
+    val lastPlayedTimestamp: Long = 0L,
+    val dateAdded: Long = 0L
 )
