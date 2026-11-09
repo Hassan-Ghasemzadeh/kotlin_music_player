@@ -89,9 +89,16 @@ class PlaylistRepositoryImpl @Inject constructor(
         }.flowOn(Dispatchers.IO)
     }
 
-    override suspend fun createCustomPlaylist(name: String): Long = withContext(Dispatchers.IO) {
+    override suspend fun createCustomPlaylist(name: String, songIds: List<Long>): Long = withContext(Dispatchers.IO) {
         val entity = PlaylistEntity(name = name)
-        playlistDao.insertPlaylist(entity)
+        val playlistId = playlistDao.insertPlaylist(entity)
+        if (songIds.isNotEmpty()) {
+            val crossRefs = songIds.map { songId ->
+                PlaylistSongCrossRef(playlistId = playlistId, songId = songId)
+            }
+            playlistDao.insertPlaylistSongCrossRefs(crossRefs)
+        }
+        playlistId
     }
 
     override suspend fun deleteCustomPlaylist(playlistId: Long) = withContext(Dispatchers.IO) {
@@ -128,5 +135,9 @@ private fun SongEntity.toDomain() = Song(
     size = size,
     path = path,
     year = year,
-    genre = genre
+    genre = genre,
+    isFavorite = isFavorite,
+    playCount = playCount,
+    lastPlayedTimestamp = lastPlayedTimestamp,
+    dateAdded = dateAdded
 )
