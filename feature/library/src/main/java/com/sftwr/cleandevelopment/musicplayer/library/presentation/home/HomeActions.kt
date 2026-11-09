@@ -6,6 +6,7 @@ data class HomeActions(
     val onPlaylistCardClick: (id: Long, title: String, typeName: String) -> Unit = { _, _, _ -> },
     val onSearchClick: () -> Unit = {},
     val onNavigateToTracks: () -> Unit = {},
+    val onNavigateToAlbums: () -> Unit = {},
     val onSongClick: (String) -> Unit = {},
     val onAddPlaylistClick: () -> Unit = {},
     val onDismissDialog: () -> Unit = {},
