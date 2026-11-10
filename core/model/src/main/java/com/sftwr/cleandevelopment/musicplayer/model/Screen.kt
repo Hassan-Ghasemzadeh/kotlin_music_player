@@ -43,6 +43,12 @@ sealed interface Screen {
     data object Favorites : Screen
 
     @Serializable
+    data object Folders : Screen
+
+    @Serializable
+    data object Genres : Screen
+
+    @Serializable
     data class AlbumDetail(
         val albumId: Long,
         val albumTitle: String
@@ -51,6 +57,17 @@ sealed interface Screen {
     @Serializable
     data class ArtistDetail(
         val artistName: String
+    ) : Screen
+
+    @Serializable
+    data class FolderDetail(
+        val folderPath: String,
+        val folderName: String
+    ) : Screen
+
+    @Serializable
+    data class GenreDetail(
+        val genreName: String
     ) : Screen
 
     @Serializable
