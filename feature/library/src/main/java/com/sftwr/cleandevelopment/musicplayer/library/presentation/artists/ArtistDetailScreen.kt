@@ -1,5 +1,10 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.artists
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -8,6 +13,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -31,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.AlphabetIndexerBar
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
@@ -74,10 +81,43 @@ fun ArtistDetailScreen(
     val firstAlbumArt = albums.firstOrNull()?.albumArtUri
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    val alphabet = remember { ('A'..'Z').map { it.toString() } }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = Color.Transparent
+        containerColor = Color.Transparent,
+        floatingActionButton = {
+            val adjustedBottomPadding = (bottomPadding - 60.dp).coerceAtLeast(8.dp)
+            AnimatedVisibility(
+                visible = currentPlayingSongId != null,
+                enter = fadeIn() + scaleIn(),
+                exit = fadeOut() + scaleOut()
+            ) {
+                currentPlayingSongId?.let { playingId ->
+                    FloatingActionButton(
+                        onClick = {
+                            val targetIndex = songs.indexOfFirst { it.id == playingId }
+                            if (targetIndex != -1) {
+                                coroutineScope.launch {
+                                    listState.animateScrollToItem(targetIndex)
+                                }
+                            }
+                        },
+                        containerColor = Color(0xFF91D8FB),
+                        contentColor = Color.Black,
+                        shape = CircleShape,
+                        modifier = Modifier
+                            .padding(bottom = adjustedBottomPadding)
+                            .border(2.dp, Color.White.copy(alpha = 0.5f), CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MusicNote,
+                            contentDescription = "Go to Playing Song"
+                        )
+                    }
+                }
+            }
+        }
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -267,99 +307,125 @@ fun ArtistDetailScreen(
                         }
 
                         else -> {
-                            LazyColumn(
-                                state = listState,
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.spacedBy(12.dp),
-                                contentPadding = PaddingValues(bottom = bottomPadding)
-                            ) {
-                                if (albums.isNotEmpty()) {
-                                    item {
-                                        Text(
-                                            text = "Albums",
-                                            color = Color.White,
-                                            fontSize = 16.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            modifier = Modifier.padding(bottom = 8.dp)
-                                        )
-                                        LazyRow(
-                                            horizontalArrangement = Arrangement.spacedBy(12.dp)
-                                        ) {
-                                            items(albums, key = { it.albumId }) { album ->
-                                                Box(modifier = Modifier.width(130.dp)) {
-                                                    Column(
-                                                        modifier = Modifier
-                                                            .fillMaxWidth()
-                                                            .clip(RoundedCornerShape(14.dp))
-                                                            .background(Color.White.copy(alpha = 0.05f))
-                                                            .border(1.dp, Color(0xFF91D8FB).copy(alpha = 0.5f), RoundedCornerShape(14.dp))
-                                                            .clickable { onAlbumClick(album.albumId, album.title) }
-                                                            .padding(8.dp),
-                                                        horizontalAlignment = Alignment.CenterHorizontally
-                                                    ) {
-                                                        Box(
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                LazyColumn(
+                                    state = listState,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(end = 32.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                                    contentPadding = PaddingValues(bottom = bottomPadding)
+                                ) {
+                                    if (albums.isNotEmpty()) {
+                                        item {
+                                            Text(
+                                                text = "Albums",
+                                                color = Color.White,
+                                                fontSize = 16.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.padding(bottom = 8.dp)
+                                            )
+                                            LazyRow(
+                                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                            ) {
+                                                items(albums, key = { it.albumId }) { album ->
+                                                    Box(modifier = Modifier.width(130.dp)) {
+                                                        Column(
                                                             modifier = Modifier
-                                                                .size(110.dp)
-                                                                .clip(RoundedCornerShape(10.dp))
-                                                                .background(Color.White.copy(alpha = 0.08f)),
-                                                            contentAlignment = Alignment.Center
+                                                                .fillMaxWidth()
+                                                                .clip(RoundedCornerShape(14.dp))
+                                                                .background(Color.White.copy(alpha = 0.05f))
+                                                                .border(1.dp, Color(0xFF91D8FB).copy(alpha = 0.5f), RoundedCornerShape(14.dp))
+                                                                .clickable { onAlbumClick(album.albumId, album.title) }
+                                                                .padding(8.dp),
+                                                            horizontalAlignment = Alignment.CenterHorizontally
                                                         ) {
-                                                            AsyncImage(
-                                                                model = album.albumArtUri,
-                                                                contentDescription = album.title,
-                                                                modifier = Modifier.fillMaxSize(),
-                                                                contentScale = ContentScale.Crop,
-                                                                error = painterResource(id = com.sftwr.cleandevelopment.musicplayer.designsystem.R.drawable.ic_default_album_art),
-                                                                placeholder = painterResource(id = com.sftwr.cleandevelopment.musicplayer.designsystem.R.drawable.ic_default_album_art)
+                                                            Box(
+                                                                modifier = Modifier
+                                                                    .size(110.dp)
+                                                                    .clip(RoundedCornerShape(10.dp))
+                                                                    .background(Color.White.copy(alpha = 0.08f)),
+                                                                contentAlignment = Alignment.Center
+                                                            ) {
+                                                                AsyncImage(
+                                                                    model = album.albumArtUri,
+                                                                    contentDescription = album.title,
+                                                                    modifier = Modifier.fillMaxSize(),
+                                                                    contentScale = ContentScale.Crop,
+                                                                    error = painterResource(id = com.sftwr.cleandevelopment.musicplayer.designsystem.R.drawable.ic_default_album_art),
+                                                                    placeholder = painterResource(id = com.sftwr.cleandevelopment.musicplayer.designsystem.R.drawable.ic_default_album_art)
+                                                                )
+                                                            }
+                                                            Spacer(modifier = Modifier.height(6.dp))
+                                                            Text(
+                                                                text = album.title,
+                                                                color = Color.White,
+                                                                fontSize = 12.sp,
+                                                                fontWeight = FontWeight.Bold,
+                                                                maxLines = 1,
+                                                                overflow = TextOverflow.Ellipsis,
+                                                                textAlign = TextAlign.Center
                                                             )
                                                         }
-                                                        Spacer(modifier = Modifier.height(6.dp))
-                                                        Text(
-                                                            text = album.title,
-                                                            color = Color.White,
-                                                            fontSize = 12.sp,
-                                                            fontWeight = FontWeight.Bold,
-                                                            maxLines = 1,
-                                                            overflow = TextOverflow.Ellipsis,
-                                                            textAlign = TextAlign.Center
-                                                        )
                                                     }
                                                 }
                                             }
+                                            Spacer(modifier = Modifier.height(8.dp))
+                                            Text(
+                                                text = "Tracks",
+                                                color = Color.White,
+                                                fontSize = 16.sp,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.padding(bottom = 4.dp)
+                                            )
                                         }
-                                        Spacer(modifier = Modifier.height(8.dp))
-                                        Text(
-                                            text = "Tracks",
-                                            color = Color.White,
-                                            fontSize = 16.sp,
-                                            fontWeight = FontWeight.Bold,
-                                            modifier = Modifier.padding(bottom = 4.dp)
+                                    }
+
+                                    items(songs, key = { it.id }) { song ->
+                                        val isMenuExpanded = expandedSongId == song.id
+                                        val isThisSongPlaying =
+                                            (currentPlayingSongId == song.id) && isPlayingGlobal
+                                        val songIdLong = song.id.toLongOrNull() ?: -1L
+
+                                        TrackItem(
+                                            song = song,
+                                            onClick = { onSongClick(song.id) },
+                                            isMenuExpanded = isMenuExpanded,
+                                            onMenuClick = { expandedSongId = song.id },
+                                            onDismissMenu = { expandedSongId = null },
+                                            onDeleteClick = { onDeleteSongClick(songIdLong) },
+                                            onInfoClick = { onInfoClick(songIdLong) },
+                                            onTagEditClick = { onTagEditClick(songIdLong) },
+                                            onShareClick = { onShareClick(song) },
+                                            onAddToPlaylistClick = { onAddToPlaylistClick(song) },
+                                            onFavoriteClick = { onFavoriteClick(song) },
+                                            onRemoveFromPlaylist = null,
+                                            isPlaying = isThisSongPlaying
                                         )
                                     }
                                 }
 
-                                items(songs, key = { it.id }) { song ->
-                                    val isMenuExpanded = expandedSongId == song.id
-                                    val isThisSongPlaying =
-                                        (currentPlayingSongId == song.id) && isPlayingGlobal
-                                    val songIdLong = song.id.toLongOrNull() ?: -1L
-
-                                    TrackItem(
-                                        song = song,
-                                        onClick = { onSongClick(song.id) },
-                                        isMenuExpanded = isMenuExpanded,
-                                        onMenuClick = { expandedSongId = song.id },
-                                        onDismissMenu = { expandedSongId = null },
-                                        onDeleteClick = { onDeleteSongClick(songIdLong) },
-                                        onInfoClick = { onInfoClick(songIdLong) },
-                                        onTagEditClick = { onTagEditClick(songIdLong) },
-                                        onShareClick = { onShareClick(song) },
-                                        onAddToPlaylistClick = { onAddToPlaylistClick(song) },
-                                        onFavoriteClick = { onFavoriteClick(song) },
-                                        onRemoveFromPlaylist = null,
-                                        isPlaying = isThisSongPlaying
-                                    )
-                                }
+                                // Alphabet Fast Scroller Bar positioned on the right edge
+                                AlphabetIndexerBar(
+                                    letters = alphabet,
+                                    onLetterSelected = { targetLetter ->
+                                        val index = songs.indexOfFirst { song ->
+                                            song.title.startsWith(
+                                                targetLetter,
+                                                ignoreCase = true
+                                            )
+                                        }
+                                        if (index != -1) {
+                                            coroutineScope.launch {
+                                                listState.animateScrollToItem(index)
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .align(Alignment.CenterEnd)
+                                        .padding(bottom = bottomPadding)
+                                        .padding(end = 2.dp)
+                                )
                             }
                         }
                     }

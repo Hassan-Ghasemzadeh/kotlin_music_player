@@ -1,6 +1,12 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.favorites
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,14 +28,17 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +63,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.AlphabetIndexerBar
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
@@ -103,6 +113,7 @@ fun FavoritesScreen(
     val gridStateAlbums = rememberLazyGridState()
     val gridStateArtists = rememberLazyGridState()
     val gridStateGenres = rememberLazyGridState()
+    val alphabet = remember { ('A'..'Z').map { it.toString() } }
 
     LaunchedEffect(pagerState.currentPage) {
         if (uiState.selectedTabIndex != pagerState.currentPage) {
@@ -118,7 +129,39 @@ fun FavoritesScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = Color.Transparent
+        containerColor = Color.Transparent,
+        floatingActionButton = {
+            val adjustedBottomPadding = (bottomPadding - 60.dp).coerceAtLeast(8.dp)
+            AnimatedVisibility(
+                visible = uiState.selectedTabIndex == 0 && currentPlayingSongId != null,
+                enter = fadeIn() + scaleIn(),
+                exit = fadeOut() + scaleOut()
+            ) {
+                currentPlayingSongId?.let { playingId ->
+                    FloatingActionButton(
+                        onClick = {
+                            val targetIndex = uiState.favoriteSongs.indexOfFirst { it.id == playingId }
+                            if (targetIndex != -1) {
+                                coroutineScope.launch {
+                                    listStateTracks.animateScrollToItem(targetIndex)
+                                }
+                            }
+                        },
+                        containerColor = Color(0xFF91D8FB),
+                        contentColor = Color.Black,
+                        shape = CircleShape,
+                        modifier = Modifier
+                            .padding(bottom = adjustedBottomPadding)
+                            .border(2.dp, Color.White.copy(alpha = 0.5f), CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MusicNote,
+                            contentDescription = "Go to Playing Song"
+                        )
+                    }
+                }
+            }
+        }
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -298,33 +341,56 @@ fun FavoritesScreen(
 
                                         Spacer(modifier = Modifier.height(12.dp))
 
-                                        LazyColumn(
-                                            state = listStateTracks,
-                                            modifier = Modifier.fillMaxSize(),
-                                            verticalArrangement = Arrangement.spacedBy(10.dp),
-                                            contentPadding = PaddingValues(bottom = bottomPadding)
-                                        ) {
-                                            items(uiState.favoriteSongs, key = { it.id }) { song ->
-                                                val isMenuExpanded = expandedSongId == song.id
-                                                val isThisSongPlaying =
-                                                    (currentPlayingSongId == song.id) && isPlayingGlobal
-                                                val songIdLong = song.id.toLongOrNull() ?: -1L
+                                        Box(modifier = Modifier.fillMaxSize()) {
+                                            LazyColumn(
+                                                state = listStateTracks,
+                                                modifier = Modifier
+                                                    .fillMaxSize()
+                                                    .padding(end = 32.dp),
+                                                verticalArrangement = Arrangement.spacedBy(10.dp),
+                                                contentPadding = PaddingValues(bottom = bottomPadding)
+                                            ) {
+                                                items(uiState.favoriteSongs, key = { it.id }) { song ->
+                                                    val isMenuExpanded = expandedSongId == song.id
+                                                    val isThisSongPlaying =
+                                                        (currentPlayingSongId == song.id) && isPlayingGlobal
+                                                    val songIdLong = song.id.toLongOrNull() ?: -1L
 
-                                                TrackItem(
-                                                    song = song,
-                                                    onClick = { onSongClick(song.id) },
-                                                    isMenuExpanded = isMenuExpanded,
-                                                    onMenuClick = { expandedSongId = song.id },
-                                                    onDismissMenu = { expandedSongId = null },
-                                                    onDeleteClick = { onDeleteSongClick(songIdLong) },
-                                                    onInfoClick = { onInfoClick(songIdLong) },
-                                                    onTagEditClick = { onTagEditClick(songIdLong) },
-                                                    onShareClick = { onShareClick(song) },
-                                                    onAddToPlaylistClick = { onAddToPlaylistClick(song) },
-                                                    onFavoriteClick = { onFavoriteClick(song) },
-                                                    isPlaying = isThisSongPlaying
-                                                )
+                                                    TrackItem(
+                                                        song = song,
+                                                        onClick = { onSongClick(song.id) },
+                                                        isMenuExpanded = isMenuExpanded,
+                                                        onMenuClick = { expandedSongId = song.id },
+                                                        onDismissMenu = { expandedSongId = null },
+                                                        onDeleteClick = { onDeleteSongClick(songIdLong) },
+                                                        onInfoClick = { onInfoClick(songIdLong) },
+                                                        onTagEditClick = { onTagEditClick(songIdLong) },
+                                                        onShareClick = { onShareClick(song) },
+                                                        onAddToPlaylistClick = { onAddToPlaylistClick(song) },
+                                                        onFavoriteClick = { onFavoriteClick(song) },
+                                                        isPlaying = isThisSongPlaying
+                                                    )
+                                                }
                                             }
+
+                                            // Alphabet Fast Scroller Bar
+                                            AlphabetIndexerBar(
+                                                letters = alphabet,
+                                                onLetterSelected = { targetLetter ->
+                                                    val index = uiState.favoriteSongs.indexOfFirst { song ->
+                                                        song.title.startsWith(targetLetter, ignoreCase = true)
+                                                    }
+                                                    if (index != -1) {
+                                                        coroutineScope.launch {
+                                                            listStateTracks.animateScrollToItem(index)
+                                                        }
+                                                    }
+                                                },
+                                                modifier = Modifier
+                                                    .align(Alignment.CenterEnd)
+                                                    .padding(bottom = bottomPadding)
+                                                    .padding(end = 2.dp)
+                                            )
                                         }
                                     }
 

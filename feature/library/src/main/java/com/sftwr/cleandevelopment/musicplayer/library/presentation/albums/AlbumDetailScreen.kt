@@ -1,11 +1,17 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.albums
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -29,6 +35,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.AlphabetIndexerBar
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
@@ -39,7 +46,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.TrackI
 import kotlinx.coroutines.launch
 
 /**
- * AlbumDetailScreen displaying album header banner with artwork, title, artist, and track list.
+ * AlbumDetailScreen displaying album header banner with artwork, title, artist, track list, AlphabetIndexerBar, and FAB to jump to playing song.
  */
 @Composable
 fun AlbumDetailScreen(
@@ -73,10 +80,43 @@ fun AlbumDetailScreen(
     var expandedSongId by remember { mutableStateOf<String?>(null) }
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
+    val alphabet = remember { ('A'..'Z').map { it.toString() } }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = Color.Transparent
+        containerColor = Color.Transparent,
+        floatingActionButton = {
+            val adjustedBottomPadding = (bottomPadding - 60.dp).coerceAtLeast(8.dp)
+            AnimatedVisibility(
+                visible = currentPlayingSongId != null,
+                enter = fadeIn() + scaleIn(),
+                exit = fadeOut() + scaleOut()
+            ) {
+                currentPlayingSongId?.let { playingId ->
+                    FloatingActionButton(
+                        onClick = {
+                            val targetIndex = songs.indexOfFirst { it.id == playingId }
+                            if (targetIndex != -1) {
+                                coroutineScope.launch {
+                                    listState.animateScrollToItem(targetIndex)
+                                }
+                            }
+                        },
+                        containerColor = Color(0xFF91D8FB),
+                        contentColor = Color.Black,
+                        shape = CircleShape,
+                        modifier = Modifier
+                            .padding(bottom = adjustedBottomPadding)
+                            .border(2.dp, Color.White.copy(alpha = 0.5f), CircleShape)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.MusicNote,
+                            contentDescription = "Go to Playing Song"
+                        )
+                    }
+                }
+            }
+        }
     ) { innerPadding ->
         Box(
             modifier = Modifier
@@ -273,34 +313,60 @@ fun AlbumDetailScreen(
                         }
 
                         else -> {
-                            LazyColumn(
-                                state = listState,
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.spacedBy(10.dp),
-                                contentPadding = PaddingValues(bottom = bottomPadding)
-                            ) {
-                                items(songs, key = { it.id }) { song ->
-                                    val isMenuExpanded = expandedSongId == song.id
-                                    val isThisSongPlaying =
-                                        (currentPlayingSongId == song.id) && isPlayingGlobal
-                                    val songIdLong = song.id.toLongOrNull() ?: -1L
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                LazyColumn(
+                                    state = listState,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(end = 32.dp),
+                                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                                    contentPadding = PaddingValues(bottom = bottomPadding)
+                                ) {
+                                    items(songs, key = { it.id }) { song ->
+                                        val isMenuExpanded = expandedSongId == song.id
+                                        val isThisSongPlaying =
+                                            (currentPlayingSongId == song.id) && isPlayingGlobal
+                                        val songIdLong = song.id.toLongOrNull() ?: -1L
 
-                                    TrackItem(
-                                        song = song,
-                                        onClick = { onSongClick(song.id) },
-                                        isMenuExpanded = isMenuExpanded,
-                                        onMenuClick = { expandedSongId = song.id },
-                                        onDismissMenu = { expandedSongId = null },
-                                        onDeleteClick = { onDeleteSongClick(songIdLong) },
-                                        onInfoClick = { onInfoClick(songIdLong) },
-                                        onTagEditClick = { onTagEditClick(songIdLong) },
-                                        onShareClick = { onShareClick(song) },
-                                        onAddToPlaylistClick = { onAddToPlaylistClick(song) },
-                                        onFavoriteClick = { onFavoriteClick(song) },
-                                        onRemoveFromPlaylist = null,
-                                        isPlaying = isThisSongPlaying
-                                    )
+                                        TrackItem(
+                                            song = song,
+                                            onClick = { onSongClick(song.id) },
+                                            isMenuExpanded = isMenuExpanded,
+                                            onMenuClick = { expandedSongId = song.id },
+                                            onDismissMenu = { expandedSongId = null },
+                                            onDeleteClick = { onDeleteSongClick(songIdLong) },
+                                            onInfoClick = { onInfoClick(songIdLong) },
+                                            onTagEditClick = { onTagEditClick(songIdLong) },
+                                            onShareClick = { onShareClick(song) },
+                                            onAddToPlaylistClick = { onAddToPlaylistClick(song) },
+                                            onFavoriteClick = { onFavoriteClick(song) },
+                                            onRemoveFromPlaylist = null,
+                                            isPlaying = isThisSongPlaying
+                                        )
+                                    }
                                 }
+
+                                // Alphabet Fast Scroller Bar positioned on the right edge
+                                AlphabetIndexerBar(
+                                    letters = alphabet,
+                                    onLetterSelected = { targetLetter ->
+                                        val index = songs.indexOfFirst { song ->
+                                            song.title.startsWith(
+                                                targetLetter,
+                                                ignoreCase = true
+                                            )
+                                        }
+                                        if (index != -1) {
+                                            coroutineScope.launch {
+                                                listState.animateScrollToItem(index)
+                                            }
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .align(Alignment.CenterEnd)
+                                        .padding(bottom = bottomPadding)
+                                        .padding(end = 2.dp)
+                                )
                             }
                         }
                     }
