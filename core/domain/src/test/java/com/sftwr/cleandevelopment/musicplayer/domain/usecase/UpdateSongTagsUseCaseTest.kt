@@ -23,6 +23,15 @@ class UpdateSongTagsUseCaseTest {
         var shouldReturnError = false
 
         override fun getDeviceSongs(): Flow<List<Song>> = emptyFlow()
+        override fun getAlbums(): Flow<List<com.sftwr.cleandevelopment.musicplayer.domain.model.Album>> = emptyFlow()
+        override fun getAlbumSongs(albumId: Long): Flow<List<Song>> = emptyFlow()
+        override fun getArtists(): Flow<List<com.sftwr.cleandevelopment.musicplayer.domain.model.Artist>> = emptyFlow()
+        override fun getArtistSongs(artistName: String): Flow<List<Song>> = emptyFlow()
+        override fun getArtistAlbums(artistName: String): Flow<List<com.sftwr.cleandevelopment.musicplayer.domain.model.Album>> = emptyFlow()
+        override fun getGenres(): Flow<List<com.sftwr.cleandevelopment.musicplayer.domain.model.Genre>> = emptyFlow()
+        override fun getGenreSongs(genreName: String): Flow<List<Song>> = emptyFlow()
+        override fun getFolders(): Flow<List<com.sftwr.cleandevelopment.musicplayer.domain.model.Folder>> = emptyFlow()
+        override fun getFolderSongs(folderPath: String): Flow<List<Song>> = emptyFlow()
 
         override suspend fun syncWithDevice() {}
 
