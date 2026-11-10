@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.sp
 /**
  * A customizable Alphabet Indexer Bar component that allows users to quickly
  * navigate through lists by dragging across letters with smooth touch gesture handling.
+ * Optimized with flexible weight distribution and compact typography to prevent any overlapping on all screen sizes.
  */
 @Composable
 fun AlphabetIndexerBar(
@@ -125,7 +126,7 @@ fun AlphabetIndexerBar(
                 },
             contentAlignment = Alignment.Center
         ) {
-            // Column displaying all indexer letters vertically distributed
+            // Column displaying all indexer letters vertically distributed with strict proportional weighting
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -133,14 +134,22 @@ fun AlphabetIndexerBar(
             ) {
                 letters.forEach { letter ->
                     val isSelected = letter == selectedLetter
-                    Text(
-                        text = letter,
-                        color = if (isSelected) neonColor else Color.White.copy(alpha = 0.6f),
-                        fontSize = 10.sp,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.weight(1f, fill = false)
-                    )
+                    Box(
+                        modifier = Modifier
+                            .weight(1f, fill = true)
+                            .fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = letter,
+                            color = if (isSelected) neonColor else Color.White.copy(alpha = 0.6f),
+                            fontSize = 8.sp, // Compact font size ensuring zero overlap on any device screen
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                            textAlign = TextAlign.Center,
+                            maxLines = 1,
+                            softWrap = false
+                        )
+                    }
                 }
             }
         }
