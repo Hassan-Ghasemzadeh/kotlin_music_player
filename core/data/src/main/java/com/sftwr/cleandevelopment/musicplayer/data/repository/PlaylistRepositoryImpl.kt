@@ -9,6 +9,8 @@ import com.sftwr.cleandevelopment.musicplayer.data.source.local.PlaylistDao
 import com.sftwr.cleandevelopment.musicplayer.data.source.local.SongDao
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Artist
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Genre
+import com.sftwr.cleandevelopment.musicplayer.domain.model.GenreItem
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.PlaylistType
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
@@ -139,6 +141,24 @@ class PlaylistRepositoryImpl @Inject constructor(
             .flowOn(Dispatchers.IO)
     }
 
+    override fun getFavoriteGenres(): Flow<List<GenreItem>> {
+        return songDao.getAllSongsFlow()
+            .map { entities ->
+                entities.groupBy { it.genre.ifBlank { "Unknown Genre" } }
+                    .filter { (_, songEntities) ->
+                        songEntities.isNotEmpty() && songEntities.all { it.isFavorite }
+                    }
+                    .map { (genreName, songEntities) ->
+                        Genre(
+                            name = genreName,
+                            trackCount = songEntities.size
+                        )
+                    }
+                    .sortedBy { it.name }
+            }
+            .flowOn(Dispatchers.IO)
+    }
+
     override suspend fun createCustomPlaylist(name: String, songIds: List<Long>): Long = withContext(Dispatchers.IO) {
         val entity = PlaylistEntity(name = name)
         val playlistId = playlistDao.insertPlaylist(entity)
@@ -174,6 +194,10 @@ class PlaylistRepositoryImpl @Inject constructor(
 
     override suspend fun toggleArtistFavorite(artistName: String, isFavorite: Boolean) = withContext(Dispatchers.IO) {
         playlistDao.setArtistFavorite(artistName, isFavorite)
+    }
+
+    override suspend fun toggleGenreFavorite(genreName: String, isFavorite: Boolean) = withContext(Dispatchers.IO) {
+        playlistDao.setGenreFavorite(genreName, isFavorite)
     }
 
     override suspend fun recordSongPlayed(songId: Long) = withContext(Dispatchers.IO) {

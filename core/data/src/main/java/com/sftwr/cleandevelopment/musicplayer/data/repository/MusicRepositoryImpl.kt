@@ -15,6 +15,10 @@ import com.sftwr.cleandevelopment.musicplayer.data.source.local.SongDao
 import com.sftwr.cleandevelopment.musicplayer.data.util.AudioTagEditor
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Artist
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Folder
+import com.sftwr.cleandevelopment.musicplayer.domain.model.FolderItem
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Genre
+import com.sftwr.cleandevelopment.musicplayer.domain.model.GenreItem
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.MusicRepository
@@ -125,6 +129,68 @@ class MusicRepositoryImpl @Inject constructor(
                     .sortedBy { it.title }
             }
             .flowOn(Dispatchers.IO)
+    }
+
+    override fun getGenres(): Flow<List<GenreItem>> {
+        return songDao.getAllSongsFlow()
+            .map { entities ->
+                entities.groupBy { it.genre.ifBlank { "Unknown Genre" } }
+                    .map { (genreName, songEntities) ->
+                        Genre(
+                            name = genreName,
+                            trackCount = songEntities.size
+                        )
+                    }
+                    .sortedBy { it.name }
+            }
+            .flowOn(Dispatchers.IO)
+    }
+
+    override fun getGenreSongs(genreName: String): Flow<List<Song>> {
+        return songDao.getAllSongsFlow()
+            .map { entities ->
+                entities.filter { it.genre.ifBlank { "Unknown Genre" } == genreName }
+                    .map { it.toDomain() }
+            }
+            .flowOn(Dispatchers.IO)
+    }
+
+    override fun getFolders(): Flow<List<FolderItem>> {
+        return songDao.getAllSongsFlow()
+            .map { entities ->
+                entities.groupBy { getParentFolderPath(it.path) }
+                    .filterKeys { it.isNotEmpty() }
+                    .map { (folderPath, songEntities) ->
+                        Folder(
+                            path = folderPath,
+                            name = getFolderName(folderPath),
+                            trackCount = songEntities.size
+                        )
+                    }
+                    .sortedBy { it.name }
+            }
+            .flowOn(Dispatchers.IO)
+    }
+
+    override fun getFolderSongs(folderPath: String): Flow<List<Song>> {
+        return songDao.getAllSongsFlow()
+            .map { entities ->
+                entities.filter { getParentFolderPath(it.path) == folderPath }
+                    .map { it.toDomain() }
+            }
+            .flowOn(Dispatchers.IO)
+    }
+
+    private fun getParentFolderPath(path: String): String {
+        if (path.isBlank()) return ""
+        val file = File(path)
+        return file.parent ?: ""
+    }
+
+    private fun getFolderName(folderPath: String): String {
+        if (folderPath.isBlank()) return "Unknown Folder"
+        val file = File(folderPath)
+        return file.name.ifBlank { "Unknown Folder" }
     }
 
     /**
