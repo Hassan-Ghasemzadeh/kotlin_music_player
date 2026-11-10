@@ -83,7 +83,8 @@ fun SlantedNavigationDrawerContent(
             .width(280.dp)
             .background(DrawerDarkGradient)
             .statusBarsPadding()
-            .padding(top = 16.dp, bottom = 32.dp, start = 20.dp, end = 20.dp)
+            .navigationBarsPadding()
+            .padding(top = 16.dp, bottom = 24.dp, start = 20.dp, end = 20.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
