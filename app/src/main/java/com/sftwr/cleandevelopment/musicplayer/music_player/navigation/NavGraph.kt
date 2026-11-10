@@ -14,6 +14,10 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.artists.artis
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.artists.artistsGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.edit.editTagScreenGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.favorites.favoritesGraph
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.folders.folderDetailGraph
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.folders.foldersGraph
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.genres.genreDetailGraph
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.genres.genresGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.homeGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.PlayerScreen
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.playlist_detail.playlistDetailGraph
@@ -63,6 +67,12 @@ fun AppNavGraph(
             onNavigateToFavorites = {
                 navController.navigate(Screen.Favorites)
             },
+            onNavigateToFolders = {
+                navController.navigate(Screen.Folders)
+            },
+            onNavigateToGenres = {
+                navController.navigate(Screen.Genres)
+            },
             onOpenPlaylistDetail = { id, title, typeName ->
                 navController.navigate(Screen.PlaylistDetail(id, title, typeName))
             }
@@ -82,6 +92,9 @@ fun AppNavGraph(
             },
             onArtistClick = { artistName ->
                 navController.navigate(Screen.ArtistDetail(artistName))
+            },
+            onGenreClick = { genreName ->
+                navController.navigate(Screen.GenreDetail(genreName))
             },
             onInfoClick = { songId ->
                 navController.navigate(Screen.SongDetail(songId))
@@ -114,6 +127,66 @@ fun AppNavGraph(
             },
             onSearchClick = {
                 navController.navigate(Screen.Search)
+            }
+        )
+
+        // Folders feature navigation graph
+        foldersGraph(
+            onFolderClick = { folderPath, folderName ->
+                navController.navigate(Screen.FolderDetail(folderPath, folderName))
+            },
+            onBackClick = {
+                navController.popBackStack()
+            },
+            onSearchClick = {
+                navController.navigate(Screen.Search)
+            }
+        )
+
+        // Genres feature navigation graph
+        genresGraph(
+            onGenreClick = { genreName ->
+                navController.navigate(Screen.GenreDetail(genreName))
+            },
+            onBackClick = {
+                navController.popBackStack()
+            },
+            onSearchClick = {
+                navController.navigate(Screen.Search)
+            }
+        )
+
+        // Folder Detail feature navigation graph
+        folderDetailGraph(
+            playerManager = playerManager,
+            onBackClick = {
+                navController.popBackStack()
+            },
+            onSearchClick = {
+                navController.navigate(Screen.Search)
+            },
+            onInfoClick = { songId ->
+                navController.navigate(Screen.SongDetail(songId))
+            },
+            onTagEditClick = { songId ->
+                navController.navigate(Screen.EditTagScreen(songId))
+            }
+        )
+
+        // Genre Detail feature navigation graph
+        genreDetailGraph(
+            playerManager = playerManager,
+            onBackClick = {
+                navController.popBackStack()
+            },
+            onSearchClick = {
+                navController.navigate(Screen.Search)
+            },
+            onInfoClick = { songId ->
+                navController.navigate(Screen.SongDetail(songId))
+            },
+            onTagEditClick = { songId ->
+                navController.navigate(Screen.EditTagScreen(songId))
             }
         )
 
