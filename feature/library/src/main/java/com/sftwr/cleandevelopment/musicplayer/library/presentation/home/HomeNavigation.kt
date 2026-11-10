@@ -18,6 +18,8 @@ fun NavGraphBuilder.homeGraph(
     onNavigateToAlbums: () -> Unit = {},
     onNavigateToArtists: () -> Unit = {},
     onNavigateToFavorites: () -> Unit = {},
+    onNavigateToFolders: () -> Unit = {},
+    onNavigateToGenres: () -> Unit = {},
     onOpenPlaylistDetail: (id: Long, title: String, typeName: String) -> Unit = { _, _, _ -> },
 ) {
     composable<Screen.Home> {
@@ -30,6 +32,8 @@ fun NavGraphBuilder.homeGraph(
             onNavigateToAlbums = onNavigateToAlbums,
             onNavigateToArtists = onNavigateToArtists,
             onNavigateToFavorites = onNavigateToFavorites,
+            onNavigateToFolders = onNavigateToFolders,
+            onNavigateToGenres = onNavigateToGenres,
             onOpenPlaylistDetail = onOpenPlaylistDetail
         )
     }

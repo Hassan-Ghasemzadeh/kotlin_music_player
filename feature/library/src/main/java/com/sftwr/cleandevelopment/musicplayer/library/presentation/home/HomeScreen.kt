@@ -45,6 +45,8 @@ fun HomeScreen(
     albumsCount: String,
     artistsCount: String,
     favoriteCount: String = "0",
+    foldersCount: String = "0",
+    genresCount: String = "0",
 ) {
     val permissionsState = rememberAppPermissionsState()
 
@@ -167,15 +169,35 @@ fun HomeScreen(
                     ) {
                         LibraryCard(
                             title = "FOLDERS",
-                            subtitle = "(2)",
+                            subtitle = "($foldersCount)",
                             icon = Icons.Default.Folder,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable(
+                                    onClick = {
+                                        if (isAudioPermissionGranted) {
+                                            actions.onNavigateToFolders()
+                                        } else {
+                                            permissionsState.launchMultiplePermissionRequest()
+                                        }
+                                    }
+                                )
                         )
                         LibraryCard(
                             title = "GENRES",
-                            subtitle = "(13)",
+                            subtitle = "($genresCount)",
                             icon = Icons.Default.MusicVideo,
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier
+                                .weight(1f)
+                                .clickable(
+                                    onClick = {
+                                        if (isAudioPermissionGranted) {
+                                            actions.onNavigateToGenres()
+                                        } else {
+                                            permissionsState.launchMultiplePermissionRequest()
+                                        }
+                                    }
+                                )
                         )
                         LibraryCard(
                             title = "FAVORITES",

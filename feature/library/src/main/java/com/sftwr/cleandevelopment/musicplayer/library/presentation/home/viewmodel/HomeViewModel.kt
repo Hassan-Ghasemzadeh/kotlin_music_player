@@ -88,6 +88,28 @@ class HomeViewModel @Inject constructor(
             initialValue = 0
         )
 
+    // Automatically calculate and expose the total folder count as a reactive StateFlow
+    val folderCount: StateFlow<Int> = songsState
+        .map { songs ->
+            songs.map { song ->
+                if (song.path.isNotBlank()) java.io.File(song.path).parent ?: "" else ""
+            }.filter { it.isNotEmpty() }.distinct().size
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 0
+        )
+
+    // Automatically calculate and expose the total genre count as a reactive StateFlow
+    val genreCount: StateFlow<Int> = songsState
+        .map { songs -> songs.map { it.genre.ifBlank { "Unknown Genre" } }.distinct().size }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 0
+        )
+
     private fun loadInitialData() {
         viewModelScope.launch {
             _uiState.value = _uiState.value.copy(
