@@ -234,11 +234,11 @@ fun PlayerScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Action Buttons Row (Favorite, Add to Playlist, Equalizer, Share)
+            // Action Buttons Row (Favorite, Add to Playlist, Share)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
+                    .padding(horizontal = 32.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -256,15 +256,6 @@ fun PlayerScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.PlaylistAdd,
                         contentDescription = "Add to Playlist",
-                        tint = Color(0xFF91D8FB),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-
-                IconButton(onClick = { showEqualizerSheet = true }) {
-                    Icon(
-                        imageVector = Icons.Default.Equalizer,
-                        contentDescription = "Equalizer",
                         tint = Color(0xFF91D8FB),
                         modifier = Modifier.size(24.dp)
                     )
