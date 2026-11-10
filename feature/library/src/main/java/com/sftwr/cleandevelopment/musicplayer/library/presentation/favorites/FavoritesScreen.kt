@@ -1,7 +1,18 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.favorites
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -15,9 +26,24 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.ScrollableTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRowDefaults
 import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
-import androidx.compose.runtime.*
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
@@ -32,13 +58,14 @@ import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAw
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.albums.AlbumItemCard
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.artists.ArtistItemCard
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.AddToPlaylistDialog
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.genres.GenreItemCard
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.TrackItem
 import kotlinx.coroutines.launch
 
 /**
  * Stateless screen for Favorites featuring tabs for Favorite Tracks, Favorite Albums,
- * Favorite Artists, and future placeholders for Favorite Genres, with smooth HorizontalPager swiping.
+ * Favorite Artists, and Favorite Genres, with smooth HorizontalPager swiping.
  */
 @Composable
 fun FavoritesScreen(
@@ -51,6 +78,7 @@ fun FavoritesScreen(
     onPlayAllClick: () -> Unit,
     onAlbumClick: (Long, String) -> Unit,
     onArtistClick: (String) -> Unit,
+    onGenreClick: (String) -> Unit = {},
     onBackClick: () -> Unit,
     onSearchClick: () -> Unit,
     onAddToPlaylistClick: (SongUiModel) -> Unit = {},
@@ -186,7 +214,7 @@ fun FavoritesScreen(
                             onTabSelected(3)
                             coroutineScope.launch { pagerState.animateScrollToPage(3) }
                         },
-                        text = { Text("Genres (Coming Soon)", fontWeight = FontWeight.Bold) },
+                        text = { Text("Genres (${uiState.favoriteGenres.size})", fontWeight = FontWeight.Bold) },
                         selectedContentColor = Color(0xFF91D8FB),
                         unselectedContentColor = Color.White.copy(alpha = 0.6f)
                     )
@@ -343,11 +371,28 @@ fun FavoritesScreen(
                         }
 
                         3 -> {
-                            // Favorite Genres Placeholder Tab
-                            PlaceholderTabContent(
-                                title = "Favorite Genres",
-                                description = "Architecture prepared for future Favorite Genres feature."
-                            )
+                            // Favorite Genres Tab
+                            if (uiState.favoriteGenres.isEmpty()) {
+                                EmptyFavoritesState(
+                                    title = "No Favorite Genres",
+                                    subtitle = "Favorite a genre from the genre detail screen to see it here."
+                                )
+                            } else {
+                                LazyVerticalGrid(
+                                    columns = GridCells.Fixed(2),
+                                    modifier = Modifier.fillMaxSize(),
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                                    contentPadding = PaddingValues(bottom = bottomPadding)
+                                ) {
+                                    items(uiState.favoriteGenres, key = { it.name }) { genre ->
+                                        GenreItemCard(
+                                            genre = genre,
+                                            onClick = { onGenreClick(genre.name) }
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
                 }
@@ -407,50 +452,5 @@ fun EmptyFavoritesState(title: String, subtitle: String) {
             color = Color.White.copy(alpha = 0.5f),
             textAlign = TextAlign.Center
         )
-    }
-}
-
-@Composable
-fun PlaceholderTabContent(title: String, description: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(24.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        GlassCard(
-            modifier = Modifier.fillMaxWidth(),
-            shape = RoundedCornerShape(20.dp)
-        ) {
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Favorite,
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                    tint = Color(0xFF91D8FB)
-                )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleLarge,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold,
-                    textAlign = TextAlign.Center
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = Color.White.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center
-                )
-            }
-        }
     }
 }

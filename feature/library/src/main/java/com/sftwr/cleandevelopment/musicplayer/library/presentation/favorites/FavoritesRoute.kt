@@ -22,6 +22,7 @@ fun FavoritesRoute(
     onSearchClick: () -> Unit,
     onAlbumClick: (Long, String) -> Unit,
     onArtistClick: (String) -> Unit,
+    onGenreClick: (String) -> Unit = {},
     onInfoClick: (Long) -> Unit,
     onTagEditClick: (Long) -> Unit
 ) {
@@ -45,6 +46,7 @@ fun FavoritesRoute(
         onPlayAllClick = { viewModel.playAllFavoriteSongs() },
         onAlbumClick = onAlbumClick,
         onArtistClick = onArtistClick,
+        onGenreClick = onGenreClick,
         onBackClick = onBackClick,
         onSearchClick = onSearchClick,
         onAddToPlaylistClick = { song -> viewModel.openAddToPlaylistDialog(song) },

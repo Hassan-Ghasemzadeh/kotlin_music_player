@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Artist
+import com.sftwr.cleandevelopment.musicplayer.domain.model.GenreItem
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.PlaylistType
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
@@ -19,7 +20,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 /**
- * ViewModel managing favorite tracks, favorite albums, and future favorite categories.
+ * ViewModel managing favorite tracks, favorite albums, favorite artists, and favorite genres.
  */
 @HiltViewModel
 class FavoritesViewModel @Inject constructor(
@@ -58,7 +59,7 @@ class FavoritesViewModel @Inject constructor(
         @Suppress("UNCHECKED_CAST")
         val artists = args[3] as List<Artist>
         @Suppress("UNCHECKED_CAST")
-        val genres = args[4] as List<String>
+        val genres = args[4] as List<GenreItem>
         @Suppress("UNCHECKED_CAST")
         val playlists = args[5] as List<Playlist>
         val targetSong = args[6] as SongUiModel?
