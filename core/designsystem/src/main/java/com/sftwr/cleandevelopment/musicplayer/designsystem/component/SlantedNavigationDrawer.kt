@@ -192,7 +192,7 @@ fun SlantedNavigationDrawerContent(
 
             // Footer version
             Text(
-                text = "Version 1.0.0 • Clean Architecture",
+                text = "Version 1.0.0",
                 color = Color.White.copy(alpha = 0.5f),
                 fontSize = 11.sp,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
