@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.sp
 /**
  * A customizable Alphabet Indexer Bar component that allows users to quickly
  * navigate through lists by dragging across letters with smooth touch gesture handling.
- * Optimized with flexible weight distribution and compact typography to prevent any overlapping on all screen sizes.
+ * Optimized with 10.sp font size and expanded vertical height space to prevent overlapping.
  */
 @Composable
 fun AlphabetIndexerBar(
@@ -66,7 +66,7 @@ fun AlphabetIndexerBar(
         modifier = modifier
             .fillMaxHeight()
             .width(32.dp)
-            .padding(vertical = 16.dp),
+            .padding(vertical = 6.dp), // Reduced vertical padding to give more height to the indexer bar
         contentAlignment = Alignment.CenterEnd
     ) {
         // Floating bubble indicator showing the currently selected letter popup
@@ -98,7 +98,7 @@ fun AlphabetIndexerBar(
         Box(
             modifier = Modifier
                 .fillMaxHeight()
-                .width(20.dp)
+                .width(22.dp)
                 .clip(RoundedCornerShape(12.dp))
                 .background(glassColor)
                 .onGloballyPositioned { coordinates ->
@@ -126,7 +126,7 @@ fun AlphabetIndexerBar(
                 },
             contentAlignment = Alignment.Center
         ) {
-            // Column displaying all indexer letters vertically distributed with strict proportional weighting
+            // Column displaying all indexer letters vertically distributed
             Column(
                 modifier = Modifier.fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -143,7 +143,7 @@ fun AlphabetIndexerBar(
                         Text(
                             text = letter,
                             color = if (isSelected) neonColor else Color.White.copy(alpha = 0.6f),
-                            fontSize = 8.sp, // Compact font size ensuring zero overlap on any device screen
+                            fontSize = 10.sp, // Restored 10.sp font size as requested
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                             textAlign = TextAlign.Center,
                             maxLines = 1,
