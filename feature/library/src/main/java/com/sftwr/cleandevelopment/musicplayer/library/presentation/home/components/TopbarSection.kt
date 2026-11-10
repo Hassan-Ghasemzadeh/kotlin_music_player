@@ -27,7 +27,8 @@ import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
  */
 @Composable
 fun TopBarSection(
-    onSearchClick: () -> Unit = {}
+    onSearchClick: () -> Unit = {},
+    onMenuClick: () -> Unit = {}
 ) {
     GlassCard(
         modifier = Modifier
@@ -41,7 +42,7 @@ fun TopBarSection(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            IconButton(onClick = { /* Handle menu click */ }) {
+            IconButton(onClick = onMenuClick) {
                 Icon(
                     imageVector = Icons.Default.Menu,
                     contentDescription = "Menu",

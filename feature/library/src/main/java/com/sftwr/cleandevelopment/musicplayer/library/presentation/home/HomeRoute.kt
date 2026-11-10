@@ -25,6 +25,7 @@ fun HomeRoute(
     onNavigateToGenres: () -> Unit = {},
     onOpenPlaylist: (String) -> Unit,
     onOpenPlaylistDetail: (id: Long, title: String, typeName: String) -> Unit = { _, _, _ -> },
+    onOpenDrawer: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     // Collect UI state safely with lifecycle awareness
@@ -74,6 +75,7 @@ fun HomeRoute(
             onNavigateToFolders = onNavigateToFolders,
             onNavigateToGenres = onNavigateToGenres,
             onPermissionGranted = { viewModel.syncDeviceSongs() },
+            onMenuClick = onOpenDrawer,
         ),
         modifier = modifier,
         tracksCount = trackCount.toString(),

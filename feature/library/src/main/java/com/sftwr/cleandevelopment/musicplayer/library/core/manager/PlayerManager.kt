@@ -46,7 +46,7 @@ class PlayerManager @Inject constructor(
     private val getDeviceSongsUseCase: GetDeviceSongsUseCase,
     private val songPreferencesRepository: SongPreferencesRepository,
     private val playlistRepository: PlaylistRepository,
-    private val musicRepository: MusicRepository,
+    val musicRepository: MusicRepository,
     val equalizerAudioFxManager: EqualizerAudioFxManager,
     @param:ApplicationContext private val context: Context,
 ) {

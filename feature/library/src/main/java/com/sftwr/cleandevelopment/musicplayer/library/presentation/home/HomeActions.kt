@@ -20,5 +20,6 @@ data class HomeActions(
     val onToggleSelectAll: (List<Long>) -> Unit = {},
     val onTrackSearchQueryChanged: (String) -> Unit = {},
     val onConfirmCreate: () -> Unit = {},
-    val onPermissionGranted: () -> Unit = {}
+    val onPermissionGranted: () -> Unit = {},
+    val onMenuClick: () -> Unit = {}
 )

@@ -89,7 +89,8 @@ fun HomeScreen(
         ) {
             // Top App Bar with Menu, Title, and Search icons
             TopBarSection(
-                onSearchClick = actions.onSearchClick
+                onSearchClick = actions.onSearchClick,
+                onMenuClick = actions.onMenuClick
             )
 
             Spacer(modifier = Modifier.height(16.dp))
