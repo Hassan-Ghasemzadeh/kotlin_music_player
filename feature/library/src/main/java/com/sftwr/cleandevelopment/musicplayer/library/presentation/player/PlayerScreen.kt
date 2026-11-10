@@ -24,6 +24,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
+import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -67,6 +68,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.core.util.toMillis
 import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.AudioVisualizerManager
 import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.CircularVisualizerType
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.AddToPlaylistDialog
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.equalizer.EqualizerBottomSheet
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.viewmodel.PlayerViewModel
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.viewmodel.RepeatMode
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.visualizer.NeonCircularVisualizer
@@ -93,6 +95,8 @@ fun PlayerScreen(
     val songState by viewModel.currentSong.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
     val isAddToPlaylistDialogVisible by viewModel.isAddToPlaylistDialogVisible.collectAsState()
+
+    var showEqualizerSheet by remember { mutableStateOf(false) }
 
     val totalDuration = songState?.duration ?: ""
     val songTitle = songState?.title ?: "Unknown Title"
@@ -177,7 +181,7 @@ fun PlayerScreen(
             modifier = Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Top screen header bar with collapse button
+            // Top screen header bar with collapse button and equalizer button
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -200,7 +204,14 @@ fun PlayerScreen(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f)
                 )
-                Spacer(modifier = Modifier.width(48.dp))
+                IconButton(onClick = { showEqualizerSheet = true }) {
+                    Icon(
+                        imageVector = Icons.Default.Equalizer,
+                        contentDescription = "Equalizer",
+                        tint = Color(0xFF91D8FB),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -223,11 +234,11 @@ fun PlayerScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Action Buttons Row (Favorite, Add to Playlist, Share)
+            // Action Buttons Row (Favorite, Add to Playlist, Equalizer, Share)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 32.dp),
+                    .padding(horizontal = 24.dp),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -245,6 +256,15 @@ fun PlayerScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.PlaylistAdd,
                         contentDescription = "Add to Playlist",
+                        tint = Color(0xFF91D8FB),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                IconButton(onClick = { showEqualizerSheet = true }) {
+                    Icon(
+                        imageVector = Icons.Default.Equalizer,
+                        contentDescription = "Equalizer",
                         tint = Color(0xFF91D8FB),
                         modifier = Modifier.size(24.dp)
                     )
@@ -417,6 +437,15 @@ fun PlayerScreen(
                 },
                 onDismissRequest = {
                     viewModel.closeAddToPlaylistDialog()
+                }
+            )
+        }
+
+        // Equalizer Custom Bottom Sheet
+        if (showEqualizerSheet) {
+            EqualizerBottomSheet(
+                onDismissRequest = {
+                    showEqualizerSheet = false
                 }
             )
         }
