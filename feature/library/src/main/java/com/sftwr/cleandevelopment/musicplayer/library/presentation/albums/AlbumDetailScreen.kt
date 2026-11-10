@@ -5,10 +5,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.MusicNote
@@ -33,8 +33,10 @@ import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.AddToPlaylistDialog
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.ScrollToTopButton
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.TrackItem
+import kotlinx.coroutines.launch
 
 /**
  * AlbumDetailScreen displaying album header banner with artwork, title, artist, and track list.
@@ -69,6 +71,8 @@ fun AlbumDetailScreen(
 ) {
     val bottomPadding = rememberPlayerAwareBottomPadding()
     var expandedSongId by remember { mutableStateOf<String?>(null) }
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -270,6 +274,7 @@ fun AlbumDetailScreen(
 
                         else -> {
                             LazyColumn(
+                                state = listState,
                                 modifier = Modifier.fillMaxSize(),
                                 verticalArrangement = Arrangement.spacedBy(10.dp),
                                 contentPadding = PaddingValues(bottom = bottomPadding)
@@ -299,6 +304,19 @@ fun AlbumDetailScreen(
                             }
                         }
                     }
+
+                    // Scroll-to-Top button positioned above the mini player
+                    ScrollToTopButton(
+                        isScrolling = listState.isScrollInProgress,
+                        onClick = {
+                            coroutineScope.launch {
+                                listState.animateScrollToItem(0)
+                            }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 80.dp)
+                    )
                 }
             }
 

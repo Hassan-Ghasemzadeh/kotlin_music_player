@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -37,6 +38,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,8 +54,10 @@ import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.AddToPlaylistDialog
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.ScrollToTopButton
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.TrackItem
+import kotlinx.coroutines.launch
 
 /**
  * GenreDetailScreen displaying header card with genre icon, title, and track list.
@@ -86,6 +90,8 @@ fun GenreDetailScreen(
 ) {
     val bottomPadding = rememberPlayerAwareBottomPadding()
     var expandedSongId by remember { mutableStateOf<String?>(null) }
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -278,6 +284,7 @@ fun GenreDetailScreen(
 
                         else -> {
                             LazyColumn(
+                                state = listState,
                                 modifier = Modifier.fillMaxSize(),
                                 verticalArrangement = Arrangement.spacedBy(10.dp),
                                 contentPadding = PaddingValues(bottom = bottomPadding)
@@ -307,6 +314,19 @@ fun GenreDetailScreen(
                             }
                         }
                     }
+
+                    // Scroll-to-Top button positioned above the mini player
+                    ScrollToTopButton(
+                        isScrolling = listState.isScrollInProgress,
+                        onClick = {
+                            coroutineScope.launch {
+                                listState.animateScrollToItem(0)
+                            }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 80.dp)
+                    )
                 }
             }
 

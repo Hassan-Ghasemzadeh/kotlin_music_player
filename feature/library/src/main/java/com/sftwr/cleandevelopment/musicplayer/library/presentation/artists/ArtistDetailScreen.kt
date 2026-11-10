@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -35,8 +36,10 @@ import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.AddToPlaylistDialog
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.ScrollToTopButton
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.TrackItem
+import kotlinx.coroutines.launch
 
 @Composable
 fun ArtistDetailScreen(
@@ -69,6 +72,8 @@ fun ArtistDetailScreen(
     val bottomPadding = rememberPlayerAwareBottomPadding()
     var expandedSongId by remember { mutableStateOf<String?>(null) }
     val firstAlbumArt = albums.firstOrNull()?.albumArtUri
+    val listState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -263,6 +268,7 @@ fun ArtistDetailScreen(
 
                         else -> {
                             LazyColumn(
+                                state = listState,
                                 modifier = Modifier.fillMaxSize(),
                                 verticalArrangement = Arrangement.spacedBy(12.dp),
                                 contentPadding = PaddingValues(bottom = bottomPadding)
@@ -357,6 +363,19 @@ fun ArtistDetailScreen(
                             }
                         }
                     }
+
+                    // Scroll-to-Top button positioned above the mini player
+                    ScrollToTopButton(
+                        isScrolling = listState.isScrollInProgress,
+                        onClick = {
+                            coroutineScope.launch {
+                                listState.animateScrollToItem(0)
+                            }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 80.dp)
+                    )
                 }
             }
 

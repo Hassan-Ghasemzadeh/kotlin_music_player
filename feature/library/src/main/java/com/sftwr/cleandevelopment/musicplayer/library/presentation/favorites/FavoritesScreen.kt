@@ -17,7 +17,9 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -58,6 +60,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAw
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.albums.AlbumItemCard
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.artists.ArtistItemCard
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.AddToPlaylistDialog
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.ScrollToTopButton
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.genres.GenreItemCard
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.TrackItem
@@ -95,6 +98,11 @@ fun FavoritesScreen(
     var expandedSongId by remember { mutableStateOf<String?>(null) }
     val pagerState = rememberPagerState(pageCount = { 4 }, initialPage = uiState.selectedTabIndex)
     val coroutineScope = rememberCoroutineScope()
+
+    val listStateTracks = rememberLazyListState()
+    val gridStateAlbums = rememberLazyGridState()
+    val gridStateArtists = rememberLazyGridState()
+    val gridStateGenres = rememberLazyGridState()
 
     LaunchedEffect(pagerState.currentPage) {
         if (uiState.selectedTabIndex != pagerState.currentPage) {
@@ -238,84 +246,99 @@ fun FavoritesScreen(
                                     subtitle = "Tap the heart icon on any song to add it to your favorites."
                                 )
                             } else {
-                                Column(modifier = Modifier.fillMaxSize()) {
-                                    // Play All Banner
-                                    GlassCard(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        shape = RoundedCornerShape(16.dp)
-                                    ) {
-                                        Row(
-                                            modifier = Modifier
-                                                .fillMaxWidth()
-                                                .padding(14.dp),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
+                                Box(modifier = Modifier.fillMaxSize()) {
+                                    Column(modifier = Modifier.fillMaxSize()) {
+                                        // Play All Banner
+                                        GlassCard(
+                                            modifier = Modifier.fillMaxWidth(),
+                                            shape = RoundedCornerShape(16.dp)
                                         ) {
-                                            Row(verticalAlignment = Alignment.CenterVertically) {
-                                                Icon(
-                                                    imageVector = Icons.Default.Favorite,
-                                                    contentDescription = null,
-                                                    tint = Color(0xFFFF5252),
-                                                    modifier = Modifier.size(24.dp)
-                                                )
-                                                Spacer(modifier = Modifier.width(12.dp))
-                                                Text(
-                                                    text = "${uiState.favoriteSongs.size} Favorite Tracks",
-                                                    color = Color.White,
-                                                    fontWeight = FontWeight.Bold,
-                                                    fontSize = 15.sp
-                                                )
-                                            }
-
-                                            Button(
-                                                onClick = onPlayAllClick,
-                                                colors = ButtonDefaults.buttonColors(
-                                                    containerColor = Color(0xFF91D8FB),
-                                                    contentColor = Color(0xFF0F0B21)
-                                                ),
-                                                shape = RoundedCornerShape(12.dp),
-                                                contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                                            Row(
+                                                modifier = Modifier
+                                                    .fillMaxWidth()
+                                                    .padding(14.dp),
+                                                horizontalArrangement = Arrangement.SpaceBetween,
+                                                verticalAlignment = Alignment.CenterVertically
                                             ) {
-                                                Icon(
-                                                    imageVector = Icons.Default.PlayArrow,
-                                                    contentDescription = "Play All",
-                                                    modifier = Modifier.size(18.dp)
+                                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.Favorite,
+                                                        contentDescription = null,
+                                                        tint = Color(0xFFFF5252),
+                                                        modifier = Modifier.size(24.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(12.dp))
+                                                    Text(
+                                                        text = "${uiState.favoriteSongs.size} Favorite Tracks",
+                                                        color = Color.White,
+                                                        fontWeight = FontWeight.Bold,
+                                                        fontSize = 15.sp
+                                                    )
+                                                }
+
+                                                Button(
+                                                    onClick = onPlayAllClick,
+                                                    colors = ButtonDefaults.buttonColors(
+                                                        containerColor = Color(0xFF91D8FB),
+                                                        contentColor = Color(0xFF0F0B21)
+                                                    ),
+                                                    shape = RoundedCornerShape(12.dp),
+                                                    contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
+                                                ) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.PlayArrow,
+                                                        contentDescription = "Play All",
+                                                        modifier = Modifier.size(18.dp)
+                                                    )
+                                                    Spacer(modifier = Modifier.width(4.dp))
+                                                    Text(text = "Play", fontWeight = FontWeight.Bold, fontSize = 13.sp)
+                                                }
+                                            }
+                                        }
+
+                                        Spacer(modifier = Modifier.height(12.dp))
+
+                                        LazyColumn(
+                                            state = listStateTracks,
+                                            modifier = Modifier.fillMaxSize(),
+                                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                                            contentPadding = PaddingValues(bottom = bottomPadding)
+                                        ) {
+                                            items(uiState.favoriteSongs, key = { it.id }) { song ->
+                                                val isMenuExpanded = expandedSongId == song.id
+                                                val isThisSongPlaying =
+                                                    (currentPlayingSongId == song.id) && isPlayingGlobal
+                                                val songIdLong = song.id.toLongOrNull() ?: -1L
+
+                                                TrackItem(
+                                                    song = song,
+                                                    onClick = { onSongClick(song.id) },
+                                                    isMenuExpanded = isMenuExpanded,
+                                                    onMenuClick = { expandedSongId = song.id },
+                                                    onDismissMenu = { expandedSongId = null },
+                                                    onDeleteClick = { onDeleteSongClick(songIdLong) },
+                                                    onInfoClick = { onInfoClick(songIdLong) },
+                                                    onTagEditClick = { onTagEditClick(songIdLong) },
+                                                    onShareClick = { onShareClick(song) },
+                                                    onAddToPlaylistClick = { onAddToPlaylistClick(song) },
+                                                    onFavoriteClick = { onFavoriteClick(song) },
+                                                    isPlaying = isThisSongPlaying
                                                 )
-                                                Spacer(modifier = Modifier.width(4.dp))
-                                                Text(text = "Play", fontWeight = FontWeight.Bold, fontSize = 13.sp)
                                             }
                                         }
                                     }
 
-                                    Spacer(modifier = Modifier.height(12.dp))
-
-                                    LazyColumn(
-                                        modifier = Modifier.fillMaxSize(),
-                                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                                        contentPadding = PaddingValues(bottom = bottomPadding)
-                                    ) {
-                                        items(uiState.favoriteSongs, key = { it.id }) { song ->
-                                            val isMenuExpanded = expandedSongId == song.id
-                                            val isThisSongPlaying =
-                                                (currentPlayingSongId == song.id) && isPlayingGlobal
-                                            val songIdLong = song.id.toLongOrNull() ?: -1L
-
-                                            TrackItem(
-                                                song = song,
-                                                onClick = { onSongClick(song.id) },
-                                                isMenuExpanded = isMenuExpanded,
-                                                onMenuClick = { expandedSongId = song.id },
-                                                onDismissMenu = { expandedSongId = null },
-                                                onDeleteClick = { onDeleteSongClick(songIdLong) },
-                                                onInfoClick = { onInfoClick(songIdLong) },
-                                                onTagEditClick = { onTagEditClick(songIdLong) },
-                                                onShareClick = { onShareClick(song) },
-                                                onAddToPlaylistClick = { onAddToPlaylistClick(song) },
-                                                onFavoriteClick = { onFavoriteClick(song) },
-                                                isPlaying = isThisSongPlaying
-                                            )
-                                        }
-                                    }
+                                    ScrollToTopButton(
+                                        isScrolling = listStateTracks.isScrollInProgress,
+                                        onClick = {
+                                            coroutineScope.launch {
+                                                listStateTracks.animateScrollToItem(0)
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .align(Alignment.BottomCenter)
+                                            .padding(bottom = 80.dp)
+                                    )
                                 }
                             }
                         }
@@ -328,19 +351,34 @@ fun FavoritesScreen(
                                     subtitle = "Favorite an album from the album detail screen to see it here."
                                 )
                             } else {
-                                LazyVerticalGrid(
-                                    columns = GridCells.Fixed(2),
-                                    modifier = Modifier.fillMaxSize(),
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                                    contentPadding = PaddingValues(bottom = bottomPadding)
-                                ) {
-                                    items(uiState.favoriteAlbums, key = { it.albumId }) { album ->
-                                        AlbumItemCard(
-                                            album = album,
-                                            onClick = { onAlbumClick(album.albumId, album.title) }
-                                        )
+                                Box(modifier = Modifier.fillMaxSize()) {
+                                    LazyVerticalGrid(
+                                        state = gridStateAlbums,
+                                        columns = GridCells.Fixed(2),
+                                        modifier = Modifier.fillMaxSize(),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                                        contentPadding = PaddingValues(bottom = bottomPadding)
+                                    ) {
+                                        items(uiState.favoriteAlbums, key = { it.albumId }) { album ->
+                                            AlbumItemCard(
+                                                album = album,
+                                                onClick = { onAlbumClick(album.albumId, album.title) }
+                                            )
+                                        }
                                     }
+
+                                    ScrollToTopButton(
+                                        isScrolling = gridStateAlbums.isScrollInProgress,
+                                        onClick = {
+                                            coroutineScope.launch {
+                                                gridStateAlbums.animateScrollToItem(0)
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .align(Alignment.BottomCenter)
+                                            .padding(bottom = 80.dp)
+                                    )
                                 }
                             }
                         }
@@ -353,19 +391,34 @@ fun FavoritesScreen(
                                     subtitle = "Favorite an artist from the artist detail screen to see it here."
                                 )
                             } else {
-                                LazyVerticalGrid(
-                                    columns = GridCells.Fixed(2),
-                                    modifier = Modifier.fillMaxSize(),
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                                    contentPadding = PaddingValues(bottom = bottomPadding)
-                                ) {
-                                    items(uiState.favoriteArtists, key = { it.name }) { artist ->
-                                        ArtistItemCard(
-                                            artist = artist,
-                                            onClick = { onArtistClick(artist.name) }
-                                        )
+                                Box(modifier = Modifier.fillMaxSize()) {
+                                    LazyVerticalGrid(
+                                        state = gridStateArtists,
+                                        columns = GridCells.Fixed(2),
+                                        modifier = Modifier.fillMaxSize(),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                                        contentPadding = PaddingValues(bottom = bottomPadding)
+                                    ) {
+                                        items(uiState.favoriteArtists, key = { it.name }) { artist ->
+                                            ArtistItemCard(
+                                                artist = artist,
+                                                onClick = { onArtistClick(artist.name) }
+                                            )
+                                        }
                                     }
+
+                                    ScrollToTopButton(
+                                        isScrolling = gridStateArtists.isScrollInProgress,
+                                        onClick = {
+                                            coroutineScope.launch {
+                                                gridStateArtists.animateScrollToItem(0)
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .align(Alignment.BottomCenter)
+                                            .padding(bottom = 80.dp)
+                                    )
                                 }
                             }
                         }
@@ -378,19 +431,34 @@ fun FavoritesScreen(
                                     subtitle = "Favorite a genre from the genre detail screen to see it here."
                                 )
                             } else {
-                                LazyVerticalGrid(
-                                    columns = GridCells.Fixed(2),
-                                    modifier = Modifier.fillMaxSize(),
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                                    contentPadding = PaddingValues(bottom = bottomPadding)
-                                ) {
-                                    items(uiState.favoriteGenres, key = { it.name }) { genre ->
-                                        GenreItemCard(
-                                            genre = genre,
-                                            onClick = { onGenreClick(genre.name) }
-                                        )
+                                Box(modifier = Modifier.fillMaxSize()) {
+                                    LazyVerticalGrid(
+                                        state = gridStateGenres,
+                                        columns = GridCells.Fixed(2),
+                                        modifier = Modifier.fillMaxSize(),
+                                        horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                                        contentPadding = PaddingValues(bottom = bottomPadding)
+                                    ) {
+                                        items(uiState.favoriteGenres, key = { it.name }) { genre ->
+                                            GenreItemCard(
+                                                genre = genre,
+                                                onClick = { onGenreClick(genre.name) }
+                                            )
+                                        }
                                     }
+
+                                    ScrollToTopButton(
+                                        isScrolling = gridStateGenres.isScrollInProgress,
+                                        onClick = {
+                                            coroutineScope.launch {
+                                                gridStateGenres.animateScrollToItem(0)
+                                            }
+                                        },
+                                        modifier = Modifier
+                                            .align(Alignment.BottomCenter)
+                                            .padding(bottom = 80.dp)
+                                    )
                                 }
                             }
                         }

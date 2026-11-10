@@ -18,6 +18,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -29,6 +30,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +43,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sftwr.cleandevelopment.musicplayer.domain.model.FolderItem
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.ScrollToTopButton
+import kotlinx.coroutines.launch
 
 /**
  * Stateless FoldersScreen rendering music folders in a 2-column LazyVerticalGrid with dark glassmorphic design.
@@ -55,6 +59,8 @@ fun FoldersScreen(
     modifier: Modifier = Modifier
 ) {
     val bottomPadding = rememberPlayerAwareBottomPadding()
+    val gridState = rememberLazyGridState()
+    val coroutineScope = rememberCoroutineScope()
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -113,45 +119,59 @@ fun FoldersScreen(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                when {
-                    isLoading -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            CircularProgressIndicator(color = Color(0xFF91D8FB))
+                Box(modifier = Modifier.fillMaxSize()) {
+                    when {
+                        isLoading -> {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator(color = Color(0xFF91D8FB))
+                            }
                         }
-                    }
-                    folders.isEmpty() -> {
-                        Box(
-                            modifier = Modifier.fillMaxSize(),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "No Folders Found",
-                                color = Color.White.copy(alpha = 0.6f),
-                                fontSize = 16.sp
-                            )
-                        }
-                    }
-                    else -> {
-                        LazyVerticalGrid(
-                            columns = GridCells.Fixed(2),
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
-                            contentPadding = PaddingValues(bottom = bottomPadding)
-                        ) {
-                            items(folders, key = { it.path }) { folder ->
-                                FolderItemCard(
-                                    folder = folder,
-                                    onClick = { onFolderClick(folder.path, folder.name) }
+                        folders.isEmpty() -> {
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = "No Folders Found",
+                                    color = Color.White.copy(alpha = 0.6f),
+                                    fontSize = 16.sp
                                 )
                             }
                         }
+                        else -> {
+                            LazyVerticalGrid(
+                                state = gridState,
+                                columns = GridCells.Fixed(2),
+                                modifier = Modifier.fillMaxSize(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp),
+                                contentPadding = PaddingValues(bottom = bottomPadding)
+                            ) {
+                                items(folders, key = { it.path }) { folder ->
+                                    FolderItemCard(
+                                        folder = folder,
+                                        onClick = { onFolderClick(folder.path, folder.name) }
+                                    )
+                                }
+                            }
+                        }
                     }
+
+                    // Scroll-to-Top button positioned above the mini player
+                    ScrollToTopButton(
+                        isScrolling = gridState.isScrollInProgress,
+                        onClick = {
+                            coroutineScope.launch {
+                                gridState.animateScrollToItem(0)
+                            }
+                        },
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .padding(bottom = 80.dp)
+                    )
                 }
             }
         }

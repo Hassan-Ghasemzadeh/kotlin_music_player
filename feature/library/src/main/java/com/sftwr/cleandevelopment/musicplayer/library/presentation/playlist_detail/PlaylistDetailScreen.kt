@@ -68,6 +68,7 @@ import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.PlaylistType
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.AddToPlaylistDialog
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.ScrollToTopButton
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.TrackItem
 import kotlinx.coroutines.launch
@@ -402,6 +403,19 @@ fun PlaylistDetailScreen(
                                         .align(Alignment.CenterEnd)
                                         .padding(bottom = bottomPadding)
                                         .padding(end = 2.dp)
+                                )
+
+                                // Scroll-to-Top button positioned above the mini player
+                                ScrollToTopButton(
+                                    isScrolling = listState.isScrollInProgress,
+                                    onClick = {
+                                        coroutineScope.launch {
+                                            listState.animateScrollToItem(0)
+                                        }
+                                    },
+                                    modifier = Modifier
+                                        .align(Alignment.BottomCenter)
+                                        .padding(bottom = 80.dp)
                                 )
                             }
                         }
