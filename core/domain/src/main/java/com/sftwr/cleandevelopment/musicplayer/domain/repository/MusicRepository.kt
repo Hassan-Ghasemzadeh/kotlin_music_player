@@ -2,6 +2,8 @@ package com.sftwr.cleandevelopment.musicplayer.domain.repository
 
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Artist
+import com.sftwr.cleandevelopment.musicplayer.domain.model.FolderItem
+import com.sftwr.cleandevelopment.musicplayer.domain.model.GenreItem
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
 import kotlinx.coroutines.flow.Flow
 
@@ -40,6 +42,26 @@ interface MusicRepository {
      * Observes and returns albums belonging to a specific artist name.
      */
     fun getArtistAlbums(artistName: String): Flow<List<Album>>
+
+    /**
+     * Observes and returns a reactive stream of music genres derived from device songs.
+     */
+    fun getGenres(): Flow<List<GenreItem>>
+
+    /**
+     * Observes and returns songs belonging to a specific genre name.
+     */
+    fun getGenreSongs(genreName: String): Flow<List<Song>>
+
+    /**
+     * Observes and returns a reactive stream of music folders derived from song file paths.
+     */
+    fun getFolders(): Flow<List<FolderItem>>
+
+    /**
+     * Observes and returns songs belonging to a specific folder path.
+     */
+    fun getFolderSongs(folderPath: String): Flow<List<Song>>
 
     /**
      * Searches for songs matching the given query string.
