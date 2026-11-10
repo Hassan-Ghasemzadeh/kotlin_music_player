@@ -33,8 +33,13 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.sftwr.cleandevelopment.musicplayer.library.core.equalizer.EqualizerAudioFxManager
+
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
 
 @Singleton
+@OptIn(UnstableApi::class)
 class PlayerManager @Inject constructor(
     val exoPlayer: ExoPlayer,
     private val deleteSongUseCase: DeleteSongUseCase,
@@ -42,6 +47,7 @@ class PlayerManager @Inject constructor(
     private val songPreferencesRepository: SongPreferencesRepository,
     private val playlistRepository: PlaylistRepository,
     private val musicRepository: MusicRepository,
+    val equalizerAudioFxManager: EqualizerAudioFxManager,
     @param:ApplicationContext private val context: Context,
 ) {
 
@@ -133,6 +139,10 @@ class PlayerManager @Inject constructor(
             override fun onIsPlayingChanged(isPlayingState: Boolean) {
                 _isPlaying.value = isPlayingState
                 if (isPlayingState) {
+                    val sessionId = try { exoPlayer.audioSessionId } catch (_: Exception) { 0 }
+                    if (sessionId > 0) {
+                        equalizerAudioFxManager.attachAudioSession(sessionId)
+                    }
                     _currentSong.value?.let { song ->
                         if (lastRecordedId != song.id) {
                             lastRecordedId = song.id
@@ -148,6 +158,10 @@ class PlayerManager @Inject constructor(
 
             override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
                 if (isSettingQueue) return
+                val sessionId = try { exoPlayer.audioSessionId } catch (_: Exception) { 0 }
+                if (sessionId > 0) {
+                    equalizerAudioFxManager.attachAudioSession(sessionId)
+                }
                 val currentIndex = exoPlayer.currentMediaItemIndex
                 if (currentIndex in activeQueue.indices) {
                     val song = activeQueue[currentIndex]
@@ -282,6 +296,7 @@ class PlayerManager @Inject constructor(
         queueJob?.cancel()
         artworkJob?.cancel()
         withContext(Dispatchers.Main) {
+            equalizerAudioFxManager.releaseEffects()
             exoPlayer.stop()
             exoPlayer.clearMediaItems()
             _currentSong.value = null
