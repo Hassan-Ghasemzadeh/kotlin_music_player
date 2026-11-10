@@ -2,7 +2,6 @@ package com.sftwr.cleandevelopment.musicplayer.library.core.equalizer
 
 import android.media.audiofx.BassBoost
 import android.media.audiofx.Equalizer
-import android.media.audiofx.Virtualizer
 import android.util.Log
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerBand
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerPreset
@@ -18,7 +17,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Audio Engine Manager managing native Android [Equalizer], [BassBoost], and [Virtualizer] effects.
+ * Audio Engine Manager managing native Android [Equalizer] and [BassBoost] effects.
  * Handles lifecycle, hardware capabilities discovery, state restoration, and safe resource releases.
  */
 @Singleton
@@ -32,7 +31,6 @@ class EqualizerAudioFxManager @Inject constructor(
     private var currentSessionId: Int = -1
     private var equalizerEffect: Equalizer? = null
     private var bassBoostEffect: BassBoost? = null
-    private var virtualizerEffect: Virtualizer? = null
 
     private var activeState: EqualizerState = EqualizerState()
 
@@ -55,7 +53,7 @@ class EqualizerAudioFxManager @Inject constructor(
         releaseEffects()
         currentSessionId = audioSessionId
 
-        // Initialize Equalizer
+        // Initialize Equalizer (using priority 0 and valid audioSessionId)
         runCatching {
             val eq = Equalizer(0, audioSessionId)
             eq.enabled = activeState.isEnabled
@@ -78,20 +76,6 @@ class EqualizerAudioFxManager @Inject constructor(
         }.onFailure { e ->
             Log.e(tag, "Failed to initialize native BassBoost: ${e.message}")
             bassBoostEffect = null
-        }
-
-        // Initialize Virtualizer
-        runCatching {
-            val virt = Virtualizer(0, audioSessionId)
-            virt.enabled = activeState.isEnabled && activeState.virtualizerStrength > 0
-            if (virt.strengthSupported) {
-                virt.setStrength(activeState.virtualizerStrength.coerceIn(0, 1000))
-            }
-            virtualizerEffect = virt
-            Log.d(tag, "Virtualizer initialized for session $audioSessionId")
-        }.onFailure { e ->
-            Log.e(tag, "Failed to initialize native Virtualizer: ${e.message}")
-            virtualizerEffect = null
         }
 
         applyCurrentStateToHardware()
@@ -146,19 +130,6 @@ class EqualizerAudioFxManager @Inject constructor(
                 }
             }.onFailure { e ->
                 Log.e(tag, "Error applying BassBoost hardware settings: ${e.message}")
-            }
-        }
-
-        // Apply to Virtualizer
-        virtualizerEffect?.let { virt ->
-            runCatching {
-                val shouldEnable = state.isEnabled && state.virtualizerStrength > 0
-                virt.enabled = shouldEnable
-                if (shouldEnable && virt.strengthSupported) {
-                    virt.setStrength(state.virtualizerStrength.coerceIn(0, 1000))
-                }
-            }.onFailure { e ->
-                Log.e(tag, "Error applying Virtualizer hardware settings: ${e.message}")
             }
         }
     }
@@ -234,12 +205,6 @@ class EqualizerAudioFxManager @Inject constructor(
             bassBoostEffect?.release()
         }
         bassBoostEffect = null
-
-        runCatching {
-            virtualizerEffect?.enabled = false
-            virtualizerEffect?.release()
-        }
-        virtualizerEffect = null
 
         currentSessionId = -1
         Log.d(tag, "Audio effects cleanly released")
