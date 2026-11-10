@@ -36,7 +36,8 @@ import com.sftwr.cleandevelopment.musicplayer.model.Screen
 fun AppNavGraph(
     navController: NavHostController,
     playerManager: PlayerManager,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onOpenDrawer: () -> Unit = {}
 ) {
     NavHost(
         navController = navController,
@@ -75,7 +76,8 @@ fun AppNavGraph(
             },
             onOpenPlaylistDetail = { id, title, typeName ->
                 navController.navigate(Screen.PlaylistDetail(id, title, typeName))
-            }
+            },
+            onOpenDrawer = onOpenDrawer
         )
 
         // Favorites feature navigation graph
