@@ -22,7 +22,7 @@ private val Context.equalizerDataStore: DataStore<Preferences> by preferencesDat
 
 @Singleton
 class EqualizerRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context
+    @param:ApplicationContext private val context: Context
 ) : EqualizerRepository {
 
     private object Keys {
