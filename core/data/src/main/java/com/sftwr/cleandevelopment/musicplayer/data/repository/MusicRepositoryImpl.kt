@@ -35,7 +35,7 @@ import javax.inject.Inject
 import kotlin.coroutines.resume
 
 class MusicRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
     private val audioTagEditor: AudioTagEditor,
     private val songDao: SongDao // Inject local database(cache)
 ) : MusicRepository {
