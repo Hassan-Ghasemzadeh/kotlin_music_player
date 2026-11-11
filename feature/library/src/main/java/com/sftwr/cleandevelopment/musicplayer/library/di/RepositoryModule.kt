@@ -80,4 +80,13 @@ abstract class RepositoryModule {
     abstract fun bindPermissionRepository(
         permissionRepositoryImpl: com.sftwr.cleandevelopment.musicplayer.data.repository.PermissionRepositoryImpl,
     ): com.sftwr.cleandevelopment.musicplayer.domain.repository.PermissionRepository
+
+    /**
+     * Binds the implementation of AppInfoRepository to its interface.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindAppInfoRepository(
+        appInfoRepositoryImpl: com.sftwr.cleandevelopment.musicplayer.data.repository.AppInfoRepositoryImpl,
+    ): com.sftwr.cleandevelopment.musicplayer.domain.repository.AppInfoRepository
 }
