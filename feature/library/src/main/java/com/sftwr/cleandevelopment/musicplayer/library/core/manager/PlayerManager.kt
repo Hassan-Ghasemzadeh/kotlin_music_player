@@ -11,6 +11,8 @@ import androidx.core.net.toUri
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
+import androidx.media3.common.PlaybackParameters
+import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetSettingsUseCase
 import androidx.media3.exoplayer.ExoPlayer
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.MusicRepository
@@ -48,6 +50,7 @@ class PlayerManager @Inject constructor(
     private val playlistRepository: PlaylistRepository,
     val musicRepository: MusicRepository,
     val equalizerAudioFxManager: EqualizerAudioFxManager,
+    private val getSettingsUseCase: GetSettingsUseCase,
     @param:ApplicationContext private val context: Context,
 ) {
 
@@ -133,6 +136,15 @@ class PlayerManager @Inject constructor(
             }
         }
 
+        playerScope.launch {
+            getSettingsUseCase().collect { settings ->
+                runOnMainThread {
+                    exoPlayer.playbackParameters = PlaybackParameters(settings.playbackSpeed, settings.playbackPitch)
+                    exoPlayer.skipSilenceEnabled = settings.skipSilenceEnabled
+                }
+            }
+        }
+
         val sleepTimerFilter = android.content.IntentFilter(com.sftwr.cleandevelopment.musicplayer.data.worker.SleepTimerWorker.ACTION_STOP_SLEEP_TIMER_PLAYBACK)
         val sleepTimerReceiver = object : android.content.BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
@@ -145,11 +157,12 @@ class PlayerManager @Inject constructor(
                 }
             }
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.registerReceiver(sleepTimerReceiver, sleepTimerFilter, Context.RECEIVER_NOT_EXPORTED)
-        } else {
-            context.registerReceiver(sleepTimerReceiver, sleepTimerFilter)
-        }
+        ContextCompat.registerReceiver(
+            context,
+            sleepTimerReceiver,
+            sleepTimerFilter,
+            ContextCompat.RECEIVER_NOT_EXPORTED
+        )
 
         var lastRecordedId: String? = null
 

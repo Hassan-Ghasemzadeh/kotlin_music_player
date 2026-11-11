@@ -89,4 +89,13 @@ abstract class RepositoryModule {
     abstract fun bindAppInfoRepository(
         appInfoRepositoryImpl: com.sftwr.cleandevelopment.musicplayer.data.repository.AppInfoRepositoryImpl,
     ): com.sftwr.cleandevelopment.musicplayer.domain.repository.AppInfoRepository
+
+    /**
+     * Binds the implementation of SettingsRepository to its interface.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindSettingsRepository(
+        settingsRepositoryImpl: com.sftwr.cleandevelopment.musicplayer.data.repository.SettingsRepositoryImpl,
+    ): com.sftwr.cleandevelopment.musicplayer.domain.repository.SettingsRepository
 }

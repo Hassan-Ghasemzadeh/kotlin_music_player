@@ -1,0 +1,89 @@
+<resources>
+    <string name="app_name">موزیک پلیر</string>
+    <string name="media_notification_channel_name">کنترل‌های پخش موسیقی</string>
+
+    <!-- Navigation & Titles -->
+    <string name="settings_title">تنظیمات</string>
+    <string name="back">بازگشت</string>
+    <string name="save">ذخیره</string>
+    <string name="cancel">انصراف</string>
+    <string name="ok">تأیید</string>
+    <string name="close">بستن</string>
+    <string name="add">افزودن</string>
+    <string name="remove">حذف</string>
+    <string name="reset">بازنشانی</string>
+
+    <!-- Appearance & Language -->
+    <string name="appearance_and_language">ظاهر و زبان</string>
+    <string name="app_language">زبان برنامه</string>
+    <string name="app_language_desc">انتخاب زبان رابط کاربری برنامه</string>
+    <string name="select_language">انتخاب زبان</string>
+    <string name="language_en">انگلیسی (English)</string>
+    <string name="language_fa">فارسی (Persian)</string>
+    <string name="language_de">آلمانی (Deutsch)</string>
+    <string name="language_tr">ترکی (Türkçe)</string>
+
+    <string name="theme_mode">تم تاریک</string>
+    <string name="theme_mode_desc">فعال‌سازی تم تاریک برای زمینه</string>
+    <string name="glassmorphic_style">استایل شیشه‌ای (Glassmorphism)</string>
+    <string name="glassmorphic_style_desc">فعال‌سازی کارت‌های شیشه‌ای و درخشش نئون</string>
+    <string name="album_art_display">نمایش کاور آلبوم</string>
+    <string name="album_art_display_desc">نمایش کاور آلبوم در لیست‌ها و پخش‌کننده</string>
+
+    <!-- Audio & Playback Effects -->
+    <string name="audio_and_effects">صدا و افکت‌های پخش</string>
+    <string name="playback_speed">سرعت پخش</string>
+    <string name="playback_speed_desc">تنظیم سرعت پخش آهنگ‌ها</string>
+    <string name="playback_pitch">تنظیم گام صدا (Pitch)</string>
+    <string name="playback_pitch_desc">تنظیم گام صوتی و لحن صدا</string>
+    <string name="crossfade">همپوشانی آهنگ‌ها (Crossfade)</string>
+    <string name="crossfade_desc">انتقال نرم و تدریجی بین آهنگ‌ها</string>
+    <string name="skip_silence">حذف سکوت بین آهنگ‌ها</string>
+    <string name="skip_silence_desc">رد شدن خودکار از بخش‌های صوتی خاموش</string>
+    <string name="default_eq_preset">پیش‌فرض اکولایزر</string>
+    <string name="default_eq_preset_desc">انتخاب پروفایل صوتی پیش‌فرض اکولایزر</string>
+    <string name="visualizer_style">ویژوالایزر صوتی</string>
+    <string name="visualizer_style_desc">انتخاب حالت پویانمایی رقص نور صوتی</string>
+    <string name="replay_gain">همسان‌سازی ولوم صدا (ReplayGain)</string>
+    <string name="replay_gain_desc">یکسان‌سازی بلندی صدای آهنگ‌های مختلف</string>
+    <string name="replay_gain_off">خاموش</string>
+    <string name="replay_gain_track">سطح آهنگ</string>
+    <string name="replay_gain_album">سطح آلبوم</string>
+
+    <!-- Library & Storage Management -->
+    <string name="library_and_storage">کتابخانه و مدیریت حافظه</string>
+    <string name="excluded_folders">پوشه‌های نادیده‌گرفته‌شده</string>
+    <string name="excluded_folders_desc">مدیریت پوشه‌های استثنا از اسکن موسیقی</string>
+    <string name="add_excluded_folder">افزودن پوشه استثنا</string>
+    <string name="enter_folder_path">مسیر پوشه را وارد کنید (مثال: /sdcard/WhatsApp)</string>
+    <string name="no_excluded_folders">هیچ پوشه‌ای نادیده گرفته نشده است</string>
+    <string name="min_track_duration">حداقل زمان آهنگ</string>
+    <string name="min_track_duration_desc">حذف فایل‌های صوتی کوتاه و زنگ‌های موبایل</string>
+    <string name="rescan_media">اسکن مجدد فایل‌های صوتی</string>
+    <string name="rescan_media_desc">جستجوی کامل فایل‌های صوتی در حافظه دستگاه</string>
+    <string name="rescan_started">اسکن مجدد حافظه آغاز شد</string>
+
+    <!-- Controls & Background Services -->
+    <string name="controls_and_services">کنترل‌ها و سرویس‌های پس‌زمینه</string>
+    <string name="lockscreen_controls">کنترل موسیقی در صفحه قفل</string>
+    <string name="lockscreen_controls_desc">نمایش دکمه‌های پخش در صفحه قفل گوشی</string>
+    <string name="screen_off_playback">پخش هنگام خاموش بودن صفحه</string>
+    <string name="screen_off_playback_desc">فعال ماندن سرویس پس‌زمینه هنگام خاموش شدن صفحه</string>
+    <string name="headset_controls">دکمه‌های هندزفری و هدست</string>
+    <string name="headset_controls_desc">پاسخ به کلیدهای هدست سیمی و بلوتوثی</string>
+    <string name="allow_external_device">پخش دستگاه‌های خارجی</string>
+    <string name="allow_external_device_desc">اجازه به بلوتوث خودرو و دستگاه‌های خارجی برای شروع پخش</string>
+    <string name="shake_to_skip">تکان دادن گوشی برای رد کردن آهنگ</string>
+    <string name="shake_to_skip_desc">تکان دادن فیزیکی گوشی برای رفتن به آهنگ بعدی</string>
+
+    <!-- System, Data & Permissions -->
+    <string name="system_and_permissions">سیستم، داده‌ها و مجوزها</string>
+    <string name="manage_playlists">مدیریت لیست‌های پخش</string>
+    <string name="manage_playlists_desc">مشاهده، تغییر نام و سازماندهی لیست‌های پخش</string>
+    <string name="notification_permissions_status">وضعیت اعلان‌ها و مجوزها</string>
+    <string name="notification_permissions_status_desc">بررسی مجوزهای دسترسی به فایل‌ها و اعلان‌ها</string>
+
+    <!-- Seconds formatting -->
+    <string name="seconds_format">%1$d ثانیه</string>
+    <string name="speed_format">%1$.2fx</string>
+</resources>

@@ -1,0 +1,89 @@
+<resources>
+    <string name="app_name">Music Player</string>
+    <string name="media_notification_channel_name">Musikwiedergabe-Steuerung</string>
+
+    <!-- Navigation & Titles -->
+    <string name="settings_title">Einstellungen</string>
+    <string name="back">Zurück</string>
+    <string name="save">Speichern</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="ok">OK</string>
+    <string name="close">Schließen</string>
+    <string name="add">Hinzufügen</string>
+    <string name="remove">Entfernen</string>
+    <string name="reset">Zurücksetzen</string>
+
+    <!-- Appearance & Language -->
+    <string name="appearance_and_language">Erscheinungsbild &amp; Sprache</string>
+    <string name="app_language">App-Sprache</string>
+    <string name="app_language_desc">Benutzeroberflächensprache der App auswählen</string>
+    <string name="select_language">Sprache auswählen</string>
+    <string name="language_en">Englisch (English)</string>
+    <string name="language_fa">Persisch (فارسی)</string>
+    <string name="language_de">Deutsch (Deutsch)</string>
+    <string name="language_tr">Türkisch (Türkçe)</string>
+
+    <string name="theme_mode">Dunkles Design</string>
+    <string name="theme_mode_desc">Dunklen Hintergrundstil aktivieren</string>
+    <string name="glassmorphic_style">Glassmorphism-Stil</string>
+    <string name="glassmorphic_style_desc">Transparente Karten und Neon-Effekte aktivieren</string>
+    <string name="album_art_display">Album-Cover anzeigen</string>
+    <string name="album_art_display_desc">Album-Cover in Listen und Player anzeigen</string>
+
+    <!-- Audio & Playback Effects -->
+    <string name="audio_and_effects">Audio &amp; Wiedergabeeffekte</string>
+    <string name="playback_speed">Wiedergabegeschwindigkeit</string>
+    <string name="playback_speed_desc">Wiedergabegeschwindigkeit der Titel anpassen</string>
+    <string name="playback_pitch">Tonhöhe</string>
+    <string name="playback_pitch_desc">Audio-Tonhöhe und Stimmlage anpassen</string>
+    <string name="crossfade">Überblendung (Crossfade)</string>
+    <string name="crossfade_desc">Nahtlose Übergänge zwischen Titeln aktivieren</string>
+    <string name="skip_silence">Stille überspringen</string>
+    <string name="skip_silence_desc">Stille Abschnitte in Titeln automatisch überspringen</string>
+    <string name="default_eq_preset">Voreinstellung Equalizer</string>
+    <string name="default_eq_preset_desc">Standard-Audio-Equalizer-Profil wählen</string>
+    <string name="visualizer_style">Audio-Visualisierer</string>
+    <string name="visualizer_style_desc">Dynamische Audio-Visualisierungsanimation wählen</string>
+    <string name="replay_gain">Lautstärke-Normalisierung (ReplayGain)</string>
+    <string name="replay_gain_desc">Lautstärke über verschiedene Titel hinweg angleichen</string>
+    <string name="replay_gain_off">Aus</string>
+    <string name="replay_gain_track">Titel-Ebene</string>
+    <string name="replay_gain_album">Album-Ebene</string>
+
+    <!-- Library & Storage Management -->
+    <string name="library_and_storage">Bibliothek &amp; Speicherverwaltung</string>
+    <string name="excluded_folders">Ausgeschlossene Ordner</string>
+    <string name="excluded_folders_desc">Ordner verwalten, die beim Medien-Scan ignoriert werden</string>
+    <string name="add_excluded_folder">Ordner ausschließen</string>
+    <string name="enter_folder_path">Ordnerpfad eingeben (z. B. /sdcard/WhatsApp)</string>
+    <string name="no_excluded_folders">Keine Ordner ausgeschlossen</string>
+    <string name="min_track_duration">Mindestspurdauer</string>
+    <string name="min_track_duration_desc">Kurze Audiodateien und Klingeltöne herausfiltern</string>
+    <string name="rescan_media">Mediendateien neu scannen</string>
+    <string name="rescan_media_desc">Vollständigen Suchlauf für Musikdateien durchführen</string>
+    <string name="rescan_started">Medien-Scan wurde gestartet</string>
+
+    <!-- Controls & Background Services -->
+    <string name="controls_and_services">Steuerung &amp; Hintergrunddienste</string>
+    <string name="lockscreen_controls">Sperrbildschirm-Steuerung</string>
+    <string name="lockscreen_controls_desc">Wiedergabesteuerung auf dem Sperrbildschirm anzeigen</string>
+    <string name="screen_off_playback">Wiedergabe bei ausgeschaltetem Bildschirm</string>
+    <string name="screen_off_playback_desc">Hintergrunddienst bei ausgeschaltetem Display aktiv halten</string>
+    <string name="headset_controls">Headset-Steuerung</string>
+    <string name="headset_controls_desc">Auf Tasten von Kabel- und Bluetooth-Headsets reagieren</string>
+    <string name="allow_external_device">Externe Gerätewiedergabe</string>
+    <string name="allow_external_device_desc">Wiedergabestart durch externe Bluetooth-Geräte erlauben</string>
+    <string name="shake_to_skip">Schütteln zum Überspringen</string>
+    <string name="shake_to_skip_desc">Gerät schütteln, um zum nächsten Titel zu wechseln</string>
+
+    <!-- System, Data & Permissions -->
+    <string name="system_and_permissions">System, Daten &amp; Berechtigungen</string>
+    <string name="manage_playlists">Wiedergabelisten verwalten</string>
+    <string name="manage_playlists_desc">Wiedergabelisten anzeigen, umbenennen und organisieren</string>
+    <string name="notification_permissions_status">Benachrichtigungs- &amp; Berechtigungsstatus</string>
+    <string name="notification_permissions_status_desc">Berechtigungen für Speicher und Medienbenachrichtigungen prüfen</string>
+
+    <!-- Seconds formatting -->
+    <string name="seconds_format">%1$d Sek</string>
+    <string name="speed_format">%1$.2fx</string>
+</resources>

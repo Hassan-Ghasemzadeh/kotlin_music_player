@@ -1,3 +1,89 @@
 <resources>
+    <string name="app_name">Music Player</string>
     <string name="media_notification_channel_name">Music Playback Controls</string>
+
+    <!-- Navigation & Titles -->
+    <string name="settings_title">Settings</string>
+    <string name="back">Back</string>
+    <string name="save">Save</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">OK</string>
+    <string name="close">Close</string>
+    <string name="add">Add</string>
+    <string name="remove">Remove</string>
+    <string name="reset">Reset</string>
+
+    <!-- Appearance & Language -->
+    <string name="appearance_and_language">Appearance &amp; Language</string>
+    <string name="app_language">App Language</string>
+    <string name="app_language_desc">Select application interface language</string>
+    <string name="select_language">Select Language</string>
+    <string name="language_en">English</string>
+    <string name="language_fa">Persian (فارسی)</string>
+    <string name="language_de">German (Deutsch)</string>
+    <string name="language_tr">Turkish (Türkçe)</string>
+
+    <string name="theme_mode">Dark Theme</string>
+    <string name="theme_mode_desc">Enable dark background theme</string>
+    <string name="glassmorphic_style">Glassmorphic UI Style</string>
+    <string name="glassmorphic_style_desc">Enable glow translucent cards and glass visuals</string>
+    <string name="album_art_display">Album Artwork Display</string>
+    <string name="album_art_display_desc">Show album cover art on list items and player</string>
+
+    <!-- Audio & Playback Effects -->
+    <string name="audio_and_effects">Audio &amp; Playback Effects</string>
+    <string name="playback_speed">Playback Speed</string>
+    <string name="playback_speed_desc">Adjust track playback speed</string>
+    <string name="playback_pitch">Playback Pitch</string>
+    <string name="playback_pitch_desc">Adjust voice tone and audio pitch</string>
+    <string name="crossfade">Crossfade Tracks</string>
+    <string name="crossfade_desc">Smoothly overlap audio transitions between songs</string>
+    <string name="skip_silence">Skip Silence</string>
+    <string name="skip_silence_desc">Automatically skip silent sections within tracks</string>
+    <string name="default_eq_preset">Default Equalizer Preset</string>
+    <string name="default_eq_preset_desc">Choose default audio equalizer profile</string>
+    <string name="visualizer_style">Audio Visualizer</string>
+    <string name="visualizer_style_desc">Select dynamic audio visualizer animation</string>
+    <string name="replay_gain">Volume Normalization (ReplayGain)</string>
+    <string name="replay_gain_desc">Normalize playback loudness across tracks</string>
+    <string name="replay_gain_off">Off</string>
+    <string name="replay_gain_track">Track Level</string>
+    <string name="replay_gain_album">Album Level</string>
+
+    <!-- Library & Storage Management -->
+    <string name="library_and_storage">Library &amp; Storage Management</string>
+    <string name="excluded_folders">Excluded Folders</string>
+    <string name="excluded_folders_desc">Manage storage folders hidden from music scan</string>
+    <string name="add_excluded_folder">Add Excluded Folder</string>
+    <string name="enter_folder_path">Enter folder path (e.g. /sdcard/WhatsApp)</string>
+    <string name="no_excluded_folders">No folders excluded</string>
+    <string name="min_track_duration">Minimum Track Duration</string>
+    <string name="min_track_duration_desc">Filter out short audio clips and ringtones</string>
+    <string name="rescan_media">Rescan Media Library</string>
+    <string name="rescan_media_desc">Perform full scan of local device audio files</string>
+    <string name="rescan_started">Media library rescan started</string>
+
+    <!-- Controls & Background Services -->
+    <string name="controls_and_services">Controls &amp; Background Services</string>
+    <string name="lockscreen_controls">Lockscreen Music Controls</string>
+    <string name="lockscreen_controls_desc">Show playback controls on phone lockscreen</string>
+    <string name="screen_off_playback">Screen Off Playback</string>
+    <string name="screen_off_playback_desc">Keep background service active when screen is turned off</string>
+    <string name="headset_controls">Headset &amp; Earphone Controls</string>
+    <string name="headset_controls_desc">Respond to wired/Bluetooth headset button events</string>
+    <string name="allow_external_device">External Device Playback</string>
+    <string name="allow_external_device_desc">Allow Bluetooth car audio or external devices to start playback</string>
+    <string name="shake_to_skip">Shake to Skip Track</string>
+    <string name="shake_to_skip_desc">Shake physical device to skip to next track</string>
+
+    <!-- System, Data & Permissions -->
+    <string name="system_and_permissions">System, Data &amp; Permissions</string>
+    <string name="manage_playlists">Manage Playlists</string>
+    <string name="manage_playlists_desc">View, rename, and organize saved playlists</string>
+    <string name="notification_permissions_status">Notification &amp; Permissions Status</string>
+    <string name="notification_permissions_status_desc">Check system media notification and storage permissions</string>
+
+    <!-- Seconds formatting -->
+    <string name="seconds_format">%1$d sec</string>
+    <string name="speed_format">%1$.2fx</string>
 </resources>

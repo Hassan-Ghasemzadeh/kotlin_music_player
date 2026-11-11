@@ -1,0 +1,89 @@
+<resources>
+    <string name="app_name">Music Player</string>
+    <string name="media_notification_channel_name">Müzik Oynatma Kontrolleri</string>
+
+    <!-- Navigation & Titles -->
+    <string name="settings_title">Ayarlar</string>
+    <string name="back">Geri</string>
+    <string name="save">Kaydet</string>
+    <string name="cancel">İptal</string>
+    <string name="ok">Tamam</string>
+    <string name="close">Kapat</string>
+    <string name="add">Ekle</string>
+    <string name="remove">Kaldır</string>
+    <string name="reset">Sıfırla</string>
+
+    <!-- Appearance & Language -->
+    <string name="appearance_and_language">Görünüm ve Dil</string>
+    <string name="app_language">Uygulama Dili</string>
+    <string name="app_language_desc">Uygulama arayüz dilini seçin</string>
+    <string name="select_language">Dil Seçin</string>
+    <string name="language_en">İngilizce (English)</string>
+    <string name="language_fa">Farsça (فارسی)</string>
+    <string name="language_de">Almanca (Deutsch)</string>
+    <string name="language_tr">Türkçe (Türkçe)</string>
+
+    <string name="theme_mode">Karanlık Tema</string>
+    <string name="theme_mode_desc">Karanlık arka plan temasını etkinleştirin</string>
+    <string name="glassmorphic_style">Cam Efektli Tasarım (Glassmorphism)</string>
+    <string name="glassmorphic_style_desc">Yarı saydam kartlar ve neon efektlerini açın</string>
+    <string name="album_art_display">Albüm Kapağını Göster</string>
+    <string name="album_art_display_desc">Listelerde ve oynatıcıda albüm kapağını görüntüleyin</string>
+
+    <!-- Audio & Playback Effects -->
+    <string name="audio_and_effects">Ses ve Oynatma Efektleri</string>
+    <string name="playback_speed">Oynatma Hızı</string>
+    <string name="playback_speed_desc">Parça oynatma hızını ayarlayın</string>
+    <string name="playback_pitch">Ses Tonu (Pitch)</string>
+    <string name="playback_pitch_desc">Ses tonunu ve perde seviyesini ayarlayın</string>
+    <string name="crossfade">Parça Geçiş Efekti (Crossfade)</string>
+    <string name="crossfade_desc">Şarkılar arasında yumuşak geçiş efektini açın</string>
+    <string name="skip_silence">Sessizliği Atla</string>
+    <string name="skip_silence_desc">Parça içindeki sessiz bölümleri otomatik atlayın</string>
+    <string name="default_eq_preset">Varsayılan Ekolayzer</string>
+    <string name="default_eq_preset_desc">Varsayılan ekolayzer profilini seçin</string>
+    <string name="visualizer_style">Ses Görselleştirici</string>
+    <string name="visualizer_style_desc">Dinamik ses görselleştirme animasyonunu seçin</string>
+    <string name="replay_gain">Ses Düzeyi Normalleştirme (ReplayGain)</string>
+    <string name="replay_gain_desc">Farklı şarkıların ses seviyesini eşitleyin</string>
+    <string name="replay_gain_off">Kapalı</string>
+    <string name="replay_gain_track">Parça Seviyesi</string>
+    <string name="replay_gain_album">Albüm Seviyesi</string>
+
+    <!-- Library & Storage Management -->
+    <string name="library_and_storage">Kütüphane ve Depolama</string>
+    <string name="excluded_folders">Hariç Tutulan Klasörler</string>
+    <string name="excluded_folders_desc">Müzik taramasından gizlenen klasörleri yönetin</string>
+    <string name="add_excluded_folder">Hariç Tutulan Klasör Ekle</string>
+    <string name="enter_folder_path">Klasör yolunu girin (örn. /sdcard/WhatsApp)</string>
+    <string name="no_excluded_folders">Hariç tutulan klasör yok</string>
+    <string name="min_track_duration">Minimum Parça Süresi</string>
+    <string name="min_track_duration_desc">Kısa ses kliplerini ve zil seslerini filtreleyin</string>
+    <string name="rescan_media">Müzik Kütüphanesini Yeniden Tara</string>
+    <string name="rescan_media_desc">Cihazdaki ses dosyalarını yeniden tarayın</string>
+    <string name="rescan_started">Medya taraması başlatıldı</string>
+
+    <!-- Controls & Background Services -->
+    <string name="controls_and_services">Kontroller ve Arka Plan Hizmetleri</string>
+    <string name="lockscreen_controls">Kilit Ekranı Kontrolleri</string>
+    <string name="lockscreen_controls_desc">Kilit ekranında oynatma kontrollerini gösterin</string>
+    <string name="screen_off_playback">Ekran Kapalıyken Oynatma</string>
+    <string name="screen_off_playback_desc">Ekran kapandığında arka plan hizmetini aktif tutun</string>
+    <string name="headset_controls">Kulaklık Kontrolleri</string>
+    <string name="headset_controls_desc">Kablolu ve Bluetooth kulaklık düğmelerini dinleyin</string>
+    <string name="allow_external_device">Harici Cihaz Oynatması</string>
+    <string name="allow_external_device_desc">Bluetooth araç veya harici cihazların oynatma başlatmasına izin verin</string>
+    <string name="shake_to_skip">Sallayarak Parça Değiştir</string>
+    <string name="shake_to_skip_desc">Sonraki parçaya geçmek için cihazı sallayın</string>
+
+    <!-- System, Data & Permissions -->
+    <string name="system_and_permissions">Sistem, Veriler ve İzinler</string>
+    <string name="manage_playlists">Oynatma Listelerini Yönet</string>
+    <string name="manage_playlists_desc">Kayıtlı listeleri görüntüleyin ve düzenleyin</string>
+    <string name="notification_permissions_status">Bildirim ve İzin Durumu</string>
+    <string name="notification_permissions_status_desc">Medya bildirimi ve depolama izinlerini kontrol edin</string>
+
+    <!-- Seconds formatting -->
+    <string name="seconds_format">%1$d sn</string>
+    <string name="speed_format">%1$.2fx</string>
+</resources>
