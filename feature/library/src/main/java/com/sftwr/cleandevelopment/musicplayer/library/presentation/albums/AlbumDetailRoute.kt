@@ -36,7 +36,7 @@ fun AlbumDetailRoute(
 
     AlbumDetailScreen(
         albumId = viewModel.albumId,
-        albumTitle = viewModel.albumTitle,
+        albumTitle = uiState.albumTitle,
         artistName = uiState.artistName,
         songs = uiState.songs,
         playlists = uiState.playlists,

@@ -32,7 +32,7 @@ class AlbumDetailViewModel @Inject constructor(
 ) : ViewModel() {
 
     val albumId: Long = savedStateHandle.get<Long>("albumId") ?: -1L
-    val albumTitle: String = savedStateHandle.get<String>("albumTitle") ?: "Album"
+    val savedAlbumTitle: String = savedStateHandle.get<String>("albumTitle") ?: "Album"
 
     private val _isLoading = MutableStateFlow(false)
     private val _targetSongForPlaylist = MutableStateFlow<SongUiModel?>(null)
@@ -61,11 +61,12 @@ class AlbumDetailViewModel @Inject constructor(
                 isFavorite = song.isFavorite
             )
         }
+        val dynamicAlbumTitle = songUiModels.firstOrNull()?.album?.ifBlank { savedAlbumTitle } ?: savedAlbumTitle
         val artist = songUiModels.firstOrNull()?.artist ?: "Unknown Artist"
         val isAlbumFavorite = songUiModels.isNotEmpty() && songUiModels.all { it.isFavorite }
         AlbumDetailUiState(
             albumId = albumId,
-            albumTitle = albumTitle,
+            albumTitle = dynamicAlbumTitle,
             artistName = artist,
             songs = songUiModels,
             playlists = playlists,
@@ -76,7 +77,7 @@ class AlbumDetailViewModel @Inject constructor(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = AlbumDetailUiState(albumId = albumId, albumTitle = albumTitle, isLoading = true)
+        initialValue = AlbumDetailUiState(albumId = albumId, albumTitle = savedAlbumTitle, isLoading = true)
     )
 
     fun onSongClicked(songId: String) {
