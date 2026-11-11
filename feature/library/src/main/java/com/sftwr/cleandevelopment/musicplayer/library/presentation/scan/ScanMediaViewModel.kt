@@ -48,15 +48,17 @@ class ScanMediaViewModel @Inject constructor(
     }
 
     fun onOkClick(onDismiss: () -> Unit) {
+        onDismiss()
         viewModelScope.launch {
             musicRepository.syncWithDevice()
             mediaScanRepository.resetScanState()
-            onDismiss()
         }
     }
 
     fun dismiss(onDismiss: () -> Unit) {
-        mediaScanRepository.resetScanState()
         onDismiss()
+        viewModelScope.launch {
+            mediaScanRepository.resetScanState()
+        }
     }
 }
