@@ -41,6 +41,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.about.AboutDialog
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.rate.RateUsBottomSheet
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.BottomPlayerBar
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.NeonBlue
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingsDialog
@@ -109,6 +110,7 @@ fun AppRootContent(
     var showScanMediaDialog by remember { mutableStateOf(false) }
     var showSettingsDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
+    var showRateUsBottomSheet by remember { mutableStateOf(false) }
 
     val density = LocalDensity.current
     val maxTranslationX = with(density) { 240.dp.toPx() }
@@ -129,7 +131,7 @@ fun AppRootContent(
             onPermissionsClick = { navController.navigate(Screen.Permissions) },
             onSettingsClick = { showSettingsDialog = true },
             onAboutClick = { showAboutDialog = true },
-            onRateUsClick = { selectedDrawerItem = "Rate Us" },
+            onRateUsClick = { showRateUsBottomSheet = true },
             onCloseDrawer = { isDrawerOpen = false }
         )
 
@@ -232,5 +234,12 @@ fun AppRootContent(
     // About Us Dialog
     if (showAboutDialog) {
         AboutDialog(onDismiss = { showAboutDialog = false })
+    }
+
+    // Rate Us Bottom Sheet
+    if (showRateUsBottomSheet) {
+        RateUsBottomSheet(
+            onDismiss = { showRateUsBottomSheet = false }
+        )
     }
 }
