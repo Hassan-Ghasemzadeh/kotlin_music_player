@@ -47,6 +47,7 @@ import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingsDia
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SlantedLeftEdgeShape
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SlantedNavigationDrawerContent
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.sleeptimer.SleepTimerDialog
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.scan.ScanMediaDialog
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.equalizer.EqualizerBottomSheet
 import com.sftwr.cleandevelopment.musicplayer.model.Screen
@@ -124,12 +125,7 @@ fun AppRootContent(
             onItemSelected = { selectedDrawerItem = it },
             onEqualizerClick = { showEqualizerDialog = true },
             onSleepTimerClick = { showSleepTimerDialog = true },
-            onScanMediaClick = {
-                showScanMediaDialog = true
-                coroutineScope.launch(Dispatchers.IO) {
-                    playerManager.musicRepository.syncWithDevice()
-                }
-            },
+            onScanMediaClick = { showScanMediaDialog = true },
             onSettingsClick = { showSettingsDialog = true },
             onAboutClick = { showAboutDialog = true },
             onRateUsClick = { selectedDrawerItem = "Rate Us" },
@@ -222,16 +218,8 @@ fun AppRootContent(
 
     // Scan Media Dialog
     if (showScanMediaDialog) {
-        AlertDialog(
-            onDismissRequest = { showScanMediaDialog = false },
-            containerColor = Color(0xFF1B1238),
-            title = { Text("Scan Media", color = Color.White, fontWeight = FontWeight.Bold) },
-            text = { Text("Device media synchronized successfully with local database.", color = Color.White.copy(alpha = 0.8f)) },
-            confirmButton = {
-                TextButton(onClick = { showScanMediaDialog = false }) {
-                    Text("OK", color = NeonBlue, fontWeight = FontWeight.Bold)
-                }
-            }
+        ScanMediaDialog(
+            onDismiss = { showScanMediaDialog = false }
         )
     }
 
