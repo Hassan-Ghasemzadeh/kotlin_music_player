@@ -34,6 +34,10 @@ class AlbumsViewModelTest {
         override fun getArtists(): Flow<List<Artist>> = error("Not implemented")
         override fun getArtistSongs(artistName: String): Flow<List<Song>> = error("Not implemented")
         override fun getArtistAlbums(artistName: String): Flow<List<Album>> = error("Not implemented")
+        override fun getGenres(): Flow<List<com.sftwr.cleandevelopment.musicplayer.domain.model.GenreItem>> = error("Not implemented")
+        override fun getGenreSongs(genreName: String): Flow<List<Song>> = error("Not implemented")
+        override fun getFolders(): Flow<List<com.sftwr.cleandevelopment.musicplayer.domain.model.FolderItem>> = error("Not implemented")
+        override fun getFolderSongs(folderPath: String): Flow<List<Song>> = error("Not implemented")
         override suspend fun searchSongs(query: String): List<Song> = emptyList()
         override suspend fun deleteSong(songId: Long): DeleteResult = DeleteResult.Success
         override suspend fun updateSongTags(
