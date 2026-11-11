@@ -46,7 +46,7 @@ import com.sftwr.cleandevelopment.musicplayer.designsystem.component.NeonBlue
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingsDialog
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SlantedLeftEdgeShape
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SlantedNavigationDrawerContent
-import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SleepTimerDialog
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.sleeptimer.SleepTimerDialog
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.equalizer.EqualizerBottomSheet
 import com.sftwr.cleandevelopment.musicplayer.model.Screen
@@ -108,7 +108,6 @@ fun AppRootContent(
     var showScanMediaDialog by remember { mutableStateOf(false) }
     var showSettingsDialog by remember { mutableStateOf(false) }
     var showAboutDialog by remember { mutableStateOf(false) }
-    var sleepTimerMinutes by remember { mutableStateOf(0) }
 
     val density = LocalDensity.current
     val maxTranslationX = with(density) { 240.dp.toPx() }
@@ -217,11 +216,6 @@ fun AppRootContent(
     // Sleep Timer Dialog
     if (showSleepTimerDialog) {
         SleepTimerDialog(
-            currentTimerMinutes = sleepTimerMinutes,
-            onSelectMinutes = { mins ->
-                sleepTimerMinutes = mins
-                showSleepTimerDialog = false
-            },
             onDismiss = { showSleepTimerDialog = false }
         )
     }
