@@ -62,6 +62,7 @@ fun SlantedNavigationDrawerContent(
     onEqualizerClick: () -> Unit,
     onSleepTimerClick: () -> Unit,
     onScanMediaClick: () -> Unit,
+    onPermissionsClick: () -> Unit = {},
     onSettingsClick: () -> Unit,
     onAboutClick: () -> Unit,
     onRateUsClick: () -> Unit,
@@ -71,7 +72,7 @@ fun SlantedNavigationDrawerContent(
         DrawerMenuItem("Equalizer", Icons.Default.GraphicEq, onClick = onEqualizerClick),
         DrawerMenuItem("Sleep Timer", Icons.Default.Timer, onClick = onSleepTimerClick),
         DrawerMenuItem("Scan Media", Icons.Default.FolderOpen, onClick = onScanMediaClick),
-        DrawerMenuItem("Notification", Icons.Default.Notifications, onClick = {}),
+        DrawerMenuItem("Notification / Permissions", Icons.Default.Notifications, onClick = onPermissionsClick),
         DrawerMenuItem("Settings", Icons.Default.Settings, onClick = onSettingsClick),
         DrawerMenuItem("About Us", Icons.Default.Info, onClick = onAboutClick),
         DrawerMenuItem("Rate Us", Icons.Default.Star, onClick = onRateUsClick)

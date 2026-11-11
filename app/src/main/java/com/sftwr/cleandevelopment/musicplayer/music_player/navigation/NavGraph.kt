@@ -13,6 +13,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.albums.albums
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.artists.artistDetailGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.artists.artistsGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.edit.editTagScreenGraph
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.permissions.permissionsGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.favorites.favoritesGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.folders.folderDetailGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.folders.foldersGraph
@@ -303,6 +304,13 @@ fun AppNavGraph(
             onBackClick = {
                 navController.popBackStack()
             },
+        )
+
+        // Permissions management feature navigation graph
+        permissionsGraph(
+            onBackClick = {
+                navController.popBackStack()
+            }
         )
     }
 }

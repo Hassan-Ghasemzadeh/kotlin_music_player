@@ -126,6 +126,7 @@ fun AppRootContent(
             onEqualizerClick = { showEqualizerDialog = true },
             onSleepTimerClick = { showSleepTimerDialog = true },
             onScanMediaClick = { showScanMediaDialog = true },
+            onPermissionsClick = { navController.navigate(Screen.Permissions) },
             onSettingsClick = { showSettingsDialog = true },
             onAboutClick = { showAboutDialog = true },
             onRateUsClick = { selectedDrawerItem = "Rate Us" },
