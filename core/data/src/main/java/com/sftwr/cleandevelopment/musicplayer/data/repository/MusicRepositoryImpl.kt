@@ -10,6 +10,8 @@ import android.media.MediaScannerConnection
 import android.os.Build
 import android.provider.MediaStore
 import androidx.annotation.RequiresApi
+import com.sftwr.cleandevelopment.musicplayer.data.model.AlbumQueryResult
+import com.sftwr.cleandevelopment.musicplayer.data.model.ArtistQueryResult
 import com.sftwr.cleandevelopment.musicplayer.data.model.SongEntity
 import com.sftwr.cleandevelopment.musicplayer.data.source.local.SongDao
 import com.sftwr.cleandevelopment.musicplayer.data.util.AudioTagEditor
@@ -52,20 +54,18 @@ class MusicRepositoryImpl @Inject constructor(
     }
 
     override fun getAlbums(): Flow<List<Album>> {
-        return songDao.getAllSongsFlow()
-            .map { entities ->
-                entities.groupBy { it.albumId }
-                    .map { (albumId, songEntities) ->
-                        val first = songEntities.first()
-                        Album(
-                            albumId = albumId,
-                            title = first.album.ifBlank { "Unknown Album" },
-                            artist = first.artist.ifBlank { "Unknown Artist" },
-                            trackCount = songEntities.size,
-                            albumArtUri = "content://media/external/audio/albumart/$albumId"
-                        )
-                    }
-                    .sortedBy { it.title }
+        return songDao.getAlbumsFlow()
+            .map { results ->
+                results.map { result ->
+                    Album(
+                        albumId = result.albumId,
+                        title = result.title.ifBlank { "Unknown Album" },
+                        artist = result.artist.ifBlank { "Unknown Artist" },
+                        trackCount = result.trackCount,
+                        albumArtUri = "content://media/external/audio/albumart/${result.albumId}",
+                        isFavorite = result.isFavorite
+                    )
+                }
             }
             .flowOn(Dispatchers.IO)
     }
@@ -80,22 +80,17 @@ class MusicRepositoryImpl @Inject constructor(
     }
 
     override fun getArtists(): Flow<List<Artist>> {
-        return songDao.getAllSongsFlow()
-            .map { entities ->
-                entities.groupBy { it.artist.ifBlank { "Unknown Artist" } }
-                    .map { (artistName, songEntities) ->
-                        val first = songEntities.first()
-                        val albumCount = songEntities.map { it.albumId }.distinct().size
-                        val isFav = songEntities.isNotEmpty() && songEntities.all { it.isFavorite }
-                        Artist(
-                            name = artistName,
-                            trackCount = songEntities.size,
-                            albumCount = albumCount,
-                            artistArtUri = "content://media/external/audio/albumart/${first.albumId}",
-                            isFavorite = isFav
-                        )
-                    }
-                    .sortedBy { it.name }
+        return songDao.getArtistsFlow()
+            .map { results ->
+                results.map { result ->
+                    Artist(
+                        name = result.name.ifBlank { "Unknown Artist" },
+                        trackCount = result.trackCount,
+                        albumCount = result.albumCount,
+                        artistArtUri = "content://media/external/audio/albumart/${result.albumId}",
+                        isFavorite = result.isFavorite
+                    )
+                }
             }
             .flowOn(Dispatchers.IO)
     }
@@ -132,16 +127,14 @@ class MusicRepositoryImpl @Inject constructor(
     }
 
     override fun getGenres(): Flow<List<GenreItem>> {
-        return songDao.getAllSongsFlow()
-            .map { entities ->
-                entities.groupBy { it.genre.ifBlank { "Unknown Genre" } }
-                    .map { (genreName, songEntities) ->
-                        Genre(
-                            name = genreName,
-                            trackCount = songEntities.size
-                        )
-                    }
-                    .sortedBy { it.name }
+        return songDao.getGenresWithCountFlow()
+            .map { results ->
+                results.map { result ->
+                    Genre(
+                        name = result.genre.ifBlank { "Unknown Genre" },
+                        trackCount = result.trackCount
+                    )
+                }
             }
             .flowOn(Dispatchers.IO)
     }
