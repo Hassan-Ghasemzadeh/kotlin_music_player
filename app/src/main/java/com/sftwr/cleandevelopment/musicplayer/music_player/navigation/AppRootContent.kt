@@ -40,7 +40,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.sftwr.cleandevelopment.musicplayer.designsystem.component.AboutDialog
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.about.AboutDialog
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.BottomPlayerBar
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.NeonBlue
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingsDialog
