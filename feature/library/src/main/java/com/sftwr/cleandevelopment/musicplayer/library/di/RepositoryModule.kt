@@ -62,4 +62,13 @@ abstract class RepositoryModule {
     abstract fun bindSleepTimerRepository(
         sleepTimerRepositoryImpl: com.sftwr.cleandevelopment.musicplayer.data.repository.SleepTimerRepositoryImpl,
     ): com.sftwr.cleandevelopment.musicplayer.domain.repository.SleepTimerRepository
+
+    /**
+     * Binds the implementation of MediaScanRepository to its interface.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindMediaScanRepository(
+        mediaScanRepositoryImpl: com.sftwr.cleandevelopment.musicplayer.data.repository.MediaScanRepositoryImpl,
+    ): com.sftwr.cleandevelopment.musicplayer.domain.repository.MediaScanRepository
 }
