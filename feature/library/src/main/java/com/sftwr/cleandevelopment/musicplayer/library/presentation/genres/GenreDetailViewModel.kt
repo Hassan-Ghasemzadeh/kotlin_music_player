@@ -37,7 +37,8 @@ class GenreDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
 
-    val genreName: String = savedStateHandle.get<String>("genreName") ?: "Genre"
+    private val savedGenreName: String = savedStateHandle.get<String>("genreName") ?: "Genre"
+    val genreName: String get() = uiState.value.genreName.ifBlank { savedGenreName }
 
     private val _isLoading = MutableStateFlow(false)
     private val _targetSongForPlaylist = MutableStateFlow<SongUiModel?>(null)
@@ -46,7 +47,7 @@ class GenreDetailViewModel @Inject constructor(
     val toastEvent = _toastChannel.receiveAsFlow()
 
     val uiState: StateFlow<GenreDetailUiState> = combine(
-        getGenreSongsUseCase(genreName),
+        getGenreSongsUseCase(savedGenreName),
         getPlaylistsUseCase(),
         _targetSongForPlaylist,
         _isLoading
@@ -66,9 +67,10 @@ class GenreDetailViewModel @Inject constructor(
                 isFavorite = song.isFavorite
             )
         }
+        val dynamicGenreName = songUiModels.firstOrNull()?.genre?.ifBlank { savedGenreName } ?: savedGenreName
         val isGenreFavorite = songUiModels.isNotEmpty() && songUiModels.all { it.isFavorite }
         GenreDetailUiState(
-            genreName = genreName,
+            genreName = dynamicGenreName,
             songs = songUiModels,
             playlists = playlists,
             targetSongForPlaylist = targetSong,
@@ -78,7 +80,7 @@ class GenreDetailViewModel @Inject constructor(
     }.stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
-        initialValue = GenreDetailUiState(genreName = genreName, isLoading = true)
+        initialValue = GenreDetailUiState(genreName = savedGenreName, isLoading = true)
     )
 
     fun onSongClicked(songId: String) {

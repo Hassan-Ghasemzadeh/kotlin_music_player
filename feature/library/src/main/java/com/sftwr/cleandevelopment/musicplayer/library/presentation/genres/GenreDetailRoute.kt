@@ -35,7 +35,7 @@ fun GenreDetailRoute(
     }
 
     GenreDetailScreen(
-        genreName = viewModel.genreName,
+        genreName = uiState.genreName,
         songs = uiState.songs,
         playlists = uiState.playlists,
         targetSongForPlaylist = uiState.targetSongForPlaylist,
