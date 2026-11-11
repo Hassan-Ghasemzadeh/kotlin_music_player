@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -71,6 +72,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.Ad
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.equalizer.EqualizerBottomSheet
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.viewmodel.PlayerViewModel
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.viewmodel.RepeatMode
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.sleeptimer.SleepTimerDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.visualizer.NeonCircularVisualizer
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
@@ -97,6 +99,7 @@ fun PlayerScreen(
     val isAddToPlaylistDialogVisible by viewModel.isAddToPlaylistDialogVisible.collectAsState()
 
     var showEqualizerSheet by remember { mutableStateOf(false) }
+    var showSleepTimerDialog by remember { mutableStateOf(false) }
 
     val totalDuration = songState?.duration ?: ""
     val songTitle = songState?.title ?: "Unknown Title"
@@ -256,6 +259,15 @@ fun PlayerScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.PlaylistAdd,
                         contentDescription = "Add to Playlist",
+                        tint = Color(0xFF91D8FB),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                IconButton(onClick = { showSleepTimerDialog = true }) {
+                    Icon(
+                        imageVector = Icons.Default.Timer,
+                        contentDescription = "Sleep Timer",
                         tint = Color(0xFF91D8FB),
                         modifier = Modifier.size(24.dp)
                     )
@@ -437,6 +449,15 @@ fun PlayerScreen(
             EqualizerBottomSheet(
                 onDismissRequest = {
                     showEqualizerSheet = false
+                }
+            )
+        }
+
+        // Sleep Timer Dialog
+        if (showSleepTimerDialog) {
+            SleepTimerDialog(
+                onDismiss = {
+                    showSleepTimerDialog = false
                 }
             )
         }
