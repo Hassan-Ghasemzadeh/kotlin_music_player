@@ -71,4 +71,13 @@ abstract class RepositoryModule {
     abstract fun bindMediaScanRepository(
         mediaScanRepositoryImpl: com.sftwr.cleandevelopment.musicplayer.data.repository.MediaScanRepositoryImpl,
     ): com.sftwr.cleandevelopment.musicplayer.domain.repository.MediaScanRepository
+
+    /**
+     * Binds the implementation of PermissionRepository to its interface.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindPermissionRepository(
+        permissionRepositoryImpl: com.sftwr.cleandevelopment.musicplayer.data.repository.PermissionRepositoryImpl,
+    ): com.sftwr.cleandevelopment.musicplayer.domain.repository.PermissionRepository
 }
