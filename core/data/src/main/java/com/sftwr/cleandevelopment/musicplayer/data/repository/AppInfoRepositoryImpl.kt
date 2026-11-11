@@ -28,7 +28,7 @@ class AppInfoRepositoryImpl @Inject constructor(
         AppInfo(
             appName = "Music Player",
             versionName = version,
-            developerName = "Code Ara Studio",
+            developerName = "CodeAraStudio",
             githubUrl = "https://github.com/Hassan-Ghasemzadeh"
         )
     }
