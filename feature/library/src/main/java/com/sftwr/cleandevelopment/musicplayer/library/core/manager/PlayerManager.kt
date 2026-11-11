@@ -133,6 +133,24 @@ class PlayerManager @Inject constructor(
             }
         }
 
+        val sleepTimerFilter = android.content.IntentFilter(com.sftwr.cleandevelopment.musicplayer.data.worker.SleepTimerWorker.ACTION_STOP_SLEEP_TIMER_PLAYBACK)
+        val sleepTimerReceiver = object : android.content.BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action == com.sftwr.cleandevelopment.musicplayer.data.worker.SleepTimerWorker.ACTION_STOP_SLEEP_TIMER_PLAYBACK) {
+                    runOnMainThread {
+                        if (exoPlayer.isPlaying) {
+                            exoPlayer.pause()
+                        }
+                    }
+                }
+            }
+        }
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            context.registerReceiver(sleepTimerReceiver, sleepTimerFilter, Context.RECEIVER_NOT_EXPORTED)
+        } else {
+            context.registerReceiver(sleepTimerReceiver, sleepTimerFilter)
+        }
+
         var lastRecordedId: String? = null
 
         exoPlayer.addListener(object : Player.Listener {

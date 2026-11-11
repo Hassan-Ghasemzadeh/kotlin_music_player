@@ -53,4 +53,13 @@ abstract class RepositoryModule {
     abstract fun bindEqualizerRepository(
         equalizerRepositoryImpl: EqualizerRepositoryImpl,
     ): EqualizerRepository
+
+    /**
+     * Binds the implementation of SleepTimerRepository to its interface.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindSleepTimerRepository(
+        sleepTimerRepositoryImpl: com.sftwr.cleandevelopment.musicplayer.data.repository.SleepTimerRepositoryImpl,
+    ): com.sftwr.cleandevelopment.musicplayer.domain.repository.SleepTimerRepository
 }
