@@ -241,7 +241,7 @@ fun SettingsScreen(
                             icon = Icons.Default.MusicNote,
                             value = settings.playbackSpeed,
                             valueRange = 0.5f..2.0f,
-                            steps = 15,
+                            steps = 0,
                             onValueChange = onPlaybackSpeedChange
                         )
 
@@ -254,7 +254,7 @@ fun SettingsScreen(
                             icon = Icons.Default.AudioFile,
                             value = settings.playbackPitch,
                             valueRange = 0.5f..2.0f,
-                            steps = 15,
+                            steps = 0,
                             onValueChange = onPlaybackPitchChange
                         )
 
