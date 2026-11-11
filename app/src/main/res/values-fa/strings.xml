@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">موزیک پلیر</string>
+    <string name="media_notification_channel_name">کنترل‌های پخش موسیقی</string>
+</resources>

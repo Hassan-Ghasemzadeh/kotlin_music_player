@@ -129,7 +129,7 @@ fun AppRootContent(
             onSleepTimerClick = { showSleepTimerDialog = true },
             onScanMediaClick = { showScanMediaDialog = true },
             onPermissionsClick = { navController.navigate(Screen.Permissions) },
-            onSettingsClick = { showSettingsDialog = true },
+            onSettingsClick = { navController.navigate(Screen.Settings) },
             onAboutClick = { showAboutDialog = true },
             onRateUsClick = { showRateUsBottomSheet = true },
             onCloseDrawer = { isDrawerOpen = false }
