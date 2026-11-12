@@ -43,6 +43,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sftwr.cleandevelopment.musicplayer.data.util.LocaleHelper
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.BottomPlayerBar
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalAlbumArtworkEnabled
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalGlassmorphicEnabled
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingsDialog
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SlantedLeftEdgeShape
@@ -97,7 +98,8 @@ fun AppRootContent(
 
     CompositionLocalProvider(
         LocalLayoutDirection provides layoutDirection,
-        LocalGlassmorphicEnabled provides settings.glassmorphicStyleEnabled
+        LocalGlassmorphicEnabled provides settings.glassmorphicStyleEnabled,
+        LocalAlbumArtworkEnabled provides settings.isAlbumArtworkEnabled
     ) {
         val currentSong by playerManager.currentSong.collectAsStateWithLifecycle()
         val isPlaying by playerManager.isPlaying.collectAsStateWithLifecycle()
