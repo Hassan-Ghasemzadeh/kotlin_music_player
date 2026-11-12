@@ -19,6 +19,11 @@ import androidx.compose.ui.unit.dp
 val LocalGlassmorphicEnabled = compositionLocalOf { true }
 
 /**
+ * CompositionLocal providing whether Album Artwork Display is globally enabled.
+ */
+val LocalAlbumArtworkEnabled = compositionLocalOf { true }
+
+/**
  * A reusable Glassmorphism container card featuring a translucent gradient background
  * and a subtle glowing gradient border for modern UI design, dynamically adapting
  * to the global [LocalGlassmorphicEnabled] preference.
