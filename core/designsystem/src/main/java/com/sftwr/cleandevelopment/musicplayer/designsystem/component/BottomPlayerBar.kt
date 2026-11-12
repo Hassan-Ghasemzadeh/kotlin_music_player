@@ -87,7 +87,8 @@ fun BottomPlayerBar(
                         .clip(RoundedCornerShape(8.dp))
                         .background(Color.Gray)
                 ) {
-                    if (artUri != null) {
+                    val isAlbumArtworkEnabled = LocalAlbumArtworkEnabled.current
+                    if (isAlbumArtworkEnabled && artUri != null) {
                         AsyncImage(
                             model = artUri,
                             contentDescription = null,
