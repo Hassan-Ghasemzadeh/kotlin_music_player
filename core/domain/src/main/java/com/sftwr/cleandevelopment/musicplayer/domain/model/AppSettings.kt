@@ -22,7 +22,7 @@ data class AppSettings(
     // Appearance & Language
     val language: AppLanguage = AppLanguage.ENGLISH,
     val glassmorphicStyleEnabled: Boolean = true,
-    val showAlbumArt: Boolean = true,
+    val isAlbumArtworkEnabled: Boolean = true,
 
     // Audio & Playback Effects
     val playbackSpeed: Float = 1.0f,
@@ -46,4 +46,7 @@ data class AppSettings(
 ) {
     val isGlassmorphicEnabled: Boolean
         get() = glassmorphicStyleEnabled
+
+    val showAlbumArt: Boolean
+        get() = isAlbumArtworkEnabled
 }
