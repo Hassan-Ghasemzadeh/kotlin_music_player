@@ -33,12 +33,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
+import com.sftwr.cleandevelopment.musicplayer.home.R
 
 val SleepTimerNeonBlue = Color(0xFF91D8FB)
 
@@ -86,7 +88,7 @@ fun SleepTimerDialog(
                     modifier = Modifier.size(24.dp)
                 )
                 Text(
-                    text = "Sleep Timer",
+                    text = stringResource(R.string.sleep_timer),
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
@@ -98,7 +100,6 @@ fun SleepTimerDialog(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                // Active countdown banner
                 if (uiState.isActive && uiState.remainingTimeFormatted.isNotEmpty()) {
                     Box(
                         modifier = Modifier
@@ -122,12 +123,12 @@ fun SleepTimerDialog(
                         ) {
                             Column {
                                 Text(
-                                    text = "Timer Active",
+                                    text = stringResource(R.string.timer_active),
                                     color = Color.White.copy(alpha = 0.7f),
                                     fontSize = 12.sp
                                 )
                                 Text(
-                                    text = "Stops playback in ${uiState.remainingTimeFormatted}",
+                                    text = stringResource(R.string.stops_playback_in, uiState.remainingTimeFormatted),
                                     color = SleepTimerNeonBlue,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 15.sp
@@ -138,7 +139,7 @@ fun SleepTimerDialog(
                                 modifier = Modifier.size(32.dp)
                             ) {
                                 Text(
-                                    text = "Off",
+                                    text = stringResource(R.string.timer_preset_off),
                                     color = Color.White.copy(alpha = 0.9f),
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Bold
@@ -148,7 +149,7 @@ fun SleepTimerDialog(
                     }
                 } else {
                     Text(
-                        text = "Select a timer duration to automatically stop music playback:",
+                        text = stringResource(R.string.select_timer_duration),
                         color = Color.White.copy(alpha = 0.8f),
                         fontSize = 13.sp
                     )
@@ -156,20 +157,23 @@ fun SleepTimerDialog(
 
                 Spacer(modifier = Modifier.height(4.dp))
 
-                // Presets list
                 options.forEach { preset ->
                     val isSelected = uiState.selectedPreset == preset && (preset != TimerPreset.OFF || !uiState.isActive)
                     val label = when (preset) {
+                        TimerPreset.OFF -> stringResource(R.string.timer_preset_off)
+                        TimerPreset.MIN_30 -> stringResource(R.string.timer_preset_30m)
+                        TimerPreset.HOUR_1 -> stringResource(R.string.timer_preset_1h)
+                        TimerPreset.HOUR_1_30 -> stringResource(R.string.timer_preset_1h30m)
+                        TimerPreset.HOUR_2 -> stringResource(R.string.timer_preset_2h)
                         TimerPreset.CUSTOM -> {
                             if (uiState.selectedPreset == TimerPreset.CUSTOM && uiState.durationMinutes > 0) {
                                 val h = uiState.durationMinutes / 60
                                 val m = uiState.durationMinutes % 60
-                                "Custom (${if (h > 0) "${h}h " else ""}${m}m)"
+                                stringResource(R.string.custom_time_format, "${if (h > 0) "${h}h " else ""}${m}m")
                             } else {
-                                "Custom..."
+                                stringResource(R.string.timer_preset_custom)
                             }
                         }
-                        else -> preset.label
                     }
 
                     GlassCard(
@@ -216,7 +220,7 @@ fun SleepTimerDialog(
                                 ) {
                                     Icon(
                                         imageVector = Icons.Default.Edit,
-                                        contentDescription = "Edit Custom Time",
+                                        contentDescription = stringResource(R.string.edit_tags),
                                         tint = SleepTimerNeonBlue
                                     )
                                 }
@@ -234,7 +238,7 @@ fun SleepTimerDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("Close", color = SleepTimerNeonBlue, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.close), color = SleepTimerNeonBlue, fontWeight = FontWeight.Bold)
             }
         }
     )
