@@ -39,6 +39,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.core.equalizer.EqualizerAu
 
 import androidx.annotation.OptIn
 import androidx.media3.common.util.UnstableApi
+import kotlin.time.Duration.Companion.milliseconds
 
 @Singleton
 @OptIn(UnstableApi::class)
@@ -57,6 +58,7 @@ class PlayerManager @Inject constructor(
     private val mainHandler = Handler(Looper.getMainLooper())
 
     private var isAlbumArtworkEnabled = true
+    private var crossfadeDurationSeconds = 0
 
     init {
         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
@@ -169,6 +171,27 @@ class PlayerManager @Inject constructor(
                 runOnMainThread {
                     exoPlayer.playbackParameters = PlaybackParameters(settings.playbackSpeed, settings.playbackPitch)
                     exoPlayer.skipSilenceEnabled = settings.skipSilenceEnabled
+                    val changed = crossfadeDurationSeconds != settings.crossfadeDurationSeconds
+                    crossfadeDurationSeconds = settings.crossfadeDurationSeconds
+                    if (changed) {
+                        if (isPlaying.value && crossfadeDurationSeconds > 0) {
+                            startCrossfadeVolumeMonitor()
+                        } else if (crossfadeDurationSeconds == 0) {
+                            crossfadeJob?.cancel()
+                            exoPlayer.volume = 1.0f
+                        }
+                    }
+                }
+            }
+        }
+
+        playerScope.launch {
+            isPlaying.collect { playing ->
+                if (playing && crossfadeDurationSeconds > 0) {
+                    startCrossfadeVolumeMonitor()
+                } else if (!playing) {
+                    crossfadeJob?.cancel()
+                    runOnMainThread { exoPlayer.volume = 1.0f }
                 }
             }
         }
@@ -248,6 +271,49 @@ class PlayerManager @Inject constructor(
     fun toggleFavorite(songId: Long, isFavorite: Boolean) {
         playerScope.launch(Dispatchers.IO) {
             playlistRepository.toggleFavorite(songId, isFavorite)
+        }
+    }
+
+    private var crossfadeJob: Job? = null
+
+    private fun startCrossfadeVolumeMonitor() {
+        crossfadeJob?.cancel()
+        if (crossfadeDurationSeconds <= 0) {
+            runOnMainThread { exoPlayer.volume = 1.0f }
+            return
+        }
+        crossfadeJob = playerScope.launch {
+            while (isPlaying.value && crossfadeDurationSeconds > 0) {
+                runOnMainThread {
+                    if (exoPlayer.isPlaying) {
+                        val durationMs = exoPlayer.duration
+                        val positionMs = exoPlayer.currentPosition
+                        val crossfadeDurationMs = crossfadeDurationSeconds * 1000L
+
+                        if (crossfadeDurationMs > 0L && durationMs > 0L) {
+                            val fadeInProgress = if (positionMs < crossfadeDurationMs) {
+                                (positionMs.toFloat() / crossfadeDurationMs.toFloat()).coerceIn(0f, 1f)
+                            } else {
+                                1f
+                            }
+
+                            val remainingMs = (durationMs - positionMs).coerceAtLeast(0L)
+                            val fadeOutProgress = if (remainingMs < crossfadeDurationMs) {
+                                (remainingMs.toFloat() / crossfadeDurationMs.toFloat()).coerceIn(0f, 1f)
+                            } else {
+                                1f
+                            }
+
+                            val targetVolume = minOf(fadeInProgress, fadeOutProgress)
+                            exoPlayer.volume = targetVolume
+                        } else {
+                            exoPlayer.volume = 1.0f
+                        }
+                    }
+                }
+                kotlinx.coroutines.delay(100L.milliseconds)
+            }
+            runOnMainThread { exoPlayer.volume = 1.0f }
         }
     }
 
