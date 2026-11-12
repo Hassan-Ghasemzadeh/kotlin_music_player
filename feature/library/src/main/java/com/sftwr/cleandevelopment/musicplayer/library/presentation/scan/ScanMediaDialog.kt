@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
@@ -39,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sftwr.cleandevelopment.musicplayer.home.R
 
 val ScanNeonBlue = Color(0xFF91D8FB)
 
@@ -87,7 +89,7 @@ fun ScanMediaDialog(
                     )
                 }
                 Text(
-                    text = if (uiState.isCompleted) "Scan Finished" else "Scanning Media",
+                    text = if (uiState.isCompleted) stringResource(R.string.scan_finished) else stringResource(R.string.scan_media_title),
                     color = Color.White,
                     fontWeight = FontWeight.Bold,
                     fontSize = 20.sp
@@ -102,7 +104,6 @@ fun ScanMediaDialog(
                 verticalArrangement = Arrangement.spacedBy(14.dp)
             ) {
                 if (uiState.isScanning) {
-                    // Scanning state: Real-time progress indicators
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -129,7 +130,7 @@ fun ScanMediaDialog(
                                 strokeWidth = 2.5.dp
                             )
                             Text(
-                                text = "Scanning device storage...",
+                                text = stringResource(R.string.scanning_device_storage),
                                 color = Color.White,
                                 fontWeight = FontWeight.SemiBold,
                                 fontSize = 14.sp
@@ -149,7 +150,7 @@ fun ScanMediaDialog(
                             text = if (uiState.currentPathBeingScanned.isNotEmpty()) {
                                 uiState.currentPathBeingScanned
                             } else {
-                                "Reading audio files..."
+                                stringResource(R.string.reading_audio_files)
                             },
                             color = Color.White.copy(alpha = 0.7f),
                             fontSize = 12.sp,
@@ -159,14 +160,13 @@ fun ScanMediaDialog(
                         )
 
                         Text(
-                            text = "Found ${uiState.scannedCount} tracks so far",
+                            text = stringResource(R.string.found_tracks_so_far, uiState.scannedCount),
                             color = ScanNeonBlue,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium
                         )
                     }
                 } else if (uiState.isCompleted) {
-                    // Completion State: Clean success card
                     AnimatedVisibility(
                         visible = uiState.isCompleted,
                         enter = fadeIn(),
@@ -189,13 +189,13 @@ fun ScanMediaDialog(
                         ) {
                             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                                 Text(
-                                    text = "Media scan completed successfully!",
+                                    text = stringResource(R.string.media_scan_completed),
                                     color = Color.White,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 15.sp
                                 )
                                 Text(
-                                    text = "Found ${uiState.scannedCount} audio tracks on your device storage.",
+                                    text = stringResource(R.string.found_tracks_total, uiState.scannedCount),
                                     color = Color.White.copy(alpha = 0.8f),
                                     fontSize = 13.sp
                                 )
@@ -204,7 +204,7 @@ fun ScanMediaDialog(
                     }
                 } else {
                     Text(
-                        text = "Preparing media scan...",
+                        text = stringResource(R.string.preparing_media_scan),
                         color = Color.White.copy(alpha = 0.8f),
                         fontSize = 14.sp
                     )
@@ -214,11 +214,11 @@ fun ScanMediaDialog(
         confirmButton = {
             if (uiState.isCompleted) {
                 TextButton(onClick = { viewModel.onOkClick(onDismiss) }) {
-                    Text("OK", color = ScanNeonBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Text(stringResource(R.string.ok), color = ScanNeonBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                 }
             } else {
                 TextButton(onClick = { viewModel.dismiss(onDismiss) }) {
-                    Text("Cancel", color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
+                    Text(stringResource(R.string.cancel), color = Color.White.copy(alpha = 0.7f), fontSize = 14.sp)
                 }
             }
         }
