@@ -77,6 +77,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.NeonBlue
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingSliderItem
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingSwitchItem
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
 import com.sftwr.cleandevelopment.musicplayer.domain.model.ReplayGainMode
@@ -103,6 +104,7 @@ fun SettingsScreen(
     uiState: SettingsUiState,
     isGlassmorphicEnabled: Boolean,
     isAlbumArtworkEnabled: Boolean,
+    crossfadeDuration: Int,
     onBackClick: () -> Unit,
     onLanguageClick: () -> Unit,
     onLanguageSelected: (AppLanguage) -> Unit,
@@ -263,18 +265,18 @@ fun SettingsScreen(
 
                         SettingsDivider()
 
-                        // Crossfade Slider
-                        SettingsSliderRowItem(
+                        // Crossfade Slider (Crossfade Tracks)
+                        SettingSliderItem(
                             title = stringResource(R.string.crossfade),
-                            valueText = stringResource(
-                                R.string.seconds_format,
-                                settings.crossfadeDurationSeconds
-                            ),
-                            icon = Icons.Default.Equalizer,
-                            value = settings.crossfadeDurationSeconds.toFloat(),
+                            value = crossfadeDuration.toFloat(),
                             valueRange = 0f..12f,
                             steps = 12,
-                            onValueChange = { onCrossfadeDurationChange(it.toInt()) }
+                            valueTextFormatter = { currentVal ->
+                                String.format(Locale.US, "%d sec", currentVal.toInt())
+                            },
+                            icon = Icons.Default.Equalizer,
+                            onValueChange = {},
+                            onValueChangeFinished = { onCrossfadeDurationChange(it.toInt()) }
                         )
 
                         SettingsDivider()
