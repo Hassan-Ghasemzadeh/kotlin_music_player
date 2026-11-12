@@ -51,6 +51,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -60,6 +61,7 @@ import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerBand
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerPreset
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerState
+import com.sftwr.cleandevelopment.musicplayer.home.R
 
 private val NeonBlue = Color(0xFF91D8FB)
 private val DarkGlassBackground = Color(0xF2140D2B)
@@ -98,7 +100,6 @@ fun EqualizerBottomSheet(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp, vertical = 12.dp)
         ) {
-            // Header Section
             EqualizerHeader(
                 isEnabled = uiState.isEnabled,
                 onToggleEnabled = { viewModel.toggleEnabled(it) },
@@ -107,14 +108,12 @@ fun EqualizerBottomSheet(
 
             Spacer(modifier = Modifier.height(20.dp))
 
-            // Main Controls Container with dimming when disabled
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .alpha(if (uiState.isEnabled) 1.0f else 0.45f)
             ) {
                 Column {
-                    // Presets Selection Section
                     PresetsSection(
                         availablePresets = uiState.availablePresets,
                         currentPresetId = uiState.currentPresetId,
@@ -124,7 +123,6 @@ fun EqualizerBottomSheet(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Equalizer Frequency Bands Sliders Section
                     FrequencyBandsSection(
                         bands = uiState.bands,
                         isEnabled = uiState.isEnabled,
@@ -135,7 +133,6 @@ fun EqualizerBottomSheet(
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Audio Effects Section (Bass Boost & Virtualizer)
                     AudioEffectsSection(
                         bassBoost = uiState.bassBoostStrength,
                         virtualizer = uiState.virtualizerStrength,
@@ -190,16 +187,10 @@ private fun EqualizerHeader(
             Spacer(modifier = Modifier.width(12.dp))
             Column {
                 Text(
-                    text = "Equalizer",
+                    text = stringResource(R.string.equalizer_title),
                     style = MaterialTheme.typography.titleLarge.copy(
                         fontWeight = FontWeight.Bold,
                         color = Color.White
-                    )
-                )
-                Text(
-                    text = if (isEnabled) "Audio Effects Active" else "Audio Effects Off",
-                    style = MaterialTheme.typography.bodySmall.copy(
-                        color = if (isEnabled) NeonBlue else Color.White.copy(alpha = 0.5f)
                     )
                 )
             }
@@ -224,7 +215,7 @@ private fun EqualizerHeader(
             IconButton(onClick = onClose) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Close Equalizer",
+                    contentDescription = stringResource(R.string.close),
                     tint = Color.White.copy(alpha = 0.7f)
                 )
             }
@@ -241,7 +232,7 @@ private fun PresetsSection(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "PRESETS",
+            text = stringResource(R.string.presets),
             style = MaterialTheme.typography.labelMedium.copy(
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White.copy(alpha = 0.6f),
@@ -311,7 +302,7 @@ private fun FrequencyBandsSection(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "FREQUENCY BANDS",
+            text = stringResource(R.string.frequency_bands),
             style = MaterialTheme.typography.labelMedium.copy(
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White.copy(alpha = 0.6f),
@@ -359,7 +350,6 @@ private fun EqualizerBandItem(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.width(54.dp)
     ) {
-        // Gain dB label
         Text(
             text = formattedDb,
             style = MaterialTheme.typography.labelSmall.copy(
@@ -372,7 +362,6 @@ private fun EqualizerBandItem(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Band Slider Container
         Slider(
             value = band.currentLevelMb.toFloat(),
             onValueChange = { newValue ->
@@ -401,7 +390,6 @@ private fun EqualizerBandItem(
 
         Spacer(modifier = Modifier.height(8.dp))
 
-        // Center Frequency label
         Text(
             text = band.label,
             style = MaterialTheme.typography.labelMedium.copy(
@@ -424,7 +412,7 @@ private fun AudioEffectsSection(
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
         Text(
-            text = "AUDIO EFFECTS",
+            text = stringResource(R.string.audio_effects),
             style = MaterialTheme.typography.labelMedium.copy(
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White.copy(alpha = 0.6f),
@@ -442,9 +430,8 @@ private fun AudioEffectsSection(
                     .fillMaxWidth()
                     .padding(16.dp)
             ) {
-                // Bass Boost Effect Slider
                 EffectSliderRow(
-                    title = "Bass Boost",
+                    title = stringResource(R.string.bass_boost),
                     subtitle = "Enhance low audio frequencies",
                     icon = Icons.Default.MusicNote,
                     value = bassBoost,
@@ -455,9 +442,8 @@ private fun AudioEffectsSection(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Virtualizer Effect Slider
                 EffectSliderRow(
-                    title = "Virtualizer (3D Surround)",
+                    title = stringResource(R.string.virtualizer),
                     subtitle = "Create spatial audio width effect",
                     icon = Icons.Default.SurroundSound,
                     value = virtualizer,
