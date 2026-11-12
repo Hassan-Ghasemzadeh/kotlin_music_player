@@ -96,7 +96,7 @@ class MusicPlaybackService : MediaSessionService() {
 
             override fun loadBitmapFromMetadata(metadata: MediaMetadata): ListenableFuture<Bitmap>? {
                 if (!isAlbumArtworkEnabled) {
-                    return null
+                    return Futures.immediateFuture(loadDefaultBitmap())
                 }
                 val artworkData = metadata.artworkData
                 if (artworkData != null) {
