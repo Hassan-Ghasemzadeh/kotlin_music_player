@@ -36,12 +36,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sftwr.cleandevelopment.musicplayer.domain.model.GenreItem
+import com.sftwr.cleandevelopment.musicplayer.home.R
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.ScrollToTopButton
 import kotlinx.coroutines.launch
@@ -85,7 +87,6 @@ fun GenresScreen(
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                // Top App Bar matching the app's dark theme
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -96,13 +97,13 @@ fun GenresScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.back),
                             tint = Color.White
                         )
                     }
 
                     Text(
-                        text = "Genres",
+                        text = stringResource(R.string.genres),
                         color = Color.White,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
@@ -111,7 +112,7 @@ fun GenresScreen(
                     IconButton(onClick = onSearchClick) {
                         Icon(
                             imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
+                            contentDescription = null,
                             tint = Color.White
                         )
                     }
@@ -135,7 +136,7 @@ fun GenresScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "No Genres Found",
+                                    text = stringResource(R.string.no_genres_found),
                                     color = Color.White.copy(alpha = 0.6f),
                                     fontSize = 16.sp
                                 )
@@ -160,7 +161,6 @@ fun GenresScreen(
                         }
                     }
 
-                    // Scroll-to-Top button positioned above the mini player
                     ScrollToTopButton(
                         isScrolling = gridState.isScrollInProgress,
                         onClick = {
@@ -168,9 +168,7 @@ fun GenresScreen(
                                 gridState.animateScrollToItem(0)
                             }
                         },
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 80.dp)
+                        modifier = Modifier.align(Alignment.BottomEnd)
                     )
                 }
             }
@@ -178,70 +176,58 @@ fun GenresScreen(
     }
 }
 
-/**
- * Custom GenreItemCard featuring rounded corners (16.dp), translucent dark background (Color.White.copy(alpha = 0.05f)),
- * and a neon blue border (Color(0xFF91D8FB).copy(alpha = 0.3f)).
- */
 @Composable
 fun GenreItemCard(
     genre: GenreItem,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val shape = RoundedCornerShape(16.dp)
-    Box(
+    Column(
         modifier = modifier
-            .clip(shape)
-            .background(Color.White.copy(alpha = 0.05f))
-            .border(
-                width = 1.dp,
-                color = Color(0xFF91D8FB).copy(alpha = 0.3f),
-                shape = shape
-            )
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White.copy(alpha = 0.06f))
+            .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
+            .padding(10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .aspectRatio(1f)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.White.copy(alpha = 0.08f)),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White.copy(alpha = 0.08f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.MusicVideo,
-                    contentDescription = genre.name,
-                    tint = Color(0xFF91D8FB),
-                    modifier = Modifier.size(56.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Text(
-                text = genre.name,
-                color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(2.dp))
-
-            Text(
-                text = if (genre.trackCount == 1) "1 track" else "${genre.trackCount} tracks",
-                color = Color(0xFF91D8FB).copy(alpha = 0.9f),
-                fontSize = 12.sp,
-                textAlign = TextAlign.Center
+            Icon(
+                imageVector = Icons.Default.MusicVideo,
+                contentDescription = null,
+                tint = Color(0xFF91D8FB).copy(alpha = 0.6f),
+                modifier = Modifier.size(48.dp)
             )
         }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = genre.name,
+            color = Color.White,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(2.dp))
+
+        Text(
+            text = "${genre.trackCount}",
+            color = Color.White.copy(alpha = 0.6f),
+            fontSize = 12.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center
+        )
     }
 }
