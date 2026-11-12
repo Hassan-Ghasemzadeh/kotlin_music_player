@@ -1,9 +1,7 @@
 <resources>
+    <!-- App & General -->
     <string name="app_name">Music Player</string>
     <string name="media_notification_channel_name">Musikwiedergabe-Steuerung</string>
-
-    <!-- Navigation & Titles -->
-    <string name="settings_title">Einstellungen</string>
     <string name="back">Zurück</string>
     <string name="save">Speichern</string>
     <string name="cancel">Abbrechen</string>
@@ -12,6 +10,50 @@
     <string name="add">Hinzufügen</string>
     <string name="remove">Entfernen</string>
     <string name="reset">Zurücksetzen</string>
+    <string name="next">Weiter</string>
+    <string name="version">Version %1$s</string>
+
+    <!-- Navigation Drawer -->
+    <string name="drawer_title">Music Player</string>
+    <string name="drawer_subtitle">Das ultimative Erlebnis</string>
+    <string name="equalizer">Equalizer</string>
+    <string name="sleep_timer">Sleeptimer</string>
+    <string name="scan_media">Medien scannen</string>
+    <string name="notification_permissions">Benachrichtigungen &amp; Berechtigungen</string>
+    <string name="settings_title">Einstellungen</string>
+    <string name="about_us">Über uns</string>
+    <string name="rate_us">Bewerten Sie uns</string>
+
+    <!-- Home & Library Items -->
+    <string name="tracks">TITEL</string>
+    <string name="albums">ALBEN</string>
+    <string name="artists">KÜNSTLER</string>
+    <string name="folders">ORDNER</string>
+    <string name="genres">GENRES</string>
+    <string name="favorites">FAVORITEN</string>
+    <string name="playlists_count">Wiedergabelisten (%1$s)</string>
+    <string name="add_playlist">Wiedergabeliste hinzufügen</string>
+
+    <!-- Playlist Creation Dialog -->
+    <string name="create_new_playlist">Neue Wiedergabeliste erstellen</string>
+    <string name="enter_playlist_title">Titel für Ihre Wiedergabeliste eingeben</string>
+    <string name="my_favorite_songs_placeholder">Meine Lieblingssongs</string>
+    <string name="select_tracks">Titel auswählen</string>
+    <string name="search_tracks_placeholder">Titel zum Hinzufügen suchen...</string>
+    <string name="select_all">Alle auswählen</string>
+    <string name="deselect_all">Auswahl aufheben</string>
+    <string name="save_playlist">Wiedergabeliste speichern (%1$d)</string>
+    <string name="error_playlist_name_empty">Wiedergabelisten-Name darf nicht leer sein</string>
+
+    <!-- Contextual Actions & Song Menu -->
+    <string name="add_to_playlist">Zur Wiedergabeliste hinzufügen</string>
+    <string name="add_to_favorites">Zu Favoriten hinzufügen</string>
+    <string name="remove_from_favorites">Aus Favoriten entfernen</string>
+    <string name="share_song">Teilen</string>
+    <string name="song_info">Titelinformationen</string>
+    <string name="edit_tags">Tags bearbeiten</string>
+    <string name="remove_from_playlist">Aus Wiedergabeliste entfernen</string>
+    <string name="delete_from_device">Vom Gerät löschen</string>
 
     <!-- Appearance & Language -->
     <string name="appearance_and_language">Erscheinungsbild &amp; Sprache</string>
@@ -83,7 +125,83 @@
     <string name="notification_permissions_status">Benachrichtigungs- &amp; Berechtigungsstatus</string>
     <string name="notification_permissions_status_desc">Berechtigungen für Speicher und Medienbenachrichtigungen prüfen</string>
 
-    <!-- Seconds formatting -->
+    <!-- Player Screen -->
+    <string name="unknown_title">Unbekannter Titel</string>
+    <string name="unknown_artist">Unbekannter Künstler</string>
+    <string name="play">Wiedergabe</string>
+    <string name="pause">Pause</string>
+    <string name="next_track">Nächster Titel</string>
+    <string name="previous_track">Vorheriger Titel</string>
+    <string name="shuffle">Zufallswiedergabe</string>
+    <string name="repeat_all">Alle wiederholen</string>
+    <string name="repeat_one">Einzelnen Titel wiederholen</string>
+    <string name="repeat_off">Wiederholung aus</string>
+
+    <!-- About Dialog -->
+    <string name="about_quote">„Musik ist die Sprache der Seele; wo Worte versagen, sprechen Melodien. Dieser Player wurde mit Leidenschaft entwickelt, um Ihre Momente mit reinem Klang zu verbinden.“</string>
+    <string name="github_repository">GitHub-Repository</string>
+    <string name="developed_by">Entwickelt von %1$s</string>
+
+    <!-- Rate Us Bottom Sheet -->
+    <string name="rate_us_desc">Wenn Ihnen der Music Player gefällt, nehmen Sie sich bitte einen Moment Zeit, um uns im Store zu bewerten! Ihre Unterstützung bedeutet uns sehr viel.</string>
+    <string name="tap_to_rate">Tippen Sie hier, um auf %1$s zu bewerten</string>
+
+    <!-- Scan Media Dialog -->
+    <string name="scan_media_title">Medien werden gescannt</string>
+    <string name="scan_finished">Scan abgeschlossen</string>
+    <string name="scanning_device_storage">Gerätespeicher wird gescannt...</string>
+    <string name="found_tracks_so_far">Bisher %1$d Titel gefunden</string>
+    <string name="media_scan_completed">Medien-Scan erfolgreich abgeschlossen!</string>
+    <string name="found_tracks_total">%1$d Audiodateien auf dem Gerätespeicher gefunden.</string>
+    <string name="reading_audio_files">Audiodateien werden gelesen...</string>
+    <string name="preparing_media_scan">Medien-Scan wird vorbereitet...</string>
+
+    <!-- Sleep Timer Dialog -->
+    <string name="timer_active">Timer aktiv</string>
+    <string name="stops_playback_in">Stoppt Wiedergabe in %1$s</string>
+    <string name="select_timer_duration">Wählen Sie eine Dauer, um die Wiedergabe automatisch zu stoppen:</string>
+    <string name="timer_preset_off">Aus</string>
+    <string name="timer_preset_30m">30 Minuten</string>
+    <string name="timer_preset_1h">1 Stunde</string>
+    <string name="timer_preset_1h30m">1 Stunde 30 Minuten</string>
+    <string name="timer_preset_2h">2 Stunden</string>
+    <string name="timer_preset_custom">Benutzerdefiniert...</string>
+    <string name="custom_time_format">Benutzerdefiniert (%1$s)</string>
+    <string name="set_custom_time">Benutzerdefinierten Timer stellen</string>
+    <string name="hours">Stunden</string>
+    <string name="minutes">Minuten</string>
+    <string name="set_timer">Timer stellen</string>
+
+    <!-- Equalizer -->
+    <string name="equalizer_title">Equalizer</string>
+    <string name="presets">Voreinstellungen</string>
+    <string name="frequency_bands">Frequenzbänder</string>
+    <string name="audio_effects">Audioeffekte</string>
+    <string name="bass_boost">Bass-Boost</string>
+    <string name="virtualizer">3D-Virtualizer</string>
+
+    <!-- Search & Empty States -->
+    <string name="search_placeholder">Songs, Künstler, Alben suchen...</string>
+    <string name="no_results_found">Keine Ergebnisse gefunden</string>
+    <string name="start_search_prompt">Geben Sie ein Wort ein, um zu suchen.</string>
+    <string name="start_search_desc">Songs, Künstler und Alben werden hier angezeigt.</string>
+    <string name="no_songs_found">Keine Titel gefunden</string>
+    <string name="no_albums_found">Keine Alben gefunden</string>
+    <string name="no_artists_found">Keine Künstler gefunden</string>
+    <string name="no_folders_found">Keine Ordner gefunden</string>
+    <string name="no_genres_found">Keine Genres gefunden</string>
+    <string name="no_favorites_found">Keine Favoriten gefunden</string>
+    <string name="no_playlists_found">Keine Wiedergabelisten gefunden.\nErstellen Sie zuerst eine!</string>
+
+    <!-- Permissions Screen -->
+    <string name="permissions_title">Benachrichtigungen &amp; Berechtigungen</string>
+    <string name="all_permissions_granted">Alle erforderlichen Berechtigungen wurden erteilt!</string>
+    <string name="grant_permissions_desc">Erteilen Sie den Zugriff für eine unterbrechungsfreie Musikwiedergabe.</string>
+    <string name="open_settings">Einstellungen öffnen</string>
+    <string name="grant">Erteilen</string>
+    <string name="granted">Erteilt</string>
+
+    <!-- Seconds/Speed Formatting -->
     <string name="seconds_format">%1$d Sek</string>
     <string name="speed_format">%1$.2fx</string>
 </resources>
