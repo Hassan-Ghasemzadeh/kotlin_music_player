@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -35,24 +36,20 @@ fun SearchEmptyState(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            // Neon Glowing Icon Placeholder
             Box(contentAlignment = Alignment.Center) {
                 Image(
-                    // فراخوانی تصویر آپلود شده از Drawable
                     painter = painterResource(id = R.drawable.ic_search_empty_state),
-                    contentDescription = null, // خود تصویر دارای متن است، نال کافیست
+                    contentDescription = null,
                     modifier = Modifier
-                        .size(
-                            width = 280.dp, height = 300.dp
-                        ) // تنظیم اندازه متناسب
-                        .alpha(0.8f) // کمی شفافیت برای همخوانی بیشتر با پس‌زمینه
+                        .size(width = 280.dp, height = 300.dp)
+                        .alpha(0.8f)
                 )
             }
 
             Spacer(modifier = Modifier.height(24.dp))
 
             Text(
-                text = "برای شروع، کلمه‌ای را جستجو کنید.",
+                text = stringResource(R.string.start_search_prompt),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = Color.White,
@@ -62,7 +59,7 @@ fun SearchEmptyState(
             Spacer(modifier = Modifier.height(12.dp))
 
             Text(
-                text = "لیست آهنگ‌ها، خواننده‌ها و آلبوم‌ها اینجا نشان داده خواهد شد.",
+                text = stringResource(R.string.start_search_desc),
                 style = MaterialTheme.typography.bodyMedium,
                 color = Color.White,
                 textAlign = TextAlign.Center
