@@ -55,6 +55,14 @@ class SettingsViewModel @Inject constructor(
             initialValue = true
         )
 
+    val isAlbumArtworkEnabled: StateFlow<Boolean> = getSettingsUseCase()
+        .map { it.isAlbumArtworkEnabled }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = true
+        )
+
     init {
         viewModelScope.launch {
             getSettingsUseCase().collect { settings ->
@@ -107,7 +115,7 @@ class SettingsViewModel @Inject constructor(
 
     fun onAlbumArtToggle(enabled: Boolean) {
         viewModelScope.launch {
-            updateAppearanceSettingsUseCase.setShowAlbumArt(enabled)
+            updateAppearanceSettingsUseCase.setAlbumArtworkEnabled(enabled)
         }
     }
 
