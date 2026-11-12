@@ -1,0 +1,13 @@
+<resources>
+    <string name="drawer_title">موزیک پلیر</string>
+    <string name="drawer_subtitle">تجربه بی‌نظیر موسیقی</string>
+    <string name="equalizer">اکولایزر</string>
+    <string name="sleep_timer">تایمر خواب</string>
+    <string name="scan_media">اسکن فایل‌های صوتی</string>
+    <string name="notification_permissions">اعلان‌ها و مجوزها</string>
+    <string name="settings_title">تنظیمات</string>
+    <string name="about_us">درباره ما</string>
+    <string name="rate_us">امتیاز به برنامه</string>
+    <string name="version">نسخه %1$s</string>
+    <string name="ok">تأیید</string>
+</resources>
