@@ -102,6 +102,7 @@ val DarkBackgroundGradient = Brush.verticalGradient(
 fun SettingsScreen(
     uiState: SettingsUiState,
     isGlassmorphicEnabled: Boolean,
+    isAlbumArtworkEnabled: Boolean,
     onBackClick: () -> Unit,
     onLanguageClick: () -> Unit,
     onLanguageSelected: (AppLanguage) -> Unit,
@@ -224,7 +225,7 @@ fun SettingsScreen(
                             title = stringResource(R.string.album_art_display),
                             subtitle = stringResource(R.string.album_art_display_desc),
                             icon = Icons.Default.Album,
-                            checked = settings.showAlbumArt,
+                            checked = isAlbumArtworkEnabled,
                             onCheckedChange = onAlbumArtToggle
                         )
                     }
@@ -557,7 +558,7 @@ fun SettingsRowItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = Color.White.copy(alpha = 0.8f),
+            tint = if (icon == Icons.Default.Album) NeonBlue else Color.White.copy(alpha = 0.8f),
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -597,7 +598,7 @@ fun SettingsSwitchRowItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = Color.White.copy(alpha = 0.8f),
+            tint = if (icon == Icons.Default.Album) NeonBlue else Color.White.copy(alpha = 0.8f),
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -754,7 +755,7 @@ fun SettingsActionRowItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = Color.White.copy(alpha = 0.8f),
+            tint = if (icon == Icons.Default.Album) NeonBlue else Color.White.copy(alpha = 0.8f),
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
