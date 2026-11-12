@@ -31,6 +31,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -39,6 +40,7 @@ import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
+import com.sftwr.cleandevelopment.musicplayer.home.R
 
 val AboutNeonBlue = Color(0xFF91D8FB)
 
@@ -59,7 +61,6 @@ fun AboutDialog(
         onDismissRequest = onDismiss,
         containerColor = Color(0xFF1B1238),
         title = {
-            // Header with glowing app logo and title
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -82,7 +83,7 @@ fun AboutDialog(
                 ) {
                     Image(
                         painter = painterResource(id = com.sftwr.cleandevelopment.musicplayer.designsystem.R.drawable.app_icon),
-                        contentDescription = "App Logo",
+                        contentDescription = stringResource(R.string.app_name),
                         modifier = Modifier
                             .size(72.dp)
                             .clip(CircleShape),
@@ -121,7 +122,6 @@ fun AboutDialog(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Poetic / Inspirational Quote Card
                 GlassCard(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp)
@@ -140,7 +140,7 @@ fun AboutDialog(
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
-                            text = "“موسیقی زبان روح است؛ جایی که کلمات از گفتن باز می‌مانند، ملودی‌ها سخن می‌گویند. این پلیر با عشق و دقت ساخته شده تا لحظات شما را با ناب‌ترین صداها پیوند بزند.”",
+                            text = stringResource(R.string.about_quote),
                             color = Color.White.copy(alpha = 0.9f),
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium,
@@ -150,7 +150,6 @@ fun AboutDialog(
                     }
                 }
 
-                // Developer & Social links chip
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
@@ -180,7 +179,7 @@ fun AboutDialog(
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(
-                                text = "GitHub Repository",
+                                text = stringResource(R.string.github_repository),
                                 color = Color.White,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.SemiBold
@@ -190,7 +189,7 @@ fun AboutDialog(
                 }
 
                 Text(
-                    text = "Developed by ${appInfo.developerName}",
+                    text = stringResource(R.string.developed_by, appInfo.developerName),
                     color = Color.White.copy(alpha = 0.6f),
                     fontSize = 11.sp,
                     textAlign = TextAlign.Center
@@ -203,7 +202,7 @@ fun AboutDialog(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Close",
+                    text = stringResource(R.string.close),
                     color = AboutNeonBlue,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp
