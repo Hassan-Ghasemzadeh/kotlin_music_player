@@ -112,7 +112,7 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         LibraryCard(
-                            title = "TRACKS",
+                            title = androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.tracks),
                             subtitle = "($tracksCount)",
                             icon = Icons.Default.MusicNote,
                             modifier = Modifier
@@ -128,7 +128,7 @@ fun HomeScreen(
                                 )
                         )
                         LibraryCard(
-                            title = "ALBUMS",
+                            title = androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.albums),
                             subtitle = "($albumsCount)",
                             icon = Icons.Default.Album,
                             modifier = Modifier
@@ -144,7 +144,7 @@ fun HomeScreen(
                                 )
                         )
                         LibraryCard(
-                            title = "ARTISTS",
+                            title = androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.artists),
                             subtitle = "($artistsCount)",
                             icon = Icons.Default.Person,
                             modifier = Modifier
@@ -169,7 +169,7 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         LibraryCard(
-                            title = "FOLDERS",
+                            title = androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.folders),
                             subtitle = "($foldersCount)",
                             icon = Icons.Default.Folder,
                             modifier = Modifier
@@ -185,7 +185,7 @@ fun HomeScreen(
                                 )
                         )
                         LibraryCard(
-                            title = "GENRES",
+                            title = androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.genres),
                             subtitle = "($genresCount)",
                             icon = Icons.Default.MusicVideo,
                             modifier = Modifier
@@ -201,7 +201,7 @@ fun HomeScreen(
                                 )
                         )
                         LibraryCard(
-                            title = "FAVORITES",
+                            title = androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.favorites),
                             subtitle = "($favoriteCount)",
                             icon = Icons.Default.Favorite,
                             modifier = Modifier
@@ -228,7 +228,7 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "Playlist(${playlistsState.totalPlaylistCount})",
+                            text = androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.playlists_count, playlistsState.totalPlaylistCount),
                             color = Color.White,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
