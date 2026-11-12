@@ -18,7 +18,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
@@ -38,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.sftwr.cleandevelopment.musicplayer.designsystem.R
 
 /**
  * Bottom mini player bar displaying the currently playing track metadata (art, title, artist)
@@ -57,7 +57,6 @@ fun BottomPlayerBar(
     onPreviousClick: () -> Unit,
     onPlayerClick: () -> Unit,
 ) {
-    // Glassmorphism styled container wrapper for the mini player bar
     GlassCard(
         modifier = modifier
             .fillMaxWidth()
@@ -78,12 +77,10 @@ fun BottomPlayerBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            // Track information container (Album Art + Title/Artist Column)
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.weight(1f)
             ) {
-                // Album art display box with fallback to default music icon placeholder
                 Box(
                     modifier = Modifier
                         .size(48.dp)
@@ -93,7 +90,7 @@ fun BottomPlayerBar(
                     if (artUri != null) {
                         AsyncImage(
                             model = artUri,
-                            contentDescription = "Album Art",
+                            contentDescription = null,
                             contentScale = ContentScale.Crop,
                             modifier = Modifier
                                 .size(48.dp)
@@ -108,7 +105,7 @@ fun BottomPlayerBar(
                             contentAlignment = Alignment.Center
                         ) {
                             Image(
-                                painter = painterResource(id = com.sftwr.cleandevelopment.musicplayer.designsystem.R.drawable.ic_default_album_art),
+                                painter = painterResource(id = R.drawable.ic_default_album_art),
                                 contentDescription = null,
                                 modifier = Modifier.matchParentSize(),
                                 contentScale = ContentScale.Crop
@@ -119,7 +116,6 @@ fun BottomPlayerBar(
 
                 Spacer(modifier = Modifier.width(12.dp))
 
-                // Track metadata text labels (Title & Artist name)
                 Column {
                     Text(
                         text = songTitle,
@@ -141,15 +137,13 @@ fun BottomPlayerBar(
                 }
             }
 
-            // Playback control action buttons container (Previous, Play/Pause, Next)
             Row(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(enabled = hasPrevious, onClick = onPreviousClick) {
                     Icon(
                         imageVector = Icons.Default.SkipPrevious,
-                        contentDescription = "Previous",
-                        // Dim icon opacity when action is disabled
+                        contentDescription = null,
                         tint = Color.White.copy(alpha = if (hasPrevious) 1f else 0.3f),
                         modifier = Modifier.size(28.dp)
                     )
@@ -158,7 +152,7 @@ fun BottomPlayerBar(
                 IconButton(onClick = onPlayPauseClick) {
                     Icon(
                         imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = "Play/Pause",
+                        contentDescription = null,
                         tint = Color.White,
                         modifier = Modifier.size(28.dp)
                     )
@@ -167,8 +161,7 @@ fun BottomPlayerBar(
                 IconButton(enabled = hasNext, onClick = onNextClick) {
                     Icon(
                         imageVector = Icons.Default.SkipNext,
-                        contentDescription = "Next",
-                        // Dim icon opacity when action is disabled
+                        contentDescription = null,
                         tint = Color.White.copy(alpha = if (hasNext) 1f else 0.3f),
                         modifier = Modifier.size(28.dp)
                     )
