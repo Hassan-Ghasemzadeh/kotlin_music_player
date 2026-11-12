@@ -45,6 +45,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalAlbumArtworkEnabled
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalGlassmorphicEnabled
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
 import com.sftwr.cleandevelopment.musicplayer.home.R
@@ -208,7 +209,8 @@ fun AlbumItemCard(
                 .background(imageBackground),
             contentAlignment = Alignment.Center
         ) {
-            if (album.albumArtUri != null) {
+            val isAlbumArtworkEnabled = LocalAlbumArtworkEnabled.current
+            if (isAlbumArtworkEnabled && album.albumArtUri != null) {
                 AsyncImage(
                     model = album.albumArtUri,
                     contentDescription = album.title,
