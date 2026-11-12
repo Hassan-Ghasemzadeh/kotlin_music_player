@@ -1,0 +1,13 @@
+<resources>
+    <string name="drawer_title">Music Player</string>
+    <string name="drawer_subtitle">Das ultimative Erlebnis</string>
+    <string name="equalizer">Equalizer</string>
+    <string name="sleep_timer">Sleeptimer</string>
+    <string name="scan_media">Medien scannen</string>
+    <string name="notification_permissions">Benachrichtigungen &amp; Berechtigungen</string>
+    <string name="settings_title">Einstellungen</string>
+    <string name="about_us">Über uns</string>
+    <string name="rate_us">Bewerten Sie uns</string>
+    <string name="version">Version %1$s</string>
+    <string name="ok">OK</string>
+</resources>
