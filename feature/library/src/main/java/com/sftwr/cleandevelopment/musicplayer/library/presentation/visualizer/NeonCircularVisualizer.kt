@@ -37,6 +37,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import coil.compose.AsyncImage
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalAlbumArtworkEnabled
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -98,7 +99,8 @@ fun NeonCircularVisualizer(
                 .background(Color(0xFF1D1838)),
             contentAlignment = Alignment.Center
         ) {
-            if (albumArtBytes != null) {
+            val isAlbumArtworkEnabled = LocalAlbumArtworkEnabled.current
+            if (isAlbumArtworkEnabled && albumArtBytes != null) {
                 AsyncImage(
                     model = albumArtBytes,
                     contentDescription = "Album Cover",
