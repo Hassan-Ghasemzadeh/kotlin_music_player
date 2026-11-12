@@ -191,13 +191,13 @@ fun FavoritesScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.back),
                             tint = Color.White
                         )
                     }
 
                     Text(
-                        text = "Favorites",
+                        text = androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.favorites),
                         color = Color.White,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
@@ -206,7 +206,7 @@ fun FavoritesScreen(
                     IconButton(onClick = onSearchClick) {
                         Icon(
                             imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
+                            contentDescription = null,
                             tint = Color.White
                         )
                     }
@@ -235,7 +235,7 @@ fun FavoritesScreen(
                             onTabSelected(0)
                             coroutineScope.launch { pagerState.animateScrollToPage(0) }
                         },
-                        text = { Text("Tracks (${uiState.favoriteSongs.size})", fontWeight = FontWeight.Bold) },
+                        text = { Text("${androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.tracks)} (${uiState.favoriteSongs.size})", fontWeight = FontWeight.Bold) },
                         selectedContentColor = Color(0xFF91D8FB),
                         unselectedContentColor = Color.White.copy(alpha = 0.6f)
                     )
@@ -245,7 +245,7 @@ fun FavoritesScreen(
                             onTabSelected(1)
                             coroutineScope.launch { pagerState.animateScrollToPage(1) }
                         },
-                        text = { Text("Albums (${uiState.favoriteAlbums.size})", fontWeight = FontWeight.Bold) },
+                        text = { Text("${androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.albums)} (${uiState.favoriteAlbums.size})", fontWeight = FontWeight.Bold) },
                         selectedContentColor = Color(0xFF91D8FB),
                         unselectedContentColor = Color.White.copy(alpha = 0.6f)
                     )
@@ -255,7 +255,7 @@ fun FavoritesScreen(
                             onTabSelected(2)
                             coroutineScope.launch { pagerState.animateScrollToPage(2) }
                         },
-                        text = { Text("Artists (${uiState.favoriteArtists.size})", fontWeight = FontWeight.Bold) },
+                        text = { Text("${androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.artists)} (${uiState.favoriteArtists.size})", fontWeight = FontWeight.Bold) },
                         selectedContentColor = Color(0xFF91D8FB),
                         unselectedContentColor = Color.White.copy(alpha = 0.6f)
                     )
@@ -265,7 +265,7 @@ fun FavoritesScreen(
                             onTabSelected(3)
                             coroutineScope.launch { pagerState.animateScrollToPage(3) }
                         },
-                        text = { Text("Genres (${uiState.favoriteGenres.size})", fontWeight = FontWeight.Bold) },
+                        text = { Text("${androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.genres)} (${uiState.favoriteGenres.size})", fontWeight = FontWeight.Bold) },
                         selectedContentColor = Color(0xFF91D8FB),
                         unselectedContentColor = Color.White.copy(alpha = 0.6f)
                     )
