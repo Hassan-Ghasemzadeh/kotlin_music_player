@@ -33,6 +33,7 @@ class SettingsRepositoryImpl @Inject constructor(
     private object PreferencesKeys {
         val LANGUAGE = stringPreferencesKey("app_language")
         val GLASSMORPHIC_ENABLED = booleanPreferencesKey("glassmorphic_enabled")
+        val ALBUM_ARTWORK_ENABLED = booleanPreferencesKey("album_artwork_enabled")
         val SHOW_ALBUM_ART = booleanPreferencesKey("show_album_art")
 
         val PLAYBACK_SPEED = floatPreferencesKey("playback_speed")
@@ -55,10 +56,13 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override fun getSettings(): Flow<AppSettings> {
         return context.appSettingsDataStore.data.map { preferences ->
+            val albumArtEnabled = preferences[PreferencesKeys.ALBUM_ARTWORK_ENABLED]
+                ?: preferences[PreferencesKeys.SHOW_ALBUM_ART]
+                ?: true
             AppSettings(
                 language = AppLanguage.fromCode(preferences[PreferencesKeys.LANGUAGE] ?: "en"),
                 glassmorphicStyleEnabled = preferences[PreferencesKeys.GLASSMORPHIC_ENABLED] ?: true,
-                showAlbumArt = preferences[PreferencesKeys.SHOW_ALBUM_ART] ?: true,
+                isAlbumArtworkEnabled = albumArtEnabled,
                 playbackSpeed = preferences[PreferencesKeys.PLAYBACK_SPEED] ?: 1.0f,
                 playbackPitch = preferences[PreferencesKeys.PLAYBACK_PITCH] ?: 1.0f,
                 crossfadeDurationSeconds = preferences[PreferencesKeys.CROSSFADE_SECONDS] ?: 0,
@@ -89,10 +93,15 @@ class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateShowAlbumArt(enabled: Boolean) {
+    override suspend fun updateAlbumArtworkEnabled(enabled: Boolean) {
         context.appSettingsDataStore.edit { preferences ->
+            preferences[PreferencesKeys.ALBUM_ARTWORK_ENABLED] = enabled
             preferences[PreferencesKeys.SHOW_ALBUM_ART] = enabled
         }
+    }
+
+    override suspend fun updateShowAlbumArt(enabled: Boolean) {
+        updateAlbumArtworkEnabled(enabled)
     }
 
     override suspend fun updatePlaybackSpeed(speed: Float) {
