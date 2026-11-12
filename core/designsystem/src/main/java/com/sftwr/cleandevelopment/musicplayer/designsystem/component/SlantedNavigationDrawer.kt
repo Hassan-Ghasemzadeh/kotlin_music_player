@@ -18,10 +18,14 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sftwr.cleandevelopment.musicplayer.designsystem.R
 
 val NeonBlue = Color(0xFF91D8FB)
 val DrawerDarkGradient = Brush.verticalGradient(
@@ -33,13 +37,13 @@ val DrawerDarkGradient = Brush.verticalGradient(
 )
 
 /**
- * Custom shape for the main content card when drawer is open,
+ * Custom shape for the main content card when drawer is open in LTR mode,
  * keeping the top-left corner and top bar 100% unclipped and rectangular,
  * with a very subtle slant on the left edge so playlist items are fully visible.
  */
 val SlantedLeftEdgeShape = GenericShape { size, _ ->
     val topBarHeight = size.height * 0.12f
-    val slantOffset = size.width * 0.025f // Very subtle slant offset so playlist items on the left are fully visible
+    val slantOffset = size.width * 0.025f
     moveTo(0f, 0f)
     lineTo(size.width, 0f)
     lineTo(size.width, size.height)
@@ -49,7 +53,25 @@ val SlantedLeftEdgeShape = GenericShape { size, _ ->
     close()
 }
 
+/**
+ * Custom shape for the main content card when drawer is open in RTL mode,
+ * keeping the top-right corner and top bar 100% unclipped and rectangular,
+ * with a very subtle slant on the right edge.
+ */
+val SlantedRightEdgeShape = GenericShape { size, _ ->
+    val topBarHeight = size.height * 0.12f
+    val slantOffset = size.width * 0.025f
+    moveTo(0f, 0f)
+    lineTo(size.width, 0f)
+    lineTo(size.width, topBarHeight)
+    lineTo(size.width - slantOffset, size.height)
+    lineTo(0f, size.height)
+    lineTo(0f, 0f)
+    close()
+}
+
 data class DrawerMenuItem(
+    val id: String,
     val title: String,
     val icon: androidx.compose.ui.graphics.vector.ImageVector,
     val onClick: () -> Unit
@@ -68,14 +90,16 @@ fun SlantedNavigationDrawerContent(
     onRateUsClick: () -> Unit,
     onCloseDrawer: () -> Unit
 ) {
+    val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+
     val menuItems = listOf(
-        DrawerMenuItem("Equalizer", Icons.Default.GraphicEq, onClick = onEqualizerClick),
-        DrawerMenuItem("Sleep Timer", Icons.Default.Timer, onClick = onSleepTimerClick),
-        DrawerMenuItem("Scan Media", Icons.Default.FolderOpen, onClick = onScanMediaClick),
-        DrawerMenuItem("Notification / Permissions", Icons.Default.Notifications, onClick = onPermissionsClick),
-        DrawerMenuItem("Settings", Icons.Default.Settings, onClick = onSettingsClick),
-        DrawerMenuItem("About Us", Icons.Default.Info, onClick = onAboutClick),
-        DrawerMenuItem("Rate Us", Icons.Default.Star, onClick = onRateUsClick)
+        DrawerMenuItem("Equalizer", stringResource(R.string.equalizer), Icons.Default.GraphicEq, onClick = onEqualizerClick),
+        DrawerMenuItem("Sleep Timer", stringResource(R.string.sleep_timer), Icons.Default.Timer, onClick = onSleepTimerClick),
+        DrawerMenuItem("Scan Media", stringResource(R.string.scan_media), Icons.Default.FolderOpen, onClick = onScanMediaClick),
+        DrawerMenuItem("Notification / Permissions", stringResource(R.string.notification_permissions), Icons.Default.Notifications, onClick = onPermissionsClick),
+        DrawerMenuItem("Settings", stringResource(R.string.settings_title), Icons.Default.Settings, onClick = onSettingsClick),
+        DrawerMenuItem("About Us", stringResource(R.string.about_us), Icons.Default.Info, onClick = onAboutClick),
+        DrawerMenuItem("Rate Us", stringResource(R.string.rate_us), Icons.Default.Star, onClick = onRateUsClick)
     )
 
     Box(
@@ -94,7 +118,7 @@ fun SlantedNavigationDrawerContent(
             Column(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                // Header with App Icon drawable (app_icon) & App Name ("Music Player")
+                // Header with App Icon & Localized App Name
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -118,8 +142,8 @@ fun SlantedNavigationDrawerContent(
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
-                            painter = painterResource(id = com.sftwr.cleandevelopment.musicplayer.designsystem.R.drawable.app_icon),
-                            contentDescription = "App Icon",
+                            painter = painterResource(id = R.drawable.app_icon),
+                            contentDescription = stringResource(R.string.drawer_title),
                             modifier = Modifier
                                 .size(56.dp)
                                 .clip(CircleShape),
@@ -129,14 +153,14 @@ fun SlantedNavigationDrawerContent(
 
                     Column {
                         Text(
-                            text = "Music Player",
+                            text = stringResource(R.string.drawer_title),
                             color = Color.White,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold
                         )
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
-                            text = "Ultimate Experience",
+                            text = stringResource(R.string.drawer_subtitle),
                             color = NeonBlue,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium
@@ -155,7 +179,7 @@ fun SlantedNavigationDrawerContent(
                     verticalArrangement = Arrangement.spacedBy(6.dp)
                 ) {
                     menuItems.forEach { item ->
-                        val isSelected = item.title == selectedItem
+                        val isSelected = item.id == selectedItem || item.title == selectedItem
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -166,7 +190,7 @@ fun SlantedNavigationDrawerContent(
                                     else Color.Transparent
                                 )
                                 .clickable {
-                                    onItemSelected(item.title)
+                                    onItemSelected(item.id)
                                     item.onClick()
                                     onCloseDrawer()
                                 }
@@ -193,7 +217,7 @@ fun SlantedNavigationDrawerContent(
 
             // Footer version
             Text(
-                text = "Version 3.0.4",
+                text = stringResource(R.string.version, "3.0.4"),
                 color = Color.White.copy(alpha = 0.5f),
                 fontSize = 11.sp,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
@@ -212,7 +236,7 @@ fun SettingsDialog(
         title = {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 Icon(Icons.Default.Settings, contentDescription = null, tint = NeonBlue)
-                Text("Settings", color = Color.White, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.settings_title), color = Color.White, fontWeight = FontWeight.Bold)
             }
         },
         text = {
@@ -223,12 +247,12 @@ fun SettingsDialog(
                 Text("Audio Engine: Native AudioFX & ExoPlayer", color = Color.White.copy(alpha = 0.9f), fontSize = 14.sp)
                 Text("Theme: Dark Glassmorphic (Neon Blue #91D8FB)", color = Color.White.copy(alpha = 0.9f), fontSize = 14.sp)
                 Text("Storage: Local MediaStore & Room Database", color = Color.White.copy(alpha = 0.9f), fontSize = 14.sp)
-                Text("Version: 1.0.0 (Production)", color = Color.White.copy(alpha = 0.9f), fontSize = 14.sp)
+                Text(stringResource(R.string.version, "1.0.0"), color = Color.White.copy(alpha = 0.9f), fontSize = 14.sp)
             }
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text("OK", color = NeonBlue, fontWeight = FontWeight.Bold)
+                Text(stringResource(R.string.ok), color = NeonBlue, fontWeight = FontWeight.Bold)
             }
         }
     )
