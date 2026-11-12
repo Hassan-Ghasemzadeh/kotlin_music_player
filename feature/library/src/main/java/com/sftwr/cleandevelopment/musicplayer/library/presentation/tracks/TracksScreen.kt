@@ -59,6 +59,7 @@ import coil.compose.AsyncImage
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.AlphabetIndexerBar
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalGlassmorphicEnabled
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalAlbumArtworkEnabled
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.AddToPlaylistDialog
@@ -454,7 +455,9 @@ fun TrackItem(
                     }
                 }
 
-                if (albumArtBitmap != null) {
+                val isAlbumArtworkEnabled = LocalAlbumArtworkEnabled.current
+
+                if (isAlbumArtworkEnabled && albumArtBitmap != null) {
                     AsyncImage(
                         model = albumArtBitmap,
                         contentDescription = null,
