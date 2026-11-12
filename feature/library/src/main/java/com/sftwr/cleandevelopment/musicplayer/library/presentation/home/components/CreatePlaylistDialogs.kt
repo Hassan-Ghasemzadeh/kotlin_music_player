@@ -23,15 +23,16 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.sftwr.cleandevelopment.musicplayer.home.R
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 
 /**
@@ -81,7 +82,7 @@ fun CreatePlaylistNameDialog(
             ) {
                 Column {
                     Text(
-                        text = "Create New Playlist",
+                        text = stringResource(R.string.create_new_playlist),
                         color = Color.White,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
@@ -90,7 +91,7 @@ fun CreatePlaylistNameDialog(
                     Spacer(modifier = Modifier.height(8.dp))
 
                     Text(
-                        text = "Enter a title for your playlist",
+                        text = stringResource(R.string.enter_playlist_title),
                         color = Color.White.copy(alpha = 0.6f),
                         fontSize = 14.sp
                     )
@@ -104,7 +105,7 @@ fun CreatePlaylistNameDialog(
                         isError = nameError != null,
                         placeholder = {
                             Text(
-                                "My Favorite Songs",
+                                stringResource(R.string.my_favorite_songs_placeholder),
                                 color = Color.White.copy(alpha = 0.3f)
                             )
                         },
@@ -141,7 +142,7 @@ fun CreatePlaylistNameDialog(
                     ) {
                         TextButton(onClick = onDismissRequest) {
                             Text(
-                                text = "Cancel",
+                                text = stringResource(R.string.cancel),
                                 color = Color.White.copy(alpha = 0.7f),
                                 fontWeight = FontWeight.Medium
                             )
@@ -158,7 +159,7 @@ fun CreatePlaylistNameDialog(
                             shape = RoundedCornerShape(12.dp)
                         ) {
                             Text(
-                                text = "Next",
+                                text = stringResource(R.string.next),
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -232,14 +233,14 @@ fun TrackSelectionDialog(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "Select Songs",
+                                text = stringResource(R.string.select_tracks),
                                 color = Color.White,
                                 fontSize = 20.sp,
                                 fontWeight = FontWeight.Bold
                             )
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "$playlistName • ${selectedSongIds.size} selected",
+                                text = "$playlistName • ${selectedSongIds.size}",
                                 color = Color(0xFF91D8FB),
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium
@@ -249,7 +250,7 @@ fun TrackSelectionDialog(
                         IconButton(onClick = onDismissRequest) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "Close",
+                                contentDescription = stringResource(R.string.close),
                                 tint = Color.White.copy(alpha = 0.7f)
                             )
                         }
@@ -282,7 +283,7 @@ fun TrackSelectionDialog(
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Search,
-                                    contentDescription = "Search",
+                                    contentDescription = null,
                                     tint = Color.White.copy(alpha = 0.5f),
                                     modifier = Modifier.size(20.dp)
                                 )
@@ -304,7 +305,7 @@ fun TrackSelectionDialog(
                                         Box(contentAlignment = Alignment.CenterStart) {
                                             if (searchQuery.isEmpty()) {
                                                 Text(
-                                                    text = "Search tracks...",
+                                                    text = stringResource(R.string.search_tracks_placeholder),
                                                     color = Color.White.copy(alpha = 0.4f),
                                                     fontSize = 14.sp
                                                 )
@@ -321,7 +322,7 @@ fun TrackSelectionDialog(
                                     ) {
                                         Icon(
                                             imageVector = Icons.Default.Close,
-                                            contentDescription = "Clear search",
+                                            contentDescription = stringResource(R.string.close),
                                             tint = Color.White.copy(alpha = 0.5f),
                                             modifier = Modifier.size(16.dp)
                                         )
@@ -339,7 +340,7 @@ fun TrackSelectionDialog(
                             onClick = { onToggleSelectAll(allVisibleIds) }
                         ) {
                             Text(
-                                text = if (isAllSelected) "Deselect" else "Select All",
+                                text = if (isAllSelected) stringResource(R.string.deselect_all) else stringResource(R.string.select_all),
                                 color = Color(0xFF91D8FB),
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.SemiBold
@@ -361,7 +362,7 @@ fun TrackSelectionDialog(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "No tracks available",
+                                    text = stringResource(R.string.no_songs_found),
                                     color = Color.White.copy(alpha = 0.5f),
                                     fontSize = 14.sp
                                 )
@@ -395,7 +396,7 @@ fun TrackSelectionDialog(
                     ) {
                         TextButton(onClick = onDismissRequest) {
                             Text(
-                                text = "Cancel",
+                                text = stringResource(R.string.cancel),
                                 color = Color.White.copy(alpha = 0.7f),
                                 fontWeight = FontWeight.Medium
                             )
@@ -411,7 +412,7 @@ fun TrackSelectionDialog(
                             contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
                         ) {
                             Text(
-                                text = "Save Playlist (${selectedSongIds.size})",
+                                text = stringResource(R.string.save_playlist, selectedSongIds.size),
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 15.sp
                             )
@@ -448,7 +449,6 @@ private fun TrackSelectionItem(
                 .padding(horizontal = 14.dp, vertical = 10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Checkbox affordance
             Box(
                 modifier = Modifier
                     .size(24.dp)
@@ -466,7 +466,7 @@ private fun TrackSelectionItem(
                 if (isSelected) {
                     Icon(
                         imageVector = Icons.Default.Check,
-                        contentDescription = "Selected",
+                        contentDescription = null,
                         tint = Color(0xFF0F0B21),
                         modifier = Modifier.size(16.dp)
                     )
@@ -475,7 +475,6 @@ private fun TrackSelectionItem(
 
             Spacer(modifier = Modifier.width(14.dp))
 
-            // Music Note Icon Badge
             Box(
                 modifier = Modifier
                     .size(40.dp)
@@ -493,7 +492,6 @@ private fun TrackSelectionItem(
 
             Spacer(modifier = Modifier.width(12.dp))
 
-            // Track details
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = song.title,
@@ -523,23 +521,3 @@ private fun TrackSelectionItem(
         }
     }
 }
-
-@Preview
-@Composable
-fun TrackSelectionDialogPreview() {
-    TrackSelectionDialog(
-        playlistName = "Moein",
-        availableSongs = listOf(
-            SongUiModel(id = "1", title = "Akhe Fereshteh Ham...", artist = "Ebi,Kamran,Human", album = "", year = "", genre = "", duration = "04:26", uri = ""),
-            SongUiModel(id = "2", title = "Andak andak", artist = "موزیکدل", album = "", year = "", genre = "", duration = "04:23", uri = "")
-        ),
-        selectedSongIds = emptySet(),
-        searchQuery = "",
-        onSearchQueryChanged = {},
-        onToggleSongSelection = {},
-        onToggleSelectAll = {},
-        onSavePlaylistClick = {},
-        onDismissRequest = {}
-    )
-}
-
