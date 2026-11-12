@@ -16,6 +16,7 @@ interface SettingsRepository {
 
     suspend fun updateLanguage(language: AppLanguage)
     suspend fun updateGlassmorphicStyle(enabled: Boolean)
+    suspend fun updateAlbumArtworkEnabled(enabled: Boolean)
     suspend fun updateShowAlbumArt(enabled: Boolean)
 
     suspend fun updatePlaybackSpeed(speed: Float)
