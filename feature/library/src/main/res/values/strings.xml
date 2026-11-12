@@ -1,9 +1,7 @@
 <resources>
+    <!-- App & General -->
     <string name="app_name">Music Player</string>
     <string name="media_notification_channel_name">Music Playback Controls</string>
-
-    <!-- Navigation & Titles -->
-    <string name="settings_title">Settings</string>
     <string name="back">Back</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
@@ -12,6 +10,50 @@
     <string name="add">Add</string>
     <string name="remove">Remove</string>
     <string name="reset">Reset</string>
+    <string name="next">Next</string>
+    <string name="version">Version %1$s</string>
+
+    <!-- Navigation Drawer -->
+    <string name="drawer_title">Music Player</string>
+    <string name="drawer_subtitle">Ultimate Experience</string>
+    <string name="equalizer">Equalizer</string>
+    <string name="sleep_timer">Sleep Timer</string>
+    <string name="scan_media">Scan Media</string>
+    <string name="notification_permissions">Notification / Permissions</string>
+    <string name="settings_title">Settings</string>
+    <string name="about_us">About Us</string>
+    <string name="rate_us">Rate Us</string>
+
+    <!-- Home & Library Items -->
+    <string name="tracks">TRACKS</string>
+    <string name="albums">ALBUMS</string>
+    <string name="artists">ARTISTS</string>
+    <string name="folders">FOLDERS</string>
+    <string name="genres">GENRES</string>
+    <string name="favorites">FAVORITES</string>
+    <string name="playlists_count">Playlist(%1$s)</string>
+    <string name="add_playlist">Add Playlist</string>
+
+    <!-- Playlist Creation Dialog -->
+    <string name="create_new_playlist">Create New Playlist</string>
+    <string name="enter_playlist_title">Enter a title for your playlist</string>
+    <string name="my_favorite_songs_placeholder">My Favorite Songs</string>
+    <string name="select_tracks">Select Tracks</string>
+    <string name="search_tracks_placeholder">Search tracks to add...</string>
+    <string name="select_all">Select All</string>
+    <string name="deselect_all">Deselect All</string>
+    <string name="save_playlist">Save Playlist (%1$d)</string>
+    <string name="error_playlist_name_empty">Playlist name cannot be empty</string>
+
+    <!-- Contextual Actions & Song Menu -->
+    <string name="add_to_playlist">Add to Playlist</string>
+    <string name="add_to_favorites">Add to Favorites</string>
+    <string name="remove_from_favorites">Remove from Favorites</string>
+    <string name="share_song">Share</string>
+    <string name="song_info">Song Info</string>
+    <string name="edit_tags">Edit Tags</string>
+    <string name="remove_from_playlist">Remove from Playlist</string>
+    <string name="delete_from_device">Delete from Device</string>
 
     <!-- Appearance & Language -->
     <string name="appearance_and_language">Appearance &amp; Language</string>
@@ -83,7 +125,83 @@
     <string name="notification_permissions_status">Notification &amp; Permissions Status</string>
     <string name="notification_permissions_status_desc">Check system media notification and storage permissions</string>
 
-    <!-- Seconds formatting -->
+    <!-- Player Screen -->
+    <string name="unknown_title">Unknown Title</string>
+    <string name="unknown_artist">Unknown Artist</string>
+    <string name="play">Play</string>
+    <string name="pause">Pause</string>
+    <string name="next_track">Next Track</string>
+    <string name="previous_track">Previous Track</string>
+    <string name="shuffle">Shuffle</string>
+    <string name="repeat_all">Repeat All</string>
+    <string name="repeat_one">Repeat One</string>
+    <string name="repeat_off">Repeat Off</string>
+
+    <!-- About Dialog -->
+    <string name="about_quote">“Music is the language of the soul; where words fail, melodies speak. This player is built with passion and precision to connect your moments with pure sound.”</string>
+    <string name="github_repository">GitHub Repository</string>
+    <string name="developed_by">Developed by %1$s</string>
+
+    <!-- Rate Us Bottom Sheet -->
+    <string name="rate_us_desc">If you enjoy using Music Player, please take a moment to rate us on your favorite store. Your support means the world to us!</string>
+    <string name="tap_to_rate">Tap to rate on %1$s</string>
+
+    <!-- Scan Media Dialog -->
+    <string name="scan_media_title">Scanning Media</string>
+    <string name="scan_finished">Scan Finished</string>
+    <string name="scanning_device_storage">Scanning device storage...</string>
+    <string name="found_tracks_so_far">Found %1$d tracks so far</string>
+    <string name="media_scan_completed">Media scan completed successfully!</string>
+    <string name="found_tracks_total">Found %1$d audio tracks on your device storage.</string>
+    <string name="reading_audio_files">Reading audio files...</string>
+    <string name="preparing_media_scan">Preparing media scan...</string>
+
+    <!-- Sleep Timer Dialog -->
+    <string name="timer_active">Timer Active</string>
+    <string name="stops_playback_in">Stops playback in %1$s</string>
+    <string name="select_timer_duration">Select a timer duration to automatically stop music playback:</string>
+    <string name="timer_preset_off">Off</string>
+    <string name="timer_preset_30m">30 Minutes</string>
+    <string name="timer_preset_1h">1 Hour</string>
+    <string name="timer_preset_1h30m">1 Hour 30 Minutes</string>
+    <string name="timer_preset_2h">2 Hours</string>
+    <string name="timer_preset_custom">Custom...</string>
+    <string name="custom_time_format">Custom (%1$s)</string>
+    <string name="set_custom_time">Set Custom Time</string>
+    <string name="hours">Hours</string>
+    <string name="minutes">Minutes</string>
+    <string name="set_timer">Set Timer</string>
+
+    <!-- Equalizer -->
+    <string name="equalizer_title">Equalizer</string>
+    <string name="presets">Presets</string>
+    <string name="frequency_bands">Frequency Bands</string>
+    <string name="audio_effects">Audio Effects</string>
+    <string name="bass_boost">Bass Boost</string>
+    <string name="virtualizer">3D Virtualizer</string>
+
+    <!-- Search & Empty States -->
+    <string name="search_placeholder">Search songs, artists, albums...</string>
+    <string name="no_results_found">No Results Found</string>
+    <string name="start_search_prompt">Search by word to start</string>
+    <string name="start_search_desc">Songs, artists, and albums will be listed here.</string>
+    <string name="no_songs_found">No Songs Found</string>
+    <string name="no_albums_found">No Albums Found</string>
+    <string name="no_artists_found">No Artists Found</string>
+    <string name="no_folders_found">No Folders Found</string>
+    <string name="no_genres_found">No Genres Found</string>
+    <string name="no_favorites_found">No Favorites Found</string>
+    <string name="no_playlists_found">No custom playlists found.\nCreate one first!</string>
+
+    <!-- Permissions Screen -->
+    <string name="permissions_title">Notification &amp; Permissions</string>
+    <string name="all_permissions_granted">All required permissions are granted!</string>
+    <string name="grant_permissions_desc">Grant access to enjoy uninterrupted music playback and storage access.</string>
+    <string name="open_settings">Open Settings</string>
+    <string name="grant">Grant</string>
+    <string name="granted">Granted</string>
+
+    <!-- Seconds/Speed Formatting -->
     <string name="seconds_format">%1$d sec</string>
     <string name="speed_format">%1$.2fx</string>
 </resources>
