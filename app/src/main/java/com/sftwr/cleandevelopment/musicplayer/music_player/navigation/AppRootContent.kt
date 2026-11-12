@@ -14,11 +14,11 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.material3.AlertDialog
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -33,33 +33,37 @@ import androidx.compose.ui.graphics.TransformOrigin
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import com.sftwr.cleandevelopment.musicplayer.library.presentation.about.AboutDialog
-import com.sftwr.cleandevelopment.musicplayer.library.presentation.rate.RateUsBottomSheet
+import com.sftwr.cleandevelopment.musicplayer.data.util.LocaleHelper
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.BottomPlayerBar
-import com.sftwr.cleandevelopment.musicplayer.designsystem.component.NeonBlue
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingsDialog
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SlantedLeftEdgeShape
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SlantedRightEdgeShape
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SlantedNavigationDrawerContent
-import com.sftwr.cleandevelopment.musicplayer.library.presentation.sleeptimer.SleepTimerDialog
-import com.sftwr.cleandevelopment.musicplayer.library.presentation.scan.ScanMediaDialog
+import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.about.AboutDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.equalizer.EqualizerBottomSheet
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.rate.RateUsBottomSheet
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.scan.ScanMediaDialog
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.sleeptimer.SleepTimerDialog
 import com.sftwr.cleandevelopment.musicplayer.model.Screen
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.InternalSerializationApi
+import java.util.Locale
 
 /**
- * Root application content composable responsible for hosting the navigation graph
- * and dynamically displaying the persistent bottom mini-player bar based on the active screen state.
+ * Root application content composable responsible for hosting the navigation graph,
+ * managing bidirectional layout direction (RTL/LTR), locale reconfiguration,
+ * and dynamically displaying the persistent bottom mini-player bar and slanted drawer.
  */
 @RequiresApi(Build.VERSION_CODES.S)
 @OptIn(InternalSerializationApi::class, ExperimentalMaterial3Api::class)
@@ -68,178 +72,172 @@ fun AppRootContent(
     navController: NavHostController,
     mainViewModel: MainViewModel = hiltViewModel(),
 ) {
-    // Retrieve the centralized audio player manager instance from the main view model
     val playerManager = mainViewModel.playerManager
+    val settings by mainViewModel.settingsState.collectAsStateWithLifecycle()
 
-    // Collect active playback state flows reactively using lifecycle-aware extension
-    val currentSong by playerManager.currentSong.collectAsStateWithLifecycle()
-    val isPlaying by playerManager.isPlaying.collectAsStateWithLifecycle()
-
-    // Monitor current navigation backstack entry to determine active route
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-
-    // Hide bottom player bar when the user is currently on the full Player screen
-    val showBottomBar = currentRoute?.contains("Player") == false
-    val context = LocalContext.current
-
-    // Extract album art bitmap asynchronously on IO thread pool when current song changes
-    val artUri by produceState<Bitmap?>(initialValue = null, key1 = currentSong?.uri) {
-        val songUri = currentSong?.uri
-        value = if (songUri != null) {
-            withContext(Dispatchers.IO) {
-                songUri.toUri().extractAlbumArt(context)
-            }
-        } else null
+    val currentLanguage = settings.language
+    val layoutDirection = when (currentLanguage) {
+        AppLanguage.PERSIAN -> LayoutDirection.Rtl
+        else -> LayoutDirection.Ltr
     }
 
-    // Drawer open/closed state
-    var isDrawerOpen by remember { mutableStateOf(false) }
-    var selectedDrawerItem by remember { mutableStateOf("Equalizer") }
-    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
+    LaunchedEffect(currentLanguage) {
+        LocaleHelper.applyLanguage(context, currentLanguage)
+        val locale = Locale(currentLanguage.code)
+        Locale.setDefault(locale)
+        val resources = context.resources
+        val config = resources.configuration
+        config.setLocale(locale)
+        config.setLayoutDirection(locale)
+        @Suppress("DEPRECATION")
+        resources.updateConfiguration(config, resources.displayMetrics)
+    }
 
-    // Animation progress for sliding, scaling, rotating main content card
-    val drawerProgress by animateFloatAsState(
-        targetValue = if (isDrawerOpen) 1f else 0f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
-    )
+    CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
+        val currentSong by playerManager.currentSong.collectAsStateWithLifecycle()
+        val isPlaying by playerManager.isPlaying.collectAsStateWithLifecycle()
 
-    // Dialog states for menu actions
-    var showEqualizerDialog by remember { mutableStateOf(false) }
-    var showSleepTimerDialog by remember { mutableStateOf(false) }
-    var showScanMediaDialog by remember { mutableStateOf(false) }
-    var showSettingsDialog by remember { mutableStateOf(false) }
-    var showAboutDialog by remember { mutableStateOf(false) }
-    var showRateUsBottomSheet by remember { mutableStateOf(false) }
+        val navBackStackEntry by navController.currentBackStackEntryAsState()
+        val currentRoute = navBackStackEntry?.destination?.route
 
-    val density = LocalDensity.current
-    val maxTranslationX = with(density) { 240.dp.toPx() }
-    val maxTranslationY = with(density) { 24.dp.toPx() }
+        val showBottomBar = currentRoute?.contains("Player") == false
 
-    Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Color(0xFF2C1454)) // Drawer purple background base matching reference design
-    ) {
-        // 1. Drawer Content rendered underneath (Eagerly composed so first click is instantaneous)
-        SlantedNavigationDrawerContent(
-            selectedItem = selectedDrawerItem,
-            onItemSelected = { selectedDrawerItem = it },
-            onEqualizerClick = { showEqualizerDialog = true },
-            onSleepTimerClick = { showSleepTimerDialog = true },
-            onScanMediaClick = { showScanMediaDialog = true },
-            onPermissionsClick = { navController.navigate(Screen.Permissions) },
-            onSettingsClick = { navController.navigate(Screen.Settings) },
-            onAboutClick = { showAboutDialog = true },
-            onRateUsClick = { showRateUsBottomSheet = true },
-            onCloseDrawer = { isDrawerOpen = false }
+        val artUri by produceState<Bitmap?>(initialValue = null, key1 = currentSong?.uri) {
+            val songUri = currentSong?.uri
+            value = if (songUri != null) {
+                withContext(Dispatchers.IO) {
+                    songUri.toUri().extractAlbumArt(context)
+                }
+            } else null
+        }
+
+        var isDrawerOpen by remember { mutableStateOf(false) }
+        var selectedDrawerItem by remember { mutableStateOf("Equalizer") }
+
+        val drawerProgress by animateFloatAsState(
+            targetValue = if (isDrawerOpen) 1f else 0f,
+            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
         )
 
-        // 2. Main Content Card on top (shifts right, slightly reduced height when open, rotates left, and applies slanted edge)
+        var showEqualizerDialog by remember { mutableStateOf(false) }
+        var showSleepTimerDialog by remember { mutableStateOf(false) }
+        var showScanMediaDialog by remember { mutableStateOf(false) }
+        var showSettingsDialog by remember { mutableStateOf(false) }
+        var showAboutDialog by remember { mutableStateOf(false) }
+        var showRateUsBottomSheet by remember { mutableStateOf(false) }
+
+        val density = LocalDensity.current
+        val maxTranslationX = with(density) { 240.dp.toPx() }
+        val maxTranslationY = with(density) { 24.dp.toPx() }
+        val isRtl = layoutDirection == LayoutDirection.Rtl
+
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .graphicsLayer {
-                    translationX = drawerProgress * maxTranslationX
-                    translationY = drawerProgress * maxTranslationY
-                    scaleX = 1f - (drawerProgress * 0.12f)
-                    scaleY = 1f - (drawerProgress * 0.20f)
-                    rotationZ = drawerProgress * -5f
-                    transformOrigin = TransformOrigin(0f, 0.15f)
-                    cameraDistance = 8f * density.density
-                }
-                .clip(
-                    if (drawerProgress > 0.01f) SlantedLeftEdgeShape
-                    else androidx.compose.foundation.shape.RoundedCornerShape(0.dp)
-                )
-                .background(Color(0xFF0F0B21))
-                .clickable(
-                    enabled = isDrawerOpen,
-                    onClick = { isDrawerOpen = false }
-                ),
-            contentAlignment = Alignment.TopCenter
+                .background(Color(0xFF2C1454))
         ) {
-            // Main navigation graph container for screens
-            AppNavGraph(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .statusBarsPadding(),
-                navController = navController,
-                playerManager = playerManager,
-                onOpenDrawer = {
-                    isDrawerOpen = !isDrawerOpen
-                }
+            // 1. Drawer Content rendered underneath
+            SlantedNavigationDrawerContent(
+                selectedItem = selectedDrawerItem,
+                onItemSelected = { selectedDrawerItem = it },
+                onEqualizerClick = { showEqualizerDialog = true },
+                onSleepTimerClick = { showSleepTimerDialog = true },
+                onScanMediaClick = { showScanMediaDialog = true },
+                onPermissionsClick = { navController.navigate(Screen.Permissions) },
+                onSettingsClick = { navController.navigate(Screen.Settings) },
+                onAboutClick = { showAboutDialog = true },
+                onRateUsClick = { showRateUsBottomSheet = true },
+                onCloseDrawer = { isDrawerOpen = false }
             )
 
-            // Conditionally render the bottom mini player bar if a song is loaded and visibility rules allow
-            if (showBottomBar && currentSong != null) {
-                Box(
-                    modifier = Modifier
-                        .align(Alignment.BottomCenter)
-                        .fillMaxWidth()
-                ) {
-                    BottomPlayerBar(
-                        hasNext = playerManager.hasNext,
-                        hasPrevious = playerManager.hasPrevious,
-                        songTitle = currentSong!!.title,
-                        artistName = currentSong!!.artist,
-                        artUri = artUri,
-                        isPlaying = isPlaying,
-                        onPlayPauseClick = { playerManager.togglePlayPause() },
-                        onPlayerClick = {
-                            navController.navigate(Screen.Player)
-                        },
-                        onNextClick = {
-                            playerManager.playNext()
-                        },
-                        onPreviousClick = {
-                            playerManager.playPrevious()
-                        },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .navigationBarsPadding()
-                            .padding(bottom = 5.dp)
+            // 2. Main Content Card on top
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .graphicsLayer {
+                        translationX = if (isRtl) -drawerProgress * maxTranslationX else drawerProgress * maxTranslationX
+                        translationY = drawerProgress * maxTranslationY
+                        scaleX = 1f - (drawerProgress * 0.12f)
+                        scaleY = 1f - (drawerProgress * 0.20f)
+                        rotationZ = if (isRtl) drawerProgress * 5f else drawerProgress * -5f
+                        transformOrigin = if (isRtl) TransformOrigin(1f, 0.15f) else TransformOrigin(0f, 0.15f)
+                        cameraDistance = 8f * density.density
+                    }
+                    .clip(
+                        RoundedCornerShape(
+                            topStart = 24.dp * drawerProgress.coerceAtLeast(0f),
+                            topEnd = 24.dp * drawerProgress.coerceAtLeast(0f)
+                        )
                     )
+                    .background(Color(0xFF0F0B21))
+                    .clickable(
+                        enabled = isDrawerOpen,
+                        onClick = { isDrawerOpen = false }
+                    ),
+                contentAlignment = Alignment.TopCenter
+            ) {
+                AppNavGraph(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .statusBarsPadding(),
+                    navController = navController,
+                    playerManager = playerManager,
+                    onOpenDrawer = {
+                        isDrawerOpen = !isDrawerOpen
+                    }
+                )
+
+                if (showBottomBar && currentSong != null) {
+                    Box(
+                        modifier = Modifier
+                            .align(Alignment.BottomCenter)
+                            .fillMaxWidth()
+                    ) {
+                        BottomPlayerBar(
+                            hasNext = playerManager.hasNext,
+                            hasPrevious = playerManager.hasPrevious,
+                            songTitle = currentSong!!.title,
+                            artistName = currentSong!!.artist,
+                            artUri = artUri,
+                            isPlaying = isPlaying,
+                            onPlayPauseClick = { playerManager.togglePlayPause() },
+                            onPlayerClick = {
+                                navController.navigate(Screen.Player)
+                            },
+                            onNextClick = {
+                                playerManager.playNext()
+                            },
+                            onPreviousClick = {
+                                playerManager.playPrevious()
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .navigationBarsPadding()
+                                .padding(bottom = 5.dp)
+                        )
+                    }
                 }
             }
         }
-    }
 
-    // Equalizer Bottom Sheet
-    if (showEqualizerDialog) {
-        EqualizerBottomSheet(
-            onDismissRequest = { showEqualizerDialog = false }
-        )
-    }
-
-    // Sleep Timer Dialog
-    if (showSleepTimerDialog) {
-        SleepTimerDialog(
-            onDismiss = { showSleepTimerDialog = false }
-        )
-    }
-
-    // Scan Media Dialog
-    if (showScanMediaDialog) {
-        ScanMediaDialog(
-            onDismiss = { showScanMediaDialog = false }
-        )
-    }
-
-    // Settings Dialog
-    if (showSettingsDialog) {
-        SettingsDialog(onDismiss = { showSettingsDialog = false })
-    }
-
-    // About Us Dialog
-    if (showAboutDialog) {
-        AboutDialog(onDismiss = { showAboutDialog = false })
-    }
-
-    // Rate Us Bottom Sheet
-    if (showRateUsBottomSheet) {
-        RateUsBottomSheet(
-            onDismiss = { showRateUsBottomSheet = false }
-        )
+        if (showEqualizerDialog) {
+            EqualizerBottomSheet(onDismissRequest = { showEqualizerDialog = false })
+        }
+        if (showSleepTimerDialog) {
+            SleepTimerDialog(onDismiss = { showSleepTimerDialog = false })
+        }
+        if (showScanMediaDialog) {
+            ScanMediaDialog(onDismiss = { showScanMediaDialog = false })
+        }
+        if (showSettingsDialog) {
+            SettingsDialog(onDismiss = { showSettingsDialog = false })
+        }
+        if (showAboutDialog) {
+            AboutDialog(onDismiss = { showAboutDialog = false })
+        }
+        if (showRateUsBottomSheet) {
+            RateUsBottomSheet(onDismiss = { showRateUsBottomSheet = false })
+        }
     }
 }
