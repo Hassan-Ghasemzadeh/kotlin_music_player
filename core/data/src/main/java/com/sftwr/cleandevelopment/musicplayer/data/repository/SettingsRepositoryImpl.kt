@@ -39,6 +39,7 @@ class SettingsRepositoryImpl @Inject constructor(
         val PLAYBACK_SPEED = floatPreferencesKey("playback_speed")
         val PLAYBACK_PITCH = floatPreferencesKey("playback_pitch")
         val CROSSFADE_SECONDS = intPreferencesKey("crossfade_seconds")
+        val CROSSFADE_DURATION = intPreferencesKey("crossfade_duration")
         val SKIP_SILENCE = booleanPreferencesKey("skip_silence")
         val DEFAULT_EQ_PRESET = stringPreferencesKey("default_eq_preset")
         val CIRCULAR_VISUALIZER_TYPE = stringPreferencesKey("circular_visualizer_type")
@@ -65,7 +66,9 @@ class SettingsRepositoryImpl @Inject constructor(
                 isAlbumArtworkEnabled = albumArtEnabled,
                 playbackSpeed = preferences[PreferencesKeys.PLAYBACK_SPEED] ?: 1.0f,
                 playbackPitch = preferences[PreferencesKeys.PLAYBACK_PITCH] ?: 1.0f,
-                crossfadeDurationSeconds = preferences[PreferencesKeys.CROSSFADE_SECONDS] ?: 0,
+                crossfadeDurationSeconds = preferences[PreferencesKeys.CROSSFADE_DURATION] 
+                    ?: preferences[PreferencesKeys.CROSSFADE_SECONDS] 
+                    ?: 0,
                 skipSilenceEnabled = preferences[PreferencesKeys.SKIP_SILENCE] ?: false,
                 defaultEqualizerPreset = preferences[PreferencesKeys.DEFAULT_EQ_PRESET] ?: "Flat",
                 circularVisualizerType = preferences[PreferencesKeys.CIRCULAR_VISUALIZER_TYPE] ?: "NEON_FREQUENCY_BARS",
@@ -118,6 +121,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun updateCrossfadeDuration(seconds: Int) {
         context.appSettingsDataStore.edit { preferences ->
+            preferences[PreferencesKeys.CROSSFADE_DURATION] = seconds
             preferences[PreferencesKeys.CROSSFADE_SECONDS] = seconds
         }
     }
