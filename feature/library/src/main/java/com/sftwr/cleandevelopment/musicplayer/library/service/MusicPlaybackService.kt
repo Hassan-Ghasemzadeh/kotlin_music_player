@@ -27,15 +27,18 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
+import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetSettingsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 @EntryPoint
 @InstallIn(SingletonComponent::class)
 interface MusicPlaybackServiceEntryPoint {
     fun exoPlayer(): ExoPlayer
+    fun getSettingsUseCase(): GetSettingsUseCase
 }
 
 @OptIn(UnstableApi::class)
@@ -52,10 +55,19 @@ class MusicPlaybackService : MediaSessionService() {
         super.onCreate()
         createNotificationChannel()
 
-        val player = EntryPointAccessors.fromApplication(
+        val entryPoint = EntryPointAccessors.fromApplication(
             applicationContext,
             MusicPlaybackServiceEntryPoint::class.java
-        ).exoPlayer()
+        )
+        val player = entryPoint.exoPlayer()
+        val settingsUseCase = entryPoint.getSettingsUseCase()
+
+        var isAlbumArtworkEnabled = true
+        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+            settingsUseCase().collect { settings ->
+                isAlbumArtworkEnabled = settings.isAlbumArtworkEnabled
+            }
+        }
 
         val customBitmapLoader = object : BitmapLoader {
             override fun supportsMimeType(mimeType: String): Boolean {
@@ -83,6 +95,9 @@ class MusicPlaybackService : MediaSessionService() {
             }
 
             override fun loadBitmapFromMetadata(metadata: MediaMetadata): ListenableFuture<Bitmap>? {
+                if (!isAlbumArtworkEnabled) {
+                    return null
+                }
                 val artworkData = metadata.artworkData
                 if (artworkData != null) {
                     val settable = SettableFuture.create<Bitmap>()
