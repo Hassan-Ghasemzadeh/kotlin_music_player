@@ -56,6 +56,34 @@ class PlayerManager @Inject constructor(
 
     private val mainHandler = Handler(Looper.getMainLooper())
 
+    private var isAlbumArtworkEnabled = true
+
+    init {
+        CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
+            getSettingsUseCase().collect { settings ->
+                val prev = isAlbumArtworkEnabled
+                isAlbumArtworkEnabled = settings.isAlbumArtworkEnabled
+                if (prev != isAlbumArtworkEnabled) {
+                    runOnMainThread {
+                        val count = exoPlayer.mediaItemCount
+                        if (count > 0) {
+                            val currentItems = (0 until count).map { exoPlayer.getMediaItemAt(it) }
+                            val newItems = currentItems.map { item ->
+                                val id = item.mediaId
+                                val song = activeQueue.find { it.id == id } ?: _allSongs.value.find { it.id == id }
+                                song?.toMediaItem(artworkCache[song.id]) ?: item
+                            }
+                            val idx = exoPlayer.currentMediaItemIndex
+                            val pos = exoPlayer.currentPosition
+                            exoPlayer.setMediaItems(newItems, idx, pos)
+                            exoPlayer.prepare()
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     private inline fun runOnMainThread(crossinline action: () -> Unit) {
         if (Looper.myLooper() == Looper.getMainLooper()) {
             action()
@@ -421,7 +449,8 @@ class PlayerManager @Inject constructor(
     }
 
     private fun SongUiModel.toMediaItem(artworkBytes: ByteArray? = null): MediaItem {
-        val artUri = uri.toUri()
+        val artUri = if (isAlbumArtworkEnabled) uri.toUri() else null
+        val effectiveArtworkBytes = if (isAlbumArtworkEnabled) artworkBytes else null
 
         return MediaItem.Builder()
             .setUri(uri.toUri())
@@ -432,9 +461,9 @@ class PlayerManager @Inject constructor(
                     .setArtist(artist)
                     .setAlbumTitle(album)
                     .apply {
-                        if (artworkBytes != null) {
-                            setArtworkData(artworkBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
-                        } else {
+                        if (effectiveArtworkBytes != null) {
+                            setArtworkData(effectiveArtworkBytes, MediaMetadata.PICTURE_TYPE_FRONT_COVER)
+                        } else if (artUri != null) {
                             setArtworkUri(artUri)
                         }
                     }
