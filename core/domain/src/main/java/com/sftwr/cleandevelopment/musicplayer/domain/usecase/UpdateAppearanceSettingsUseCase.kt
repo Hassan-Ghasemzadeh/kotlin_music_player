@@ -13,7 +13,11 @@ class UpdateAppearanceSettingsUseCase @Inject constructor(
         settingsRepository.updateGlassmorphicStyle(enabled)
     }
 
+    suspend fun setAlbumArtworkEnabled(enabled: Boolean) {
+        settingsRepository.updateAlbumArtworkEnabled(enabled)
+    }
+
     suspend fun setShowAlbumArt(enabled: Boolean) {
-        settingsRepository.updateShowAlbumArt(enabled)
+        settingsRepository.updateAlbumArtworkEnabled(enabled)
     }
 }
