@@ -102,8 +102,8 @@ fun PlayerScreen(
     var showSleepTimerDialog by remember { mutableStateOf(false) }
 
     val totalDuration = songState?.duration ?: ""
-    val songTitle = songState?.title ?: "Unknown Title"
-    val artistName = songState?.artist ?: "Unknown Artist"
+    val songTitle = songState?.title ?: androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.unknown_title)
+    val artistName = songState?.artist ?: androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.unknown_artist)
 
     val context = LocalContext.current
     val visualizerManager = remember { AudioVisualizerManager() }
