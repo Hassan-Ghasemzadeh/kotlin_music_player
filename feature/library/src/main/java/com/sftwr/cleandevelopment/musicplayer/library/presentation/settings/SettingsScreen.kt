@@ -77,6 +77,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.NeonBlue
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingSwitchItem
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
 import com.sftwr.cleandevelopment.musicplayer.domain.model.ReplayGainMode
 import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.CircularVisualizerType
@@ -100,6 +101,7 @@ val DarkBackgroundGradient = Brush.verticalGradient(
 @Composable
 fun SettingsScreen(
     uiState: SettingsUiState,
+    isGlassmorphicEnabled: Boolean,
     onBackClick: () -> Unit,
     onLanguageClick: () -> Unit,
     onLanguageSelected: (AppLanguage) -> Unit,
@@ -207,11 +209,11 @@ fun SettingsScreen(
                         SettingsDivider()
 
                         // Glassmorphic Style Toggle
-                        SettingsSwitchRowItem(
+                        SettingSwitchItem(
                             title = stringResource(R.string.glassmorphic_style),
                             subtitle = stringResource(R.string.glassmorphic_style_desc),
                             icon = Icons.Default.Equalizer,
-                            checked = settings.glassmorphicStyleEnabled,
+                            checked = isGlassmorphicEnabled,
                             onCheckedChange = onGlassmorphicToggle
                         )
 
