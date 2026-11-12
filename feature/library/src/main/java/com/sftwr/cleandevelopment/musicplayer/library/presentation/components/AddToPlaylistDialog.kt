@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -23,6 +24,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
+import com.sftwr.cleandevelopment.musicplayer.home.R
 
 /**
  * Dark glassmorphic dialog for adding a song to custom playlists.
@@ -78,7 +80,7 @@ fun AddToPlaylistDialog(
                     ) {
                         Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = "افزودن به لیست پخش",
+                                text = stringResource(R.string.add_to_playlist),
                                 color = Color.White,
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold
@@ -96,7 +98,7 @@ fun AddToPlaylistDialog(
                         IconButton(onClick = onDismissRequest) {
                             Icon(
                                 imageVector = Icons.Default.Close,
-                                contentDescription = "بستن",
+                                contentDescription = stringResource(R.string.close),
                                 tint = Color.White.copy(alpha = 0.7f)
                             )
                         }
@@ -112,7 +114,7 @@ fun AddToPlaylistDialog(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "هیچ لیست پخش سفارشی یافت نشد.\nابتدا یکی بسازید!",
+                                text = stringResource(R.string.no_playlists_found),
                                 color = Color.White.copy(alpha = 0.6f),
                                 fontSize = 14.sp,
                                 textAlign = TextAlign.Center
@@ -157,7 +159,7 @@ fun AddToPlaylistDialog(
                                             )
                                             Spacer(modifier = Modifier.height(2.dp))
                                             Text(
-                                                text = "${playlist.trackCount} آهنگ",
+                                                text = "${playlist.trackCount}",
                                                 color = Color.White.copy(alpha = 0.6f),
                                                 fontSize = 12.sp
                                             )
@@ -176,7 +178,7 @@ fun AddToPlaylistDialog(
                     ) {
                         TextButton(onClick = onDismissRequest) {
                             Text(
-                                text = "انصراف",
+                                text = stringResource(R.string.cancel),
                                 color = Color.White.copy(alpha = 0.7f),
                                 fontWeight = FontWeight.Medium
                             )
