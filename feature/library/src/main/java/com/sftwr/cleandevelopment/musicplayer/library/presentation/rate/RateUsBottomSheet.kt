@@ -34,6 +34,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -41,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
+import com.sftwr.cleandevelopment.musicplayer.home.R
 
 val RateNeonBlue = Color(0xFF91D8FB)
 
@@ -73,7 +75,6 @@ fun RateUsBottomSheet(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Header Icon Badge
             Box(
                 modifier = Modifier
                     .size(56.dp)
@@ -98,14 +99,14 @@ fun RateUsBottomSheet(
             }
 
             Text(
-                text = "Rate Us",
+                text = stringResource(R.string.rate_us),
                 color = Color.White,
                 fontSize = 22.sp,
                 fontWeight = FontWeight.Bold
             )
 
             Text(
-                text = "If you enjoy using Music Player, please take a moment to rate us on your favorite store. Your support means the world to us!",
+                text = stringResource(R.string.rate_us_desc),
                 color = Color.White.copy(alpha = 0.8f),
                 fontSize = 13.sp,
                 textAlign = TextAlign.Center,
@@ -114,7 +115,6 @@ fun RateUsBottomSheet(
 
             Spacer(modifier = Modifier.height(4.dp))
 
-            // Stores List
             LazyColumn(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -162,7 +162,7 @@ fun RateUsBottomSheet(
                                 )
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
-                                    text = "Tap to rate on ${store.name}",
+                                    text = stringResource(R.string.tap_to_rate, store.name),
                                     color = RateNeonBlue,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Medium
@@ -180,7 +180,7 @@ fun RateUsBottomSheet(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Cancel",
+                    text = stringResource(R.string.cancel),
                     color = Color.White.copy(alpha = 0.7f),
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
