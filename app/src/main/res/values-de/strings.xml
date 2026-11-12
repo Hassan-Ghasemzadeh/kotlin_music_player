@@ -1,4 +1,4 @@
 <resources>
-    <string name="app_name">Musik-Player</string>
+    <string name="app_name">Music Player</string>
     <string name="media_notification_channel_name">Musikwiedergabe-Steuerung</string>
 </resources>
