@@ -8,19 +8,18 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
+import com.sftwr.cleandevelopment.musicplayer.home.R
 
 @Composable
 fun NeonSearchBar(
@@ -39,7 +38,6 @@ fun NeonSearchBar(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Neon Search Input Container
         Surface(
             modifier = Modifier
                 .weight(1f)
@@ -88,7 +86,7 @@ fun NeonSearchBar(
                     decorationBox = { innerTextField ->
                         if (query.isEmpty()) {
                             Text(
-                                text = "جستجو آهنگ، خواننده، آلبوم...",
+                                text = stringResource(R.string.search_placeholder),
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
                             )
@@ -101,22 +99,12 @@ fun NeonSearchBar(
                     IconButton(onClick = onClearQuery) {
                         Icon(
                             imageVector = Icons.Default.Clear,
-                            contentDescription = "Clear search",
+                            contentDescription = stringResource(R.string.close),
                             tint = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
             }
-        }
-
-
-        // Cancel Button
-        TextButton(onClick = onCancelClick) {
-            Text(
-                text = "Cancel",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary
-            )
         }
     }
 }
