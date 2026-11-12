@@ -14,8 +14,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
+import com.sftwr.cleandevelopment.musicplayer.home.R
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.AddToPlaylistDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.components.NeonSearchBar
@@ -38,10 +40,8 @@ fun SearchScreen(
     onDismissAddToPlaylistDialog: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    // Track which song's options dropdown menu is currently expanded in search results
     var expandedSongId: String? by remember { mutableStateOf(null) }
 
-    // Main container box with dark vertical gradient background matching application theme
     Box(
         modifier = modifier
             .fillMaxSize()
@@ -55,7 +55,6 @@ fun SearchScreen(
     ) {
         Scaffold(
             modifier = modifier.fillMaxSize(),
-            // Make scaffold container transparent to reveal the underlying gradient background
             containerColor = Color.Transparent,
             topBar = {
                 NeonSearchBar(
@@ -72,7 +71,6 @@ fun SearchScreen(
                     .padding(innerPadding)
             ) {
                 when {
-                    // 1. Loading state indicator
                     uiState.isLoading -> {
                         CircularProgressIndicator(
                             modifier = Modifier.align(Alignment.Center),
@@ -80,64 +78,45 @@ fun SearchScreen(
                         )
                     }
 
-                    // 2. Initial empty query state
                     uiState.query.isEmpty() -> {
                         SearchEmptyState(
                             modifier = Modifier.align(Alignment.TopCenter)
                         )
                     }
 
-                    // 3. No search results found state
                     uiState.searchResults.isEmpty() -> {
                         Text(
-                            text = "هیچ موردی یافت نشد",
+                            text = stringResource(R.string.no_results_found),
                             style = MaterialTheme.typography.bodyLarge,
                             color = Color.White.copy(alpha = 0.6f),
                             modifier = Modifier.align(Alignment.Center)
                         )
                     }
 
-                    // 4. Populated search results list state
                     else -> {
                         val bottomPadding = rememberPlayerAwareBottomPadding()
-
                         LazyColumn(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(
                                 start = 16.dp, end = 16.dp, top = 8.dp, bottom = bottomPadding
                             ),
-                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                            verticalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             items(
                                 items = uiState.searchResults,
                                 key = { it.id }
                             ) { song ->
-                                val isMenuExpanded = expandedSongId == song.id
-
-                                // Reusing the standardized glassmorphic TrackItem component
                                 TrackItem(
                                     song = song,
-                                    onClick = {
-                                        actions.onSongClick(song.id)
-                                    },
-                                    isMenuExpanded = isMenuExpanded,
+                                    onClick = { actions.onSongClick(song.id) },
+                                    isMenuExpanded = expandedSongId == song.id,
                                     onMenuClick = {
-                                        expandedSongId = song.id
+                                        expandedSongId = if (expandedSongId == song.id) null else song.id
                                     },
-                                    onDismissMenu = {
-                                        expandedSongId = null
-                                    },
-                                    onDeleteClick = {
-                                        actions.onDeleteClick(song.id.toLong())
-                                    },
-                                    onInfoClick = {
-                                        song.id.toLongOrNull()
-                                            ?.let { id -> actions.onInfoClick(id) }
-                                    },
-                                    onTagEditClick = {
-                                        song.id.toLongOrNull()
-                                            ?.let { id -> actions.onTagEditClick(id) }
-                                    },
+                                    onDismissMenu = { expandedSongId = null },
+                                    onDeleteClick = { song.id.toLongOrNull()?.let { id -> actions.onDeleteClick(id) } },
+                                    onInfoClick = { song.id.toLongOrNull()?.let { id -> actions.onInfoClick(id) } },
+                                    onTagEditClick = { song.id.toLongOrNull()?.let { id -> actions.onTagEditClick(id) } },
                                     onShareClick = { actions.onShareClick(song) },
                                     onAddToPlaylistClick = { onAddToPlaylistClick(song) },
                                     onFavoriteClick = { onFavoriteClick(song) }
@@ -146,28 +125,6 @@ fun SearchScreen(
                         }
                     }
                 }
-            }
-
-            // Add to Playlist Dialog prompt
-            if (uiState.targetSongForPlaylist != null) {
-                val songIdLong = uiState.targetSongForPlaylist.id.toLongOrNull() ?: -1L
-                val customPlaylists = uiState.playlists.filterIsInstance<Playlist.Custom>()
-                AddToPlaylistDialog(
-                    songTitle = uiState.targetSongForPlaylist.title,
-                    playlists = customPlaylists,
-                    isFavorite = false,
-                    onSelectPlaylist = { playlist ->
-                        if (songIdLong != -1L) {
-                            onSelectPlaylistForAdd(songIdLong, playlist)
-                        }
-                    },
-                    onToggleFavorite = {
-                        if (songIdLong != -1L) {
-                            onToggleFavoriteForAdd(songIdLong, true)
-                        }
-                    },
-                    onDismissRequest = onDismissAddToPlaylistDialog
-                )
             }
         }
     }
