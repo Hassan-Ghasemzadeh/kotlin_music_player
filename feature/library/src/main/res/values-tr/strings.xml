@@ -1,9 +1,7 @@
 <resources>
+    <!-- App & General -->
     <string name="app_name">Music Player</string>
     <string name="media_notification_channel_name">Müzik Oynatma Kontrolleri</string>
-
-    <!-- Navigation & Titles -->
-    <string name="settings_title">Ayarlar</string>
     <string name="back">Geri</string>
     <string name="save">Kaydet</string>
     <string name="cancel">İptal</string>
@@ -12,6 +10,50 @@
     <string name="add">Ekle</string>
     <string name="remove">Kaldır</string>
     <string name="reset">Sıfırla</string>
+    <string name="next">Sonraki</string>
+    <string name="version">Sürüm %1$s</string>
+
+    <!-- Navigation Drawer -->
+    <string name="drawer_title">Music Player</string>
+    <string name="drawer_subtitle">Mükemmel Müzik Deneyimi</string>
+    <string name="equalizer">Ekolayzer</string>
+    <string name="sleep_timer">Uyku Zamanlayıcı</string>
+    <string name="scan_media">Medyayı Tara</string>
+    <string name="notification_permissions">Bildirim ve İzinler</string>
+    <string name="settings_title">Ayarlar</string>
+    <string name="about_us">Hakkımızda</string>
+    <string name="rate_us">Bizi Değerlendirin</string>
+
+    <!-- Home & Library Items -->
+    <string name="tracks">PARÇALAR</string>
+    <string name="albums">ALBÜMLER</string>
+    <string name="artists">SANATÇILAR</string>
+    <string name="folders">KLASÖRLER</string>
+    <string name="genres">TÜRLER</string>
+    <string name="favorites">FAVORİLER</string>
+    <string name="playlists_count">Oynatma Listeleri (%1$s)</string>
+    <string name="add_playlist">Oynatma Listesi Ekle</string>
+
+    <!-- Playlist Creation Dialog -->
+    <string name="create_new_playlist">Yeni Oynatma Listesi Oluştur</string>
+    <string name="enter_playlist_title">Oynatma listeniz için bir başlık girin</string>
+    <string name="my_favorite_songs_placeholder">Favori Şarkılarım</string>
+    <string name="select_tracks">Parçaları Seç</string>
+    <string name="search_tracks_placeholder">Eklenecek parçaları ara...</string>
+    <string name="select_all">Tümünü Seç</string>
+    <string name="deselect_all">Seçimleri Kaldır</string>
+    <string name="save_playlist">Oynatma Listesini Kaydet (%1$d)</string>
+    <string name="error_playlist_name_empty">Oynatma listesi adı boş olamaz</string>
+
+    <!-- Contextual Actions & Song Menu -->
+    <string name="add_to_playlist">Oynatma Listesine Ekle</string>
+    <string name="add_to_favorites">Favorilere Ekle</string>
+    <string name="remove_from_favorites">Favorilerden Çıkar</string>
+    <string name="share_song">Paylaş</string>
+    <string name="song_info">Şarkı Bilgisi</string>
+    <string name="edit_tags">Etiketleri Düzenle</string>
+    <string name="remove_from_playlist">Oynatma Listesinden Çıkar</string>
+    <string name="delete_from_device">Cihazdan Sil</string>
 
     <!-- Appearance & Language -->
     <string name="appearance_and_language">Görünüm ve Dil</string>
@@ -83,7 +125,83 @@
     <string name="notification_permissions_status">Bildirim ve İzin Durumu</string>
     <string name="notification_permissions_status_desc">Medya bildirimi ve depolama izinlerini kontrol edin</string>
 
-    <!-- Seconds formatting -->
+    <!-- Player Screen -->
+    <string name="unknown_title">Bilinmeyen Başlık</string>
+    <string name="unknown_artist">Bilinmeyen Sanatçı</string>
+    <string name="play">Oynat</string>
+    <string name="pause">Duraklat</string>
+    <string name="next_track">Sonraki Parça</string>
+    <string name="previous_track">Önceki Parça</string>
+    <string name="shuffle">Karıştır</string>
+    <string name="repeat_all">Tümünü Tekrar Et</string>
+    <string name="repeat_one">Bunu Tekrar Et</string>
+    <string name="repeat_off">Tekrar Kapalı</string>
+
+    <!-- About Dialog -->
+    <string name="about_quote">“Müzik ruhun dilidir; kelimelerin yetersiz kaldığı yerde melodiler konuşur. Bu oynatıcı, anlarınızı saf sesle buluşturmak için tutkuyla tasarlandı.”</string>
+    <string name="github_repository">GitHub Deposu</string>
+    <string name="developed_by">%1$s tarafından geliştirildi</string>
+
+    <!-- Rate Us Bottom Sheet -->
+    <string name="rate_us_desc">Music Player\'ı kullanmaktan keyif alıyorsanız, lütfen mağazada bizi değerlendirin! Desteğiniz bizim için çok değerli.</string>
+    <string name="tap_to_rate">%1$s üzerinde değerlendirmek için dokunun</string>
+
+    <!-- Scan Media Dialog -->
+    <string name="scan_media_title">Medya Taranıyor</string>
+    <string name="scan_finished">Tarama Tamamlandı</string>
+    <string name="scanning_device_storage">Cihaz depolaması taranıyor...</string>
+    <string name="found_tracks_so_far">Şu ana kadar %1$d parça bulundu</string>
+    <string name="media_scan_completed">Medya taraması başarıyla tamamlandı!</string>
+    <string name="found_tracks_total">Depolama alanınızda %1$d ses parçası bulundu.</string>
+    <string name="reading_audio_files">Ses dosyaları okunuyor...</string>
+    <string name="preparing_media_scan">Medya taraması hazırlanıyor...</string>
+
+    <!-- Sleep Timer Dialog -->
+    <string name="timer_active">Zamanlayıcı Aktif</string>
+    <string name="stops_playback_in">Oynatma %1$s içinde duracak</string>
+    <string name="select_timer_duration">Müziği otomatik durdurmak için bir zamanlayıcı süresi seçin:</string>
+    <string name="timer_preset_off">Kapalı</string>
+    <string name="timer_preset_30m">30 Dakika</string>
+    <string name="timer_preset_1h">1 Saat</string>
+    <string name="timer_preset_1h30m">1 Saat 30 Dakika</string>
+    <string name="timer_preset_2h">2 Saat</string>
+    <string name="timer_preset_custom">Özel...</string>
+    <string name="custom_time_format">Özel (%1$s)</string>
+    <string name="set_custom_time">Özel Zamanlayıcı Ayarla</string>
+    <string name="hours">Saat</string>
+    <string name="minutes">Dakika</string>
+    <string name="set_timer">Zamanlayıcıyı Ayarla</string>
+
+    <!-- Equalizer -->
+    <string name="equalizer_title">Ekolayzer</string>
+    <string name="presets">Hazır Ayarlar</string>
+    <string name="frequency_bands">Frekans Bantları</string>
+    <string name="audio_effects">Ses Efektleri</string>
+    <string name="bass_boost">Bas Güçlendirme</string>
+    <string name="virtualizer">3D Sanallaştırıcı</string>
+
+    <!-- Search & Empty States -->
+    <string name="search_placeholder">Şarkı, sanatçı, albüm ara...</string>
+    <string name="no_results_found">Sonuç Bulunamadı</string>
+    <string name="start_search_prompt">Aramak için bir sözcük girin.</string>
+    <string name="start_search_desc">Şarkı, sanatçı ve albüm listeleri burada görüntülenecektir.</string>
+    <string name="no_songs_found">Şarkı Bulunamadı</string>
+    <string name="no_albums_found">Albüm Bulunamadı</string>
+    <string name="no_artists_found">Sanatçı Bulunamadı</string>
+    <string name="no_folders_found">Klasör Bulunamadı</string>
+    <string name="no_genres_found">Tür Bulunamadı</string>
+    <string name="no_favorites_found">Favori Bulunamadı</string>
+    <string name="no_playlists_found">Özel oynatma listesi bulunamadı.\nÖnce bir tane oluşturun!</string>
+
+    <!-- Permissions Screen -->
+    <string name="permissions_title">Bildirim ve İzinler</string>
+    <string name="all_permissions_granted">Gerekli tüm izinler verildi!</string>
+    <string name="grant_permissions_desc">Kesintisiz müzik dinlemek için gerekli izinleri verin.</string>
+    <string name="open_settings">Ayarları Aç</string>
+    <string name="grant">İzin Ver</string>
+    <string name="granted">Verildi</string>
+
+    <!-- Seconds/Speed Formatting -->
     <string name="seconds_format">%1$d sn</string>
     <string name="speed_format">%1$.2fx</string>
 </resources>
