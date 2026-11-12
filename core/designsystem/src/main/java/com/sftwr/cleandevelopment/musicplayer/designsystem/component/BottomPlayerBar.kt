@@ -26,14 +26,17 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
@@ -138,34 +141,36 @@ fun BottomPlayerBar(
                 }
             }
 
-            Row(
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(enabled = hasPrevious, onClick = onPreviousClick) {
-                    Icon(
-                        imageVector = Icons.Default.SkipPrevious,
-                        contentDescription = null,
-                        tint = Color.White.copy(alpha = if (hasPrevious) 1f else 0.3f),
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(enabled = hasPrevious, onClick = onPreviousClick) {
+                        Icon(
+                            imageVector = Icons.Default.SkipPrevious,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = if (hasPrevious) 1f else 0.3f),
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
 
-                IconButton(onClick = onPlayPauseClick) {
-                    Icon(
-                        imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                        contentDescription = null,
-                        tint = Color.White,
-                        modifier = Modifier.size(28.dp)
-                    )
-                }
+                    IconButton(onClick = onPlayPauseClick) {
+                        Icon(
+                            imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                            contentDescription = null,
+                            tint = Color.White,
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
 
-                IconButton(enabled = hasNext, onClick = onNextClick) {
-                    Icon(
-                        imageVector = Icons.Default.SkipNext,
-                        contentDescription = null,
-                        tint = Color.White.copy(alpha = if (hasNext) 1f else 0.3f),
-                        modifier = Modifier.size(28.dp)
-                    )
+                    IconButton(enabled = hasNext, onClick = onNextClick) {
+                        Icon(
+                            imageVector = Icons.Default.SkipNext,
+                            contentDescription = null,
+                            tint = Color.White.copy(alpha = if (hasNext) 1f else 0.3f),
+                            modifier = Modifier.size(28.dp)
+                        )
+                    }
                 }
             }
         }
