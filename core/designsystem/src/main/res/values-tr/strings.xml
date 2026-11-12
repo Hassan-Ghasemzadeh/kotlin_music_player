@@ -1,0 +1,13 @@
+<resources>
+    <string name="drawer_title">Music Player</string>
+    <string name="drawer_subtitle">Mükemmel Müzik Deneyimi</string>
+    <string name="equalizer">Ekolayzer</string>
+    <string name="sleep_timer">Uyku Zamanlayıcı</string>
+    <string name="scan_media">Medyayı Tara</string>
+    <string name="notification_permissions">Bildirim ve İzinler</string>
+    <string name="settings_title">Ayarlar</string>
+    <string name="about_us">Hakkımızda</string>
+    <string name="rate_us">Bizi Değerlendirin</string>
+    <string name="version">Sürüm %1$s</string>
+    <string name="ok">Tamam</string>
+</resources>
