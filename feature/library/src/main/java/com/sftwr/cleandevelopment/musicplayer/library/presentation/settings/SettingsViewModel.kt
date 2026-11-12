@@ -63,6 +63,14 @@ class SettingsViewModel @Inject constructor(
             initialValue = true
         )
 
+    val crossfadeDuration: StateFlow<Int> = getSettingsUseCase()
+        .map { it.crossfadeDurationSeconds }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 0
+        )
+
     init {
         viewModelScope.launch {
             getSettingsUseCase().collect { settings ->
