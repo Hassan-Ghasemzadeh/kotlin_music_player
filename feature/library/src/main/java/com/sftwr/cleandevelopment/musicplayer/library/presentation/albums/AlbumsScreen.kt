@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
@@ -21,6 +22,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
@@ -36,6 +38,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -43,6 +46,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
+import com.sftwr.cleandevelopment.musicplayer.home.R
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.ScrollToTopButton
 import kotlinx.coroutines.launch
@@ -86,7 +90,6 @@ fun AlbumsScreen(
                     .fillMaxSize()
                     .padding(16.dp)
             ) {
-                // Top App Bar matching the app's dark theme
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -97,13 +100,13 @@ fun AlbumsScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.back),
                             tint = Color.White
                         )
                     }
 
                     Text(
-                        text = "Albums",
+                        text = stringResource(R.string.albums),
                         color = Color.White,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
@@ -112,7 +115,7 @@ fun AlbumsScreen(
                     IconButton(onClick = onSearchClick) {
                         Icon(
                             imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
+                            contentDescription = null,
                             tint = Color.White
                         )
                     }
@@ -136,7 +139,7 @@ fun AlbumsScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "No Albums Found",
+                                    text = stringResource(R.string.no_albums_found),
                                     color = Color.White.copy(alpha = 0.6f),
                                     fontSize = 16.sp
                                 )
@@ -161,7 +164,6 @@ fun AlbumsScreen(
                         }
                     }
 
-                    // Scroll-to-Top button positioned above the mini player
                     ScrollToTopButton(
                         isScrolling = gridState.isScrollInProgress,
                         onClick = {
@@ -169,9 +171,7 @@ fun AlbumsScreen(
                                 gridState.animateScrollToItem(0)
                             }
                         },
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 80.dp)
+                        modifier = Modifier.align(Alignment.BottomEnd)
                     )
                 }
             }
@@ -179,83 +179,67 @@ fun AlbumsScreen(
     }
 }
 
-/**
- * Custom AlbumItemCard featuring rounded corners (16.dp), translucent dark background (Color.White.copy(alpha = 0.05f)),
- * and a subtle neon blue border (#91D8FB).
- */
 @Composable
 fun AlbumItemCard(
     album: Album,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val shape = RoundedCornerShape(16.dp)
-    Box(
+    Column(
         modifier = modifier
-            .clip(shape)
-            .background(Color.White.copy(alpha = 0.05f))
-            .border(
-                width = 1.dp,
-                color = Color(0xFF91D8FB),
-                shape = shape
-            )
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White.copy(alpha = 0.06f))
+            .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
+            .padding(10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .aspectRatio(1f)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.White.copy(alpha = 0.08f)),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White.copy(alpha = 0.08f)),
-                contentAlignment = Alignment.Center
-            ) {
+            if (album.albumArtUri != null) {
                 AsyncImage(
-                    model = album.albumArtUri ?: "content://media/external/audio/albumart/${album.albumId}",
+                    model = album.albumArtUri,
                     contentDescription = album.title,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                    error = painterResource(id = com.sftwr.cleandevelopment.musicplayer.designsystem.R.drawable.ic_default_album_art),
-                    placeholder = painterResource(id = com.sftwr.cleandevelopment.musicplayer.designsystem.R.drawable.ic_default_album_art)
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Icon(
+                    imageVector = Icons.Default.Album,
+                    contentDescription = null,
+                    tint = Color(0xFF91D8FB).copy(alpha = 0.6f),
+                    modifier = Modifier.size(48.dp)
                 )
             }
-
-Spacer(modifier = Modifier.height(10.dp))
-
-            Text(
-                text = album.title,
-                color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(2.dp))
-
-            Text(
-                text = album.artist,
-                color = Color.White.copy(alpha = 0.7f),
-                fontSize = 12.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(2.dp))
-
-            Text(
-                text = if (album.trackCount == 1) "1 track" else "${album.trackCount} tracks",
-                color = Color(0xFF91D8FB).copy(alpha = 0.9f),
-                fontSize = 11.sp,
-                textAlign = TextAlign.Center
-            )
         }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = album.title,
+            color = Color.White,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(2.dp))
+
+        Text(
+            text = "${album.artist} • ${album.trackCount}",
+            color = Color.White.copy(alpha = 0.6f),
+            fontSize = 12.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center
+        )
     }
 }
