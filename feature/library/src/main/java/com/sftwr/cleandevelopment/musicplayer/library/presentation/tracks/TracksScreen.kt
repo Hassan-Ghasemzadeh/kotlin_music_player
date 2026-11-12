@@ -203,13 +203,13 @@ fun TracksScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.back),
                             tint = Color.White
                         )
                     }
 
                     Text(
-                        text = "Tracks (${songs.size})",
+                        text = "${androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.tracks)} (${songs.size})",
                         color = Color.White,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
@@ -218,7 +218,7 @@ fun TracksScreen(
                     IconButton(onClick = onSearchClick) {
                         Icon(
                             imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
+                            contentDescription = null,
                             tint = Color.White
                         )
                     }
