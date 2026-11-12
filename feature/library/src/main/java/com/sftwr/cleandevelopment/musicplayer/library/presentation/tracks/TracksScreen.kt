@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.AlphabetIndexerBar
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalGlassmorphicEnabled
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
@@ -420,9 +421,13 @@ fun TrackItem(
     isPlaying: Boolean = false,
 ) {
     val ctx = LocalContext.current
-    val borderColor = if (isPlaying) Color(0xFF91D8FB) else Color.White.copy(alpha = 0.12f)
-    val backgroundColor =
-        if (isPlaying) Color(0xFF91D8FB).copy(alpha = 0.15f) else Color.White.copy(alpha = 0.07f)
+    val isGlassmorphic = LocalGlassmorphicEnabled.current
+    val borderColor = if (isPlaying) Color(0xFF91D8FB) else if (isGlassmorphic) Color.White.copy(alpha = 0.12f) else Color.White.copy(alpha = 0.05f)
+    val backgroundColor = when {
+        isPlaying -> Color(0xFF91D8FB).copy(alpha = 0.15f)
+        isGlassmorphic -> Color.White.copy(alpha = 0.07f)
+        else -> Color(0xFF1B1238)
+    }
 
     Surface(
         onClick = onClick,
