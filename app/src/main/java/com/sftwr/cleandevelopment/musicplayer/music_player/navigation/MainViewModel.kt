@@ -4,11 +4,14 @@ import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sftwr.cleandevelopment.musicplayer.data.util.LocaleHelper
+import com.sftwr.cleandevelopment.musicplayer.domain.model.AppSettings
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetSettingsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.firstOrNull
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -23,10 +26,16 @@ class MainViewModel @Inject constructor(
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
+    val settingsState: StateFlow<AppSettings> = getSettingsUseCase()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = AppSettings()
+        )
+
     init {
         viewModelScope.launch {
-            val settings = getSettingsUseCase().firstOrNull()
-            if (settings != null) {
+            settingsState.collect { settings ->
                 LocaleHelper.applyLanguage(context, settings.language)
             }
         }
