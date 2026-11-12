@@ -45,6 +45,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalGlassmorphicEnabled
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
 import com.sftwr.cleandevelopment.musicplayer.home.R
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
@@ -185,11 +186,16 @@ fun AlbumItemCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val isGlassmorphic = LocalGlassmorphicEnabled.current
+    val backgroundColor = if (isGlassmorphic) Color.White.copy(alpha = 0.06f) else Color(0xFF1B1238)
+    val borderColor = if (isGlassmorphic) Color.White.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.05f)
+    val imageBackground = if (isGlassmorphic) Color.White.copy(alpha = 0.08f) else Color(0xFF2C1454)
+
     Column(
         modifier = modifier
             .clip(RoundedCornerShape(16.dp))
-            .background(Color.White.copy(alpha = 0.06f))
-            .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
+            .background(backgroundColor)
+            .border(1.dp, borderColor, RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
             .padding(10.dp),
         horizontalAlignment = Alignment.CenterHorizontally
@@ -199,7 +205,7 @@ fun AlbumItemCard(
                 .fillMaxWidth()
                 .aspectRatio(1f)
                 .clip(RoundedCornerShape(12.dp))
-                .background(Color.White.copy(alpha = 0.08f)),
+                .background(imageBackground),
             contentAlignment = Alignment.Center
         ) {
             if (album.albumArtUri != null) {
