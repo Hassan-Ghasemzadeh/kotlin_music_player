@@ -10,9 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.sftwr.cleandevelopment.musicplayer.home.R
 
-// Model representing a single menu item
 data class SongMenuItem(
     val title: String,
     val icon: ImageVector,
@@ -32,22 +33,22 @@ fun SongDropdownMenu(
     onRemoveFromPlaylist: (() -> Unit)? = null,
     isFavorite: Boolean = false
 ) {
-    val favoriteTitle = if (isFavorite) "حذف از علاقه‌مندی‌ها" else "افزودن به علاقه‌مندی‌ها"
+    val favoriteTitle = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites)
     val favoriteIcon = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder
 
     val menuItems = mutableListOf(
-        SongMenuItem("افزودن به لیست پخش", Icons.AutoMirrored.Filled.PlaylistAdd, onAddToPlaylist),
+        SongMenuItem(stringResource(R.string.add_to_playlist), Icons.AutoMirrored.Filled.PlaylistAdd, onAddToPlaylist),
         SongMenuItem(favoriteTitle, favoriteIcon, onFavoriteClick),
-        SongMenuItem("اشتراک‌گذاری", Icons.Default.Share, onShareClick),
-        SongMenuItem("مشاهده اطلاعات آهنگ", Icons.Default.Info, onInfoClick),
-        SongMenuItem("ویرایش تگ", Icons.Default.Edit, onTagEditClick),
+        SongMenuItem(stringResource(R.string.share_song), Icons.Default.Share, onShareClick),
+        SongMenuItem(stringResource(R.string.song_info), Icons.Default.Info, onInfoClick),
+        SongMenuItem(stringResource(R.string.edit_tags), Icons.Default.Edit, onTagEditClick),
     )
 
     if (onRemoveFromPlaylist != null) {
-        menuItems.add(SongMenuItem("حذف از لیست پخش", Icons.Default.RemoveCircleOutline, onRemoveFromPlaylist))
+        menuItems.add(SongMenuItem(stringResource(R.string.remove_from_playlist), Icons.Default.RemoveCircleOutline, onRemoveFromPlaylist))
     }
 
-    menuItems.add(SongMenuItem("حذف از دستگاه", Icons.Default.Delete, onDeleteClick))
+    menuItems.add(SongMenuItem(stringResource(R.string.delete_from_device), Icons.Default.Delete, onDeleteClick))
 
     DropdownMenu(
         expanded = expanded,
