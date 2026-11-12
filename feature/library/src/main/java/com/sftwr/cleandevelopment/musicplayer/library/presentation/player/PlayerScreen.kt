@@ -47,6 +47,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -59,8 +60,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -314,113 +317,115 @@ fun PlayerScreen(
             Spacer(modifier = Modifier.height(24.dp))
 
             // Playback progress timeline slider and duration indicator labels
-            Column(modifier = Modifier.fillMaxWidth()) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = currentPosition.formatTime(),
-                        style = MaterialTheme.typography.labelSmall.copy(color = Color.White.copy(alpha = 0.6f))
-                    )
-                    Text(
-                        text = totalDuration,
-                        style = MaterialTheme.typography.labelSmall.copy(color = Color.White.copy(alpha = 0.6f))
-                    )
-                }
-
-                // Custom modern slim playback progress slider
-                Slider(
-                    value = currentPosition.toFloat(),
-                    onValueChange = {
-                        viewModel.seekTo(it.toLong())
-                    },
-                    valueRange = 0f..(if (totalDuration.toMillis() > 0f) totalDuration.toMillis() else 1f),
-                    thumb = {
-                        Box(
-                            modifier = Modifier
-                                .size(12.dp)
-                                .background(Color(0xFF6200EE), CircleShape)
+            CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = currentPosition.formatTime(),
+                            style = MaterialTheme.typography.labelSmall.copy(color = Color.White.copy(alpha = 0.6f))
                         )
-                    },
-                    track = { sliderState ->
-                        SliderDefaults.Track(
-                            colors = SliderDefaults.colors(
-                                activeTrackColor = Color(0xFF6200EE),
-                                inactiveTrackColor = Color(0x33A855F7)
-                            ),
-                            enabled = true,
-                            sliderState = sliderState,
-                            modifier = Modifier.height(4.dp)
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 4.dp)
-                )
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                // Playback controls action bar (Shuffle, Previous, Play/Pause, Next, Repeat)
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceAround,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = { viewModel.toggleShuffle() }) {
-                        Icon(
-                            imageVector = Icons.Default.Shuffle,
-                            contentDescription = "Shuffle",
-                            tint = if (isShuffleEnabled) Color(0xFF00D2FF) else Color.White.copy(alpha = 0.6f)
+                        Text(
+                            text = totalDuration,
+                            style = MaterialTheme.typography.labelSmall.copy(color = Color.White.copy(alpha = 0.6f))
                         )
                     }
-                    IconButton(onClick = { viewModel.skipPrevious() }) {
-                        Icon(
-                            imageVector = Icons.Default.SkipPrevious,
-                            contentDescription = "Previous Track",
-                            tint = Color.White,
-                            modifier = Modifier.size(36.dp)
-                        )
-                    }
-                    Card(
-                        shape = CircleShape,
-                        colors = CardDefaults.cardColors(containerColor = Color(0xFF6200EE)),
-                        elevation = CardDefaults.cardElevation(8.dp),
+
+                    // Custom modern slim playback progress slider
+                    Slider(
+                        value = currentPosition.toFloat(),
+                        onValueChange = {
+                            viewModel.seekTo(it.toLong())
+                        },
+                        valueRange = 0f..(if (totalDuration.toMillis() > 0f) totalDuration.toMillis() else 1f),
+                        thumb = {
+                            Box(
+                                modifier = Modifier
+                                    .size(12.dp)
+                                    .background(Color(0xFF6200EE), CircleShape)
+                            )
+                        },
+                        track = { sliderState ->
+                            SliderDefaults.Track(
+                                colors = SliderDefaults.colors(
+                                    activeTrackColor = Color(0xFF6200EE),
+                                    inactiveTrackColor = Color(0x33A855F7)
+                                ),
+                                enabled = true,
+                                sliderState = sliderState,
+                                modifier = Modifier.height(4.dp)
+                            )
+                        },
                         modifier = Modifier
-                            .size(72.dp)
-                            .clickable {
-                                viewModel.togglePlayPause()
-                            }) {
-                        Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp)
+                    )
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    // Playback controls action bar (Shuffle, Previous, Play/Pause, Next, Repeat)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceAround,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        IconButton(onClick = { viewModel.toggleShuffle() }) {
                             Icon(
-                                imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                                contentDescription = if (isPlaying) "Pause" else "Play",
-                                tint = Color.White,
-                                modifier = Modifier.size(40.dp)
+                                imageVector = Icons.Default.Shuffle,
+                                contentDescription = "Shuffle",
+                                tint = if (isShuffleEnabled) Color(0xFF00D2FF) else Color.White.copy(alpha = 0.6f)
                             )
                         }
-                    }
-                    IconButton(onClick = { viewModel.skipNext() }) {
-                        Icon(
-                            imageVector = Icons.Default.SkipNext,
-                            contentDescription = "Next Track",
-                            tint = Color.White,
-                            modifier = Modifier.size(36.dp)
-                        )
-                    }
-                    IconButton(onClick = { viewModel.toggleRepeat() }) {
-                        Icon(
-                            imageVector = when (repeatMode) {
-                                RepeatMode.ONE -> Icons.Default.RepeatOne
-                                else -> Icons.Default.Repeat
-                            },
-                            contentDescription = "Repeat",
-                            tint = when (repeatMode) {
-                                RepeatMode.OFF -> Color.White.copy(alpha = 0.6f)
-                                else -> Color(0xFF00D2FF)
+                        IconButton(onClick = { viewModel.skipPrevious() }) {
+                            Icon(
+                                imageVector = Icons.Default.SkipPrevious,
+                                contentDescription = "Previous Track",
+                                tint = Color.White,
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
+                        Card(
+                            shape = CircleShape,
+                            colors = CardDefaults.cardColors(containerColor = Color(0xFF6200EE)),
+                            elevation = CardDefaults.cardElevation(8.dp),
+                            modifier = Modifier
+                                .size(72.dp)
+                                .clickable {
+                                    viewModel.togglePlayPause()
+                                }) {
+                            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                                Icon(
+                                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                                    contentDescription = if (isPlaying) "Pause" else "Play",
+                                    tint = Color.White,
+                                    modifier = Modifier.size(40.dp)
+                                )
                             }
-                        )
+                        }
+                        IconButton(onClick = { viewModel.skipNext() }) {
+                            Icon(
+                                imageVector = Icons.Default.SkipNext,
+                                contentDescription = "Next Track",
+                                tint = Color.White,
+                                modifier = Modifier.size(36.dp)
+                            )
+                        }
+                        IconButton(onClick = { viewModel.toggleRepeat() }) {
+                            Icon(
+                                imageVector = when (repeatMode) {
+                                    RepeatMode.ONE -> Icons.Default.RepeatOne
+                                    else -> Icons.Default.Repeat
+                                },
+                                contentDescription = "Repeat",
+                                tint = when (repeatMode) {
+                                    RepeatMode.OFF -> Color.White.copy(alpha = 0.6f)
+                                    else -> Color(0xFF00D2FF)
+                                }
+                            )
+                        }
                     }
                 }
             }
