@@ -11,6 +11,7 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,15 +20,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Artist
+import com.sftwr.cleandevelopment.musicplayer.home.R
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.ScrollToTopButton
 import kotlinx.coroutines.launch
@@ -78,13 +78,13 @@ fun ArtistsScreen(
                     IconButton(onClick = onBackClick) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
+                            contentDescription = stringResource(R.string.back),
                             tint = Color.White
                         )
                     }
 
                     Text(
-                        text = "Artists",
+                        text = stringResource(R.string.artists),
                         color = Color.White,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
@@ -93,7 +93,7 @@ fun ArtistsScreen(
                     IconButton(onClick = onSearchClick) {
                         Icon(
                             imageVector = Icons.Default.Search,
-                            contentDescription = "Search",
+                            contentDescription = null,
                             tint = Color.White
                         )
                     }
@@ -117,7 +117,7 @@ fun ArtistsScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Text(
-                                    text = "No Artists Found",
+                                    text = stringResource(R.string.no_artists_found),
                                     color = Color.White.copy(alpha = 0.6f),
                                     fontSize = 16.sp
                                 )
@@ -142,7 +142,6 @@ fun ArtistsScreen(
                         }
                     }
 
-                    // Scroll-to-Top button positioned above the mini player
                     ScrollToTopButton(
                         isScrolling = gridState.isScrollInProgress,
                         onClick = {
@@ -150,9 +149,7 @@ fun ArtistsScreen(
                                 gridState.animateScrollToItem(0)
                             }
                         },
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .padding(bottom = 80.dp)
+                        modifier = Modifier.align(Alignment.BottomEnd)
                     )
                 }
             }
@@ -166,64 +163,52 @@ fun ArtistItemCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val shape = RoundedCornerShape(16.dp)
-    Box(
+    Column(
         modifier = modifier
-            .clip(shape)
-            .background(Color.White.copy(alpha = 0.05f))
-            .border(
-                width = 1.dp,
-                color = Color(0xFF91D8FB),
-                shape = shape
-            )
+            .clip(RoundedCornerShape(16.dp))
+            .background(Color.White.copy(alpha = 0.06f))
+            .border(1.dp, Color.White.copy(alpha = 0.1f), RoundedCornerShape(16.dp))
             .clickable(onClick = onClick)
+            .padding(10.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .aspectRatio(1f)
+                .clip(RoundedCornerShape(12.dp))
+                .background(Color.White.copy(alpha = 0.08f)),
+            contentAlignment = Alignment.Center
         ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .aspectRatio(1f)
-                    .clip(RoundedCornerShape(12.dp))
-                    .background(Color.White.copy(alpha = 0.08f)),
-                contentAlignment = Alignment.Center
-            ) {
-                AsyncImage(
-                    model = artist.artistArtUri,
-                    contentDescription = artist.name,
-                    modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop,
-                    error = painterResource(id = com.sftwr.cleandevelopment.musicplayer.designsystem.R.drawable.ic_default_album_art),
-                    placeholder = painterResource(id = com.sftwr.cleandevelopment.musicplayer.designsystem.R.drawable.ic_default_album_art)
-                )
-            }
-
-            Spacer(modifier = Modifier.height(10.dp))
-
-            Text(
-                text = artist.name,
-                color = Color.White,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Bold,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(2.dp))
-
-            Text(
-                text = "${artist.albumCount} albums • ${artist.trackCount} tracks",
-                color = Color(0xFF91D8FB).copy(alpha = 0.9f),
-                fontSize = 11.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                textAlign = TextAlign.Center
+            Icon(
+                imageVector = Icons.Default.Person,
+                contentDescription = null,
+                tint = Color(0xFF91D8FB).copy(alpha = 0.6f),
+                modifier = Modifier.size(48.dp)
             )
         }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        Text(
+            text = artist.name,
+            color = Color.White,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.Bold,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center
+        )
+
+        Spacer(modifier = Modifier.height(2.dp))
+
+        Text(
+            text = "${artist.trackCount}",
+            color = Color.White.copy(alpha = 0.6f),
+            fontSize = 12.sp,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            textAlign = TextAlign.Center
+        )
     }
 }
