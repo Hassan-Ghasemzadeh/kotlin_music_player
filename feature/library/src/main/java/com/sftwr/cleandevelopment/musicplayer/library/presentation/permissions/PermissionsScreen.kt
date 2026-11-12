@@ -28,13 +28,11 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.LibraryMusic
 import androidx.compose.material.icons.filled.NotificationsActive
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -45,6 +43,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -55,6 +54,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
 import com.sftwr.cleandevelopment.musicplayer.domain.model.PermissionItem
 import com.sftwr.cleandevelopment.musicplayer.domain.model.PermissionStatus
+import com.sftwr.cleandevelopment.musicplayer.home.R
 
 val PermissionsNeonBlue = Color(0xFF91D8FB)
 val BackgroundDarkGradient = Brush.verticalGradient(
@@ -76,7 +76,12 @@ fun PermissionsScreen(
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    // Automatically refresh permission statuses whenever screen resumes
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) {
+        viewModel.refreshPermissions()
+    }
+
     DisposableEffect(lifecycleOwner) {
         val observer = LifecycleEventObserver { _, event ->
             if (event == Lifecycle.Event.ON_RESUME) {
@@ -98,7 +103,6 @@ fun PermissionsScreen(
         Column(
             modifier = Modifier.fillMaxSize()
         ) {
-            // Top App Bar
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -108,13 +112,13 @@ fun PermissionsScreen(
                 IconButton(onClick = onBackClick) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back",
+                        contentDescription = stringResource(R.string.back),
                         tint = Color.White
                     )
                 }
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
-                    text = "Notification & Permissions",
+                    text = stringResource(R.string.permissions_title),
                     color = Color.White,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
@@ -128,7 +132,6 @@ fun PermissionsScreen(
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 item {
-                    // Header Overview Card
                     GlassCard(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(20.dp)
@@ -159,25 +162,21 @@ fun PermissionsScreen(
                                     imageVector = if (uiState.allGranted) Icons.Default.CheckCircle else Icons.Default.Warning,
                                     contentDescription = null,
                                     tint = if (uiState.allGranted) PermissionsNeonBlue else Color(0xFFFF9800),
-                                    modifier = Modifier.size(26.dp)
+                                    modifier = Modifier.size(24.dp)
                                 )
                             }
 
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = if (uiState.allGranted) "All Permissions Granted" else "Permissions Required",
+                                    text = if (uiState.allGranted) stringResource(R.string.all_permissions_granted) else stringResource(R.string.notification_permissions_status),
                                     color = Color.White,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold
                                 )
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = if (uiState.allGranted) {
-                                        "Your music player is fully configured for audio scanning and playback controls."
-                                    } else {
-                                        "Grant the missing permissions to enable full audio playback and notification shade controls."
-                                    },
-                                    color = Color.White.copy(alpha = 0.75f),
+                                    text = stringResource(R.string.grant_permissions_desc),
+                                    color = Color.White.copy(alpha = 0.7f),
                                     fontSize = 12.sp
                                 )
                             }
@@ -185,22 +184,20 @@ fun PermissionsScreen(
                     }
                 }
 
-                items(uiState.permissions, key = { it.permission }) { permissionItem ->
-                    PermissionCard(
-                        item = permissionItem,
-                        onPermissionResult = { viewModel.refreshPermissions() },
-                        onOpenSettings = {
-                            val intent = Intent(
-                                Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
-                                Uri.fromParts("package", context.packageName, null)
-                            )
-                            context.startActivity(intent)
+                items(uiState.permissions, key = { it.permission }) { item ->
+                    PermissionCardItem(
+                        item = item,
+                        onRequestPermission = {
+                            if (item.permission.isNotEmpty()) {
+                                launcher.launch(item.permission)
+                            } else {
+                                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                    data = Uri.fromParts("package", context.packageName, null)
+                                }
+                                context.startActivity(intent)
+                            }
                         }
                     )
-                }
-
-                item {
-                    Spacer(modifier = Modifier.height(24.dp))
                 }
             }
         }
@@ -208,131 +205,80 @@ fun PermissionsScreen(
 }
 
 @Composable
-private fun PermissionCard(
+private fun PermissionCardItem(
     item: PermissionItem,
-    onPermissionResult: () -> Unit,
-    onOpenSettings: () -> Unit
+    onRequestPermission: () -> Unit
 ) {
-    val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.RequestPermission(),
-        onResult = { _ -> onPermissionResult() }
-    )
-
     val isGranted = item.status == PermissionStatus.GRANTED
-    val icon = if (item.permission.contains("AUDIO") || item.permission.contains("STORAGE")) {
-        Icons.Default.LibraryMusic
-    } else {
-        Icons.Default.NotificationsActive
-    }
 
     GlassCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp)
+        shape = RoundedCornerShape(16.dp)
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (isGranted) PermissionsNeonBlue.copy(alpha = 0.15f)
+                        else Color.White.copy(alpha = 0.08f)
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(14.dp),
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(42.dp)
-                            .clip(CircleShape)
-                            .background(
-                                if (isGranted) PermissionsNeonBlue.copy(alpha = 0.2f)
-                                else Color.White.copy(alpha = 0.08f)
-                            )
-                            .border(
-                                1.dp,
-                                if (isGranted) PermissionsNeonBlue.copy(alpha = 0.5f)
-                                else Color.White.copy(alpha = 0.2f),
-                                CircleShape
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Icon(
-                            imageVector = icon,
-                            contentDescription = null,
-                            tint = if (isGranted) PermissionsNeonBlue else Color.White.copy(alpha = 0.9f),
-                            modifier = Modifier.size(22.dp)
-                        )
-                    }
-
-                    Column {
-                        Text(
-                            text = item.title,
-                            color = Color.White,
-                            fontSize = 15.sp,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text(
-                            text = if (isGranted) "Granted" else "Not Granted",
-                            color = if (isGranted) PermissionsNeonBlue else Color(0xFFFFB74D),
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                }
-
-                if (isGranted) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Granted",
-                        tint = PermissionsNeonBlue,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
+                Icon(
+                    imageVector = when {
+                        item.permission.contains("NOTIFICATION", ignoreCase = true) -> Icons.Default.NotificationsActive
+                        else -> Icons.Default.LibraryMusic
+                    },
+                    contentDescription = null,
+                    tint = if (isGranted) PermissionsNeonBlue else Color.White.copy(alpha = 0.7f),
+                    modifier = Modifier.size(22.dp)
+                )
             }
 
-            Text(
-                text = item.description,
-                color = Color.White.copy(alpha = 0.75f),
-                fontSize = 13.sp
-            )
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = item.title,
+                    color = Color.White,
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = item.description,
+                    color = Color.White.copy(alpha = 0.6f),
+                    fontSize = 12.sp
+                )
+            }
 
-            if (!isGranted) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+            if (isGranted) {
+                Text(
+                    text = stringResource(R.string.granted),
+                    color = PermissionsNeonBlue,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            } else {
+                Button(
+                    onClick = onRequestPermission,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PermissionsNeonBlue,
+                        contentColor = Color(0xFF0F0B21)
+                    ),
+                    shape = RoundedCornerShape(10.dp)
                 ) {
-                    Button(
-                        onClick = { launcher.launch(item.permission) },
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = PermissionsNeonBlue,
-                            contentColor = Color(0xFF0F0B21)
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Grant Permission", fontWeight = FontWeight.Bold, fontSize = 13.sp)
-                    }
-
-                    OutlinedButton(
-                        onClick = onOpenSettings,
-                        shape = RoundedCornerShape(12.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(contentColor = Color.White)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Settings,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp),
-                            tint = Color.White
-                        )
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text("Settings", fontSize = 13.sp)
-                    }
+                    Text(
+                        text = stringResource(R.string.grant),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 12.sp
+                    )
                 }
             }
         }
