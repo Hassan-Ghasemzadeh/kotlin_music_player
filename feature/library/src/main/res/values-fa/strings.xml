@@ -1,9 +1,7 @@
 <resources>
+    <!-- App & General -->
     <string name="app_name">موزیک پلیر</string>
     <string name="media_notification_channel_name">کنترل‌های پخش موسیقی</string>
-
-    <!-- Navigation & Titles -->
-    <string name="settings_title">تنظیمات</string>
     <string name="back">بازگشت</string>
     <string name="save">ذخیره</string>
     <string name="cancel">انصراف</string>
@@ -12,6 +10,50 @@
     <string name="add">افزودن</string>
     <string name="remove">حذف</string>
     <string name="reset">بازنشانی</string>
+    <string name="next">بعدی</string>
+    <string name="version">نسخه %1$s</string>
+
+    <!-- Navigation Drawer -->
+    <string name="drawer_title">موزیک پلیر</string>
+    <string name="drawer_subtitle">تجربه بی‌نظیر موسیقی</string>
+    <string name="equalizer">اکولایزر</string>
+    <string name="sleep_timer">تایمر خواب</string>
+    <string name="scan_media">اسکن فایل‌های صوتی</string>
+    <string name="notification_permissions">اعلان‌ها و مجوزها</string>
+    <string name="settings_title">تنظیمات</string>
+    <string name="about_us">درباره ما</string>
+    <string name="rate_us">امتیاز به برنامه</string>
+
+    <!-- Home & Library Items -->
+    <string name="tracks">آهنگ‌ها</string>
+    <string name="albums">آلبوم‌ها</string>
+    <string name="artists">خوانندگان</string>
+    <string name="folders">پوشه‌ها</string>
+    <string name="genres">سبک‌ها</string>
+    <string name="favorites">علاقه‌مندی‌ها</string>
+    <string name="playlists_count">لیست‌های پخش (%1$s)</string>
+    <string name="add_playlist">افزودن لیست پخش</string>
+
+    <!-- Playlist Creation Dialog -->
+    <string name="create_new_playlist">ایجاد لیست پخش جدید</string>
+    <string name="enter_playlist_title">عنوان لیست پخش خود را وارد کنید</string>
+    <string name="my_favorite_songs_placeholder">آهنگ‌های مورد علاقه من</string>
+    <string name="select_tracks">انتخاب آهنگ‌ها</string>
+    <string name="search_tracks_placeholder">جستجوی آهنگ برای افزودن...</string>
+    <string name="select_all">انتخاب همه</string>
+    <string name="deselect_all">لغو انتخاب همه</string>
+    <string name="save_playlist">ذخیره لیست پخش (%1$d)</string>
+    <string name="error_playlist_name_empty">نام لیست پخش نمی‌تواند خالی باشد</string>
+
+    <!-- Contextual Actions & Song Menu -->
+    <string name="add_to_playlist">افزودن به لیست پخش</string>
+    <string name="add_to_favorites">افزودن به علاقه‌مندی‌ها</string>
+    <string name="remove_from_favorites">حذف از علاقه‌مندی‌ها</string>
+    <string name="share_song">اشتراک‌گذاری</string>
+    <string name="song_info">مشاهده اطلاعات آهنگ</string>
+    <string name="edit_tags">ویرایش تگ</string>
+    <string name="remove_from_playlist">حذف از لیست پخش</string>
+    <string name="delete_from_device">حذف از دستگاه</string>
 
     <!-- Appearance & Language -->
     <string name="appearance_and_language">ظاهر و زبان</string>
@@ -83,7 +125,83 @@
     <string name="notification_permissions_status">وضعیت اعلان‌ها و مجوزها</string>
     <string name="notification_permissions_status_desc">بررسی مجوزهای دسترسی به فایل‌ها و اعلان‌ها</string>
 
-    <!-- Seconds formatting -->
+    <!-- Player Screen -->
+    <string name="unknown_title">عنوان ناشناخته</string>
+    <string name="unknown_artist">خواننده ناشناخته</string>
+    <string name="play">پخش</string>
+    <string name="pause">توقف</string>
+    <string name="next_track">آهنگ بعدی</string>
+    <string name="previous_track">آهنگ قبلی</string>
+    <string name="shuffle">پخش تصادفی</string>
+    <string name="repeat_all">تکرار همه</string>
+    <string name="repeat_one">تکرار یک آهنگ</string>
+    <string name="repeat_off">بدون تکرار</string>
+
+    <!-- About Dialog -->
+    <string name="about_quote">“موسیقی زبان روح است؛ جایی که کلمات از گفتن باز می‌مانند، ملودی‌ها سخن می‌گویند. این پلیر با عشق و دقت ساخته شده تا لحظات شما را با ناب‌ترین صداها پیوند بزند.”</string>
+    <string name="github_repository">مخزن گیت‌هاب</string>
+    <string name="developed_by">توسعه‌داده‌شده توسط %1$s</string>
+
+    <!-- Rate Us Bottom Sheet -->
+    <string name="rate_us_desc">اگر از موزیک پلیر لذت می‌برید، لطفا با امتیاز دادن در مارکت به ما انرژی بدهید!</string>
+    <string name="tap_to_rate">برای ثبت امتیاز در %1$s کلیک کنید</string>
+
+    <!-- Scan Media Dialog -->
+    <string name="scan_media_title">در حال اسکن فایل‌ها</string>
+    <string name="scan_finished">پایان اسکن</string>
+    <string name="scanning_device_storage">در حال اسکن حافظه دستگاه...</string>
+    <string name="found_tracks_so_far">تاکنون %1$d آهنگ یافت شد</string>
+    <string name="media_scan_completed">اسکن فایل‌های صوتی با موفقیت انجام شد!</string>
+    <string name="found_tracks_total">%1$d فایل صوتی در حافظه دستگاه یافت شد.</string>
+    <string name="reading_audio_files">در حال خواندن فایل‌های صوتی...</string>
+    <string name="preparing_media_scan">در حال آماده‌سازی اسکن...</string>
+
+    <!-- Sleep Timer Dialog -->
+    <string name="timer_active">تایمر فعال است</string>
+    <string name="stops_playback_in">توقف پخش در %1$s</string>
+    <string name="select_timer_duration">زمان مورد نظر برای توقف خودکار پخش را انتخاب کنید:</string>
+    <string name="timer_preset_off">خاموش</string>
+    <string name="timer_preset_30m">۳۰ دقیقه</string>
+    <string name="timer_preset_1h">۱ ساعت</string>
+    <string name="timer_preset_1h30m">۱ ساعت و ۳۰ دقیقه</string>
+    <string name="timer_preset_2h">۲ ساعت</string>
+    <string name="timer_preset_custom">سفارشی...</string>
+    <string name="custom_time_format">سفارشی (%1$s)</string>
+    <string name="set_custom_time">تنظیم تایمر سفارشی</string>
+    <string name="hours">ساعت</string>
+    <string name="minutes">دقیقه</string>
+    <string name="set_timer">تنظیم تایمر</string>
+
+    <!-- Equalizer -->
+    <string name="equalizer_title">اکولایزر</string>
+    <string name="presets">پروفایل‌های صوتی</string>
+    <string name="frequency_bands">باندهای فرکانس</string>
+    <string name="audio_effects">افکت‌های صوتی</string>
+    <string name="bass_boost">تقویت بیس</string>
+    <string name="virtualizer">صدای سه بعدی</string>
+
+    <!-- Search & Empty States -->
+    <string name="search_placeholder">جستجوی آهنگ، خواننده، آلبوم...</string>
+    <string name="no_results_found">نتیجه‌ای یافت نشد</string>
+    <string name="start_search_prompt">برای شروع، کلمه‌ای را جستجو کنید.</string>
+    <string name="start_search_desc">لیست آهنگ‌ها، خواننده‌ها و آلبوم‌ها اینجا نشان داده خواهد شد.</string>
+    <string name="no_songs_found">هیچ آهنگی یافت نشد</string>
+    <string name="no_albums_found">هیچ آلبومی یافت نشد</string>
+    <string name="no_artists_found">هیچ خواننده‌ای یافت نشد</string>
+    <string name="no_folders_found">هیچ پوشه‌ای یافت نشد</string>
+    <string name="no_genres_found">هیچ سبکی یافت نشد</string>
+    <string name="no_favorites_found">لیست علاقه‌مندی‌ها خالی است</string>
+    <string name="no_playlists_found">هیچ لیست پخش سفارشی یافت نشد.\nابتدا یکی بسازید!</string>
+
+    <!-- Permissions Screen -->
+    <string name="permissions_title">اعلان‌ها و دسترسی‌ها</string>
+    <string name="all_permissions_granted">تمام مجوزهای لازم صادر شده‌اند!</string>
+    <string name="grant_permissions_desc">برای اجرای روان برنامه دسترسی‌های لازم را فعال کنید.</string>
+    <string name="open_settings">باز کردن تنظیمات</string>
+    <string name="grant">اعطا</string>
+    <string name="granted">فعال</string>
+
+    <!-- Seconds/Speed Formatting -->
     <string name="seconds_format">%1$d ثانیه</string>
     <string name="speed_format">%1$.2fx</string>
 </resources>
