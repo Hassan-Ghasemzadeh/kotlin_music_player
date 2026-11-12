@@ -18,10 +18,12 @@ fun SettingsRoute(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isGlassmorphicEnabled by viewModel.isGlassmorphicEnabled.collectAsStateWithLifecycle()
+    val isAlbumArtworkEnabled by viewModel.isAlbumArtworkEnabled.collectAsStateWithLifecycle()
 
     SettingsScreen(
         uiState = uiState,
         isGlassmorphicEnabled = isGlassmorphicEnabled,
+        isAlbumArtworkEnabled = isAlbumArtworkEnabled,
         onBackClick = onBackClick,
         onLanguageClick = { viewModel.showLanguageDialog(true) },
         onLanguageSelected = viewModel::onLanguageSelected,
