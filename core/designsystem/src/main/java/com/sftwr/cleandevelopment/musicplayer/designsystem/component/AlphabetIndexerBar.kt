@@ -62,11 +62,14 @@ fun AlphabetIndexerBar(
         }
     }
 
+    val isRtl = androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl
+    val bubbleXOffset = if (isRtl) 60.dp else (-60).dp
+
     Box(
         modifier = modifier
             .fillMaxHeight()
             .width(32.dp)
-            .padding(vertical = 6.dp), // Reduced vertical padding to give more height to the indexer bar
+            .padding(vertical = 6.dp),
         contentAlignment = Alignment.CenterEnd
     ) {
         // Floating bubble indicator showing the currently selected letter popup
@@ -76,7 +79,7 @@ fun AlphabetIndexerBar(
             exit = fadeOut(),
             modifier = Modifier
                 .align(Alignment.CenterStart)
-                .offset(x = (-60).dp)
+                .offset(x = bubbleXOffset)
         ) {
             Box(
                 modifier = Modifier
