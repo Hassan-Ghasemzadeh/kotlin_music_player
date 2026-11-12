@@ -37,7 +37,7 @@ import kotlinx.coroutines.launch
 @EntryPoint
 @InstallIn(SingletonComponent::class)
 interface MusicPlaybackServiceEntryPoint {
-    fun exoPlayer(): ExoPlayer
+    fun player(): Player
     fun getSettingsUseCase(): GetSettingsUseCase
 }
 
@@ -59,7 +59,7 @@ class MusicPlaybackService : MediaSessionService() {
             applicationContext,
             MusicPlaybackServiceEntryPoint::class.java
         )
-        val player = entryPoint.exoPlayer()
+        val player = entryPoint.player()
         val settingsUseCase = entryPoint.getSettingsUseCase()
 
         var isAlbumArtworkEnabled = true

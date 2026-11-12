@@ -145,10 +145,10 @@ fun PlayerScreen(
         }
     }
 
-    // Bind and control the visualizer lifecycle based on playback state and audio recording permissions
-    LaunchedEffect(isPlaying, hasAudioPermission) {
+    // Bind and control the visualizer lifecycle based on playback state, active song, and audio recording permissions
+    LaunchedEffect(isPlaying, hasAudioPermission, songState?.id) {
         if (isPlaying && hasAudioPermission) {
-            delay(350.milliseconds)
+            delay(200.milliseconds)
             val sessionId = viewModel.audioSessionId
             Log.d("VisualizerDebug", "Active Session ID: $sessionId")
 

@@ -90,6 +90,19 @@ class PlayerViewModel @Inject constructor(
     init {
         loadDeviceSongs()
         startPositionUpdater()
+        observeCurrentSong()
+    }
+
+    private fun observeCurrentSong() {
+        viewModelScope.launch {
+            currentSong.collect { song ->
+                if (song != null) {
+                    _currentPosition.value = runCatching { exoPlayer.currentPosition }.getOrDefault(0L).coerceAtLeast(0L)
+                } else {
+                    _currentPosition.value = 0L
+                }
+            }
+        }
     }
 
     /**
@@ -98,10 +111,10 @@ class PlayerViewModel @Inject constructor(
     private fun startPositionUpdater() {
         viewModelScope.launch {
             while (true) {
-                if (exoPlayer.isPlaying) {
-                    _currentPosition.value = exoPlayer.currentPosition
+                if (isPlaying.value) {
+                    _currentPosition.value = runCatching { exoPlayer.currentPosition }.getOrDefault(0L).coerceAtLeast(0L)
                 }
-                delay(500L.milliseconds)
+                delay(200L.milliseconds)
             }
         }
     }
