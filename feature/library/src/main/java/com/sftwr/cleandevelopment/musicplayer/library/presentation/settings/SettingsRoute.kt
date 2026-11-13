@@ -13,6 +13,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 fun SettingsRoute(
     onBackClick: () -> Unit,
     onNavigateToPermissions: () -> Unit,
+    onNavigateToVisualizerSelection: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
@@ -21,6 +22,7 @@ fun SettingsRoute(
     val isGlassmorphicEnabled by viewModel.isGlassmorphicEnabled.collectAsStateWithLifecycle()
     val isAlbumArtworkEnabled by viewModel.isAlbumArtworkEnabled.collectAsStateWithLifecycle()
     val crossfadeDuration by viewModel.crossfadeDuration.collectAsStateWithLifecycle()
+    val replayGainMode by viewModel.replayGainMode.collectAsStateWithLifecycle()
 
     SettingsScreen(
         uiState = uiState,
@@ -28,6 +30,7 @@ fun SettingsRoute(
         isGlassmorphicEnabled = isGlassmorphicEnabled,
         isAlbumArtworkEnabled = isAlbumArtworkEnabled,
         crossfadeDuration = crossfadeDuration,
+        replayGainMode = replayGainMode,
         onBackClick = onBackClick,
         onLanguageClick = { viewModel.showLanguageDialog(true) },
         onLanguageSelected = viewModel::onLanguageSelected,
@@ -40,7 +43,7 @@ fun SettingsRoute(
         onSkipSilenceToggle = viewModel::onSkipSilenceToggle,
         onEqualizerPresetSelected = viewModel::onEqualizerPresetSelected,
         onReplayGainModeSelected = viewModel::onReplayGainModeSelected,
-        onVisualizerClick = { viewModel.showVisualizerDialog(true) },
+        onVisualizerClick = onNavigateToVisualizerSelection,
         onVisualizerDialogDismiss = { viewModel.showVisualizerDialog(false) },
         onCircularVisualizerSelected = viewModel::onCircularVisualizerSelected,
         onExcludedFoldersClick = { viewModel.showExcludedFoldersDialog(true) },
