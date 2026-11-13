@@ -17,6 +17,7 @@ import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import com.sftwr.cleandevelopment.musicplayer.domain.model.ReplayGainMode
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.MusicRepository
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.PlaylistRepository
@@ -76,6 +77,19 @@ class PlayerManager @Inject constructor(
     private var crossfadeJob: Job? = null
     private var crossfadeRampJob: Job? = null
 
+    private var currentReplayGainMode = ReplayGainMode.OFF
+
+    private val replayGainMultiplier: Float
+        get() = when (currentReplayGainMode) {
+            ReplayGainMode.OFF -> 1.0f
+            ReplayGainMode.TRACK -> 0.90f
+            ReplayGainMode.ALBUM -> 0.85f
+        }
+
+    private fun setPlayerVolume(player: ExoPlayer, volume: Float) {
+        player.volume = (volume * replayGainMultiplier).coerceIn(0f, 1f)
+    }
+
     private val audioFocusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
         runOnMainThread {
             when (focusChange) {
@@ -87,12 +101,12 @@ class PlayerManager @Inject constructor(
                     }
                 }
                 AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                    currentPlayer.volume = 0.2f
-                    if (isCrossfading) nextPlayer.volume = 0.2f
+                    setPlayerVolume(currentPlayer, 0.2f)
+                    if (isCrossfading) setPlayerVolume(nextPlayer, 0.2f)
                 }
                 AudioManager.AUDIOFOCUS_GAIN -> {
                     if (!isCrossfading) {
-                        currentPlayer.volume = 1.0f
+                        setPlayerVolume(currentPlayer, 1.0f)
                     }
                 }
             }
@@ -242,6 +256,11 @@ class PlayerManager @Inject constructor(
                     playerB.playbackParameters = params
                     playerA.skipSilenceEnabled = settings.skipSilenceEnabled
                     playerB.skipSilenceEnabled = settings.skipSilenceEnabled
+                    currentReplayGainMode = settings.replayGainMode
+                    setPlayerVolume(currentPlayer, if (isPlaying.value) 1.0f else currentPlayer.volume)
+                    if (isCrossfading) {
+                        setPlayerVolume(nextPlayer, 1.0f)
+                    }
 
                     val changed = crossfadeDurationSeconds != settings.crossfadeDurationSeconds
                     crossfadeDurationSeconds = settings.crossfadeDurationSeconds
@@ -264,8 +283,8 @@ class PlayerManager @Inject constructor(
                     crossfadeJob?.cancel()
                     if (!isCrossfading) {
                         runOnMainThread {
-                            currentPlayer.volume = 1.0f
-                            nextPlayer.volume = 1.0f
+                            setPlayerVolume(currentPlayer, 1.0f)
+                            setPlayerVolume(nextPlayer, 1.0f)
                         }
                     }
                 }
@@ -359,14 +378,14 @@ class PlayerManager @Inject constructor(
             runOnMainThread {
                 nextPlayer.pause()
                 nextPlayer.clearMediaItems()
-                nextPlayer.volume = 1.0f
-                currentPlayer.volume = 1.0f
+                setPlayerVolume(nextPlayer, 1.0f)
+                setPlayerVolume(currentPlayer, 1.0f)
                 updateIsPlayingState()
             }
         } else {
             runOnMainThread {
-                currentPlayer.volume = 1.0f
-                nextPlayer.volume = 1.0f
+                setPlayerVolume(currentPlayer, 1.0f)
+                setPlayerVolume(nextPlayer, 1.0f)
                 updateIsPlayingState()
             }
         }
@@ -429,7 +448,7 @@ class PlayerManager @Inject constructor(
 
         runOnMainThread {
             requestAudioFocus()
-            nextPlayer.volume = 0.0f
+            setPlayerVolume(nextPlayer, 0.0f)
             nextPlayer.setMediaItems(mediaItems, nextIndex, 0L)
             nextPlayer.prepare()
             nextPlayer.play()
@@ -458,8 +477,8 @@ class PlayerManager @Inject constructor(
                     val progress = (elapsed.toFloat() / fadeDurationMs.toFloat()).coerceIn(0f, 1f)
 
                     runOnMainThread {
-                        fadingOutPlayer.volume = (1.0f - progress).coerceIn(0f, 1f)
-                        currentPlayer.volume = progress.coerceIn(0f, 1f)
+                        setPlayerVolume(fadingOutPlayer, 1.0f - progress)
+                        setPlayerVolume(currentPlayer, progress)
                         updateIsPlayingState()
                     }
 
@@ -477,12 +496,12 @@ class PlayerManager @Inject constructor(
     }
 
     private fun completeCrossfadeTransition(fadingOutPlayer: ExoPlayer) {
-        fadingOutPlayer.volume = 0.0f
+        setPlayerVolume(fadingOutPlayer, 0.0f)
         fadingOutPlayer.pause()
         fadingOutPlayer.clearMediaItems()
-        fadingOutPlayer.volume = 1.0f
+        setPlayerVolume(fadingOutPlayer, 1.0f)
 
-        currentPlayer.volume = 1.0f
+        setPlayerVolume(currentPlayer, 1.0f)
         isCrossfading = false
 
         updateIsPlayingState()
@@ -595,10 +614,10 @@ class PlayerManager @Inject constructor(
             equalizerAudioFxManager.releaseEffects()
             playerA.stop()
             playerA.clearMediaItems()
-            playerA.volume = 1.0f
+            setPlayerVolume(playerA, 1.0f)
             playerB.stop()
             playerB.clearMediaItems()
-            playerB.volume = 1.0f
+            setPlayerVolume(playerB, 1.0f)
             _currentSong.value = null
             _isPlaying.value = false
             activeQueue = emptyList()
