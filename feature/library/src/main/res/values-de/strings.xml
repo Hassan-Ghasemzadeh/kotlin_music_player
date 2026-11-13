@@ -97,6 +97,7 @@
     <string name="excluded_folders">Ausgeschlossene Ordner</string>
     <string name="excluded_folders_desc">Ordner verwalten, die beim Medien-Scan ignoriert werden</string>
     <string name="add_excluded_folder">Ordner ausschließen</string>
+    <string name="browse_and_add_folder">Ordner durchsuchen &amp; hinzufügen</string>
     <string name="enter_folder_path">Ordnerpfad eingeben (z. B. /sdcard/WhatsApp)</string>
     <string name="no_excluded_folders">Keine Ordner ausgeschlossen</string>
     <string name="min_track_duration">Mindestspurdauer</string>
