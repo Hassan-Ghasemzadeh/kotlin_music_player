@@ -210,14 +210,12 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun showScanMediaDialog(show: Boolean) {
+        _uiState.update { it.copy(showScanMediaDialog = show) }
+    }
+
     fun onRescanMedia() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true) }
-            runCatching {
-                scanMediaUseCase()
-            }
-            _uiState.update { it.copy(isLoading = false, userMessage = "Rescan started") }
-        }
+        showScanMediaDialog(true)
     }
 
     fun onLockscreenControlsToggle(enabled: Boolean) {
