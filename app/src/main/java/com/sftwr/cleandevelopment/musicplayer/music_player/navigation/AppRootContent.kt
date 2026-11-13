@@ -22,7 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember 
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -45,8 +45,6 @@ import com.sftwr.cleandevelopment.musicplayer.designsystem.component.BottomPlaye
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalAlbumArtworkEnabled
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalGlassmorphicEnabled
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingsDialog
-import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SlantedLeftEdgeShape
-import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SlantedRightEdgeShape
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SlantedNavigationDrawerContent
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
@@ -67,7 +65,7 @@ import java.util.Locale
  * and dynamically displaying the persistent bottom mini-player bar and slanted drawer.
  */
 @RequiresApi(Build.VERSION_CODES.S)
-@OptIn(InternalSerializationApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppRootContent(
     navController: NavHostController,
