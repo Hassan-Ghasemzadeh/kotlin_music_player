@@ -15,6 +15,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.artists.artis
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.edit.editTagScreenGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.permissions.permissionsGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.settings.settingsGraph
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.visualizer.visualizerSelectionGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.favorites.favoritesGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.folders.folderDetailGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.folders.foldersGraph
@@ -321,6 +322,16 @@ fun AppNavGraph(
             },
             onNavigateToPermissions = {
                 navController.navigate(Screen.Permissions)
+            },
+            onNavigateToVisualizerSelection = {
+                navController.navigate(Screen.VisualizerSelection)
+            }
+        )
+
+        // Visualizer selection feature navigation graph
+        visualizerSelectionGraph(
+            onBackClick = {
+                navController.popBackStack()
             }
         )
     }

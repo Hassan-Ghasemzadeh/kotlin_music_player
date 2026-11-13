@@ -107,7 +107,9 @@ fun AppRootContent(
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
 
-        val showBottomBar = currentRoute?.contains("Player") == false && currentRoute?.contains("Settings") == false
+        val showBottomBar = currentRoute?.contains("Player") == false &&
+                currentRoute?.contains("Settings") == false &&
+                currentRoute?.contains("Visualizer") == false
 
         val artUri by produceState<Bitmap?>(initialValue = null, key1 = currentSong?.uri) {
             val songUri = currentSong?.uri
