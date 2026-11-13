@@ -5,6 +5,8 @@ import com.sftwr.cleandevelopment.musicplayer.domain.model.AppSettings
 import com.sftwr.cleandevelopment.musicplayer.domain.model.ReplayGainMode
 import kotlinx.coroutines.flow.Flow
 
+import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerPreset
+
 /**
  * Repository interface for persisting and observing app settings and preferences.
  */
@@ -23,6 +25,7 @@ interface SettingsRepository {
     suspend fun updatePlaybackPitch(pitch: Float)
     suspend fun updateCrossfadeDuration(seconds: Int)
     suspend fun updateSkipSilence(enabled: Boolean)
+    suspend fun updateDefaultEqualizerPreset(preset: EqualizerPreset)
     suspend fun updateDefaultEqualizerPreset(preset: String)
     suspend fun updateCircularVisualizerType(typeKey: String)
     suspend fun updateReplayGainMode(mode: ReplayGainMode)
