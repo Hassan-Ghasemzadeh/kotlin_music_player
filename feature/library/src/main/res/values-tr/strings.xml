@@ -97,6 +97,7 @@
     <string name="excluded_folders">Hariç Tutulan Klasörler</string>
     <string name="excluded_folders_desc">Müzik taramasından gizlenen klasörleri yönetin</string>
     <string name="add_excluded_folder">Hariç Tutulan Klasör Ekle</string>
+    <string name="browse_and_add_folder">Klasör Seç &amp; Ekle</string>
     <string name="enter_folder_path">Klasör yolunu girin (örn. /sdcard/WhatsApp)</string>
     <string name="no_excluded_folders">Hariç tutulan klasör yok</string>
     <string name="min_track_duration">Minimum Parça Süresi</string>
