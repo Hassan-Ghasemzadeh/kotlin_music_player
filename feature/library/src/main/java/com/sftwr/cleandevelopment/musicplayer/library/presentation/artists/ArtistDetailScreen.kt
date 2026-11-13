@@ -216,7 +216,7 @@ fun ArtistDetailScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                             val isAlbumArtworkEnabled = LocalAlbumArtworkEnabled.current
-                            if (isAlbumArtworkEnabled && firstAlbumArt != null) {
+                            if (isAlbumArtworkEnabled) {
                                 AsyncImage(
                                     model = firstAlbumArt,
                                     contentDescription = artistName,
@@ -360,7 +360,7 @@ fun ArtistDetailScreen(
                                                                 contentAlignment = Alignment.Center
                                                             ) {
                                                                 val isAlbumArtworkEnabled = LocalAlbumArtworkEnabled.current
-                                                                if (isAlbumArtworkEnabled && album.albumArtUri != null) {
+                                                                if (isAlbumArtworkEnabled) {
                                                                     AsyncImage(
                                                                         model = album.albumArtUri,
                                                                         contentDescription = album.title,
