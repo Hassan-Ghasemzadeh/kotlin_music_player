@@ -81,7 +81,7 @@ class EqualizerRepositoryImpl @Inject constructor(
     override suspend fun setPreset(preset: EqualizerPreset) {
         context.equalizerDataStore.edit { preferences ->
             preferences[Keys.PRESET_ID] = preset.id.toInt()
-            preferences[Keys.PRESET_NAME] = preset.name
+            preferences[Keys.PRESET_NAME] = preset.displayName
             if (preset.bandLevels.isNotEmpty()) {
                 preferences[Keys.BAND_LEVELS] = serializeBandLevels(preset.bandLevels)
             }
