@@ -22,8 +22,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.remember 
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -86,7 +85,7 @@ fun AppRootContent(
     val context = LocalContext.current
     LaunchedEffect(currentLanguage) {
         LocaleHelper.applyLanguage(context, currentLanguage)
-        val locale = Locale(currentLanguage.code)
+        val locale = Locale.forLanguageTag(currentLanguage.code)
         Locale.setDefault(locale)
         val resources = context.resources
         val config = resources.configuration
@@ -107,10 +106,10 @@ fun AppRootContent(
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
 
-        val showBottomBar = currentRoute?.contains("Player") == false &&
-                currentRoute?.contains("Settings") == false &&
-                currentRoute?.contains("Visualizer") == false &&
-                currentRoute?.contains("Permissions") == false
+        val showBottomBar =
+            currentRoute?.contains("Player") == false && !currentRoute.contains("Settings") && !currentRoute.contains(
+                "Visualizer"
+            ) && !currentRoute.contains("Permissions")
 
         val artUri by produceState<Bitmap?>(initialValue = null, key1 = currentSong?.uri) {
             val songUri = currentSong?.uri
@@ -126,7 +125,10 @@ fun AppRootContent(
 
         val drawerProgress by animateFloatAsState(
             targetValue = if (isDrawerOpen) 1f else 0f,
-            animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy, stiffness = Spring.StiffnessLow)
+            animationSpec = spring(
+                dampingRatio = Spring.DampingRatioMediumBouncy,
+                stiffness = Spring.StiffnessLow
+            )
         )
 
         var showEqualizerDialog by remember { mutableStateOf(false) }
@@ -165,12 +167,14 @@ fun AppRootContent(
                 modifier = Modifier
                     .fillMaxSize()
                     .graphicsLayer {
-                        translationX = if (isRtl) -drawerProgress * maxTranslationX else drawerProgress * maxTranslationX
+                        translationX =
+                            if (isRtl) -drawerProgress * maxTranslationX else drawerProgress * maxTranslationX
                         translationY = drawerProgress * maxTranslationY
                         scaleX = 1f - (drawerProgress * 0.12f)
                         scaleY = 1f - (drawerProgress * 0.20f)
                         rotationZ = if (isRtl) drawerProgress * 5f else drawerProgress * -5f
-                        transformOrigin = if (isRtl) TransformOrigin(1f, 0.15f) else TransformOrigin(0f, 0.15f)
+                        transformOrigin =
+                            if (isRtl) TransformOrigin(1f, 0.15f) else TransformOrigin(0f, 0.15f)
                         cameraDistance = 8f * density.density
                     }
                     .clip(
