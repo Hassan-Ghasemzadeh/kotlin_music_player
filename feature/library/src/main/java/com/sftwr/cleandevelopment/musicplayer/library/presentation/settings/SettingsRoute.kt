@@ -82,4 +82,10 @@ fun SettingsRoute(
         onNavigateToPermissions = onNavigateToPermissions,
         modifier = modifier
     )
+
+    if (uiState.showScanMediaDialog) {
+        com.sftwr.cleandevelopment.musicplayer.library.presentation.scan.ScanMediaDialog(
+            onDismiss = { viewModel.showScanMediaDialog(false) }
+        )
+    }
 }
