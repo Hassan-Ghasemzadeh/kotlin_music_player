@@ -45,6 +45,7 @@ class SettingsRepositoryImpl @Inject constructor(
         val SKIP_SILENCE = booleanPreferencesKey("skip_silence")
         val DEFAULT_EQUALIZER_PRESET = stringPreferencesKey("default_eq_preset")
         val DEFAULT_EQ_PRESET = DEFAULT_EQUALIZER_PRESET
+        val SELECTED_VISUALIZER = stringPreferencesKey("selected_visualizer")
         val CIRCULAR_VISUALIZER_TYPE = stringPreferencesKey("circular_visualizer_type")
         val REPLAY_GAIN_MODE = stringPreferencesKey("replay_gain_mode")
 
@@ -77,6 +78,9 @@ class SettingsRepositoryImpl @Inject constructor(
                     ?: 0,
                 skipSilenceEnabled = preferences[PreferencesKeys.SKIP_SILENCE] ?: false,
                 defaultEqualizerPreset = EqualizerPreset.fromName(rawPreset),
+                selectedVisualizer = preferences[PreferencesKeys.SELECTED_VISUALIZER]
+                    ?: preferences[PreferencesKeys.CIRCULAR_VISUALIZER_TYPE]
+                    ?: "dynamic_scale",
                 circularVisualizerType = preferences[PreferencesKeys.CIRCULAR_VISUALIZER_TYPE] ?: "NEON_FREQUENCY_BARS",
                 replayGainMode = ReplayGainMode.fromKey(preferences[PreferencesKeys.REPLAY_GAIN_MODE] ?: "off"),
                 excludedFolders = preferences[PreferencesKeys.EXCLUDED_FOLDERS] ?: emptySet(),
@@ -150,6 +154,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun updateCircularVisualizerType(typeKey: String) {
         context.appSettingsDataStore.edit { preferences ->
+            preferences[PreferencesKeys.SELECTED_VISUALIZER] = typeKey
             preferences[PreferencesKeys.CIRCULAR_VISUALIZER_TYPE] = typeKey
         }
     }
