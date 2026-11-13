@@ -1,8 +1,13 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.settings
 
+import android.content.Intent
+import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
@@ -17,6 +22,23 @@ fun SettingsRoute(
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
+    val context = LocalContext.current
+    val folderPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocumentTree()
+    ) { uri: Uri? ->
+        uri?.let {
+            try {
+                context.contentResolver.takePersistableUriPermission(
+                    it,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+            viewModel.onAddExcludedFolder(it.toString())
+        }
+    }
+
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val defaultEqualizerPreset by viewModel.defaultEqualizerPreset.collectAsStateWithLifecycle()
     val isGlassmorphicEnabled by viewModel.isGlassmorphicEnabled.collectAsStateWithLifecycle()
@@ -48,7 +70,7 @@ fun SettingsRoute(
         onCircularVisualizerSelected = viewModel::onCircularVisualizerSelected,
         onExcludedFoldersClick = { viewModel.showExcludedFoldersDialog(true) },
         onExcludedFoldersDialogDismiss = { viewModel.showExcludedFoldersDialog(false) },
-        onAddExcludedFolder = viewModel::onAddExcludedFolder,
+        onBrowseFolderClick = { folderPickerLauncher.launch(null) },
         onRemoveExcludedFolder = viewModel::onRemoveExcludedFolder,
         onMinTrackDurationChange = viewModel::onMinTrackDurationChange,
         onRescanMediaClick = viewModel::onRescanMedia,
