@@ -81,6 +81,14 @@ class SettingsViewModel @Inject constructor(
             initialValue = 0
         )
 
+    val replayGainMode: StateFlow<ReplayGainMode> = getSettingsUseCase()
+        .map { it.replayGainMode }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = ReplayGainMode.OFF
+        )
+
     init {
         viewModelScope.launch {
             getSettingsUseCase().collect { settings ->
