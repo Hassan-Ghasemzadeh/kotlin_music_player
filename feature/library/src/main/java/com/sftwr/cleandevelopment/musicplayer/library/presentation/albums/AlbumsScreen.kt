@@ -210,12 +210,14 @@ fun AlbumItemCard(
             contentAlignment = Alignment.Center
         ) {
             val isAlbumArtworkEnabled = LocalAlbumArtworkEnabled.current
-            if (isAlbumArtworkEnabled && album.albumArtUri != null) {
+            if (isAlbumArtworkEnabled) {
                 AsyncImage(
                     model = album.albumArtUri,
                     contentDescription = album.title,
                     modifier = Modifier.fillMaxSize(),
-                    contentScale = ContentScale.Crop
+                    contentScale = ContentScale.Crop,
+                    error = painterResource(id = com.sftwr.cleandevelopment.musicplayer.designsystem.R.drawable.ic_default_album_art),
+                    placeholder = painterResource(id = com.sftwr.cleandevelopment.musicplayer.designsystem.R.drawable.ic_default_album_art)
                 )
             } else {
                 Icon(
