@@ -17,12 +17,14 @@ fun SettingsRoute(
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val defaultEqualizerPreset by viewModel.defaultEqualizerPreset.collectAsStateWithLifecycle()
     val isGlassmorphicEnabled by viewModel.isGlassmorphicEnabled.collectAsStateWithLifecycle()
     val isAlbumArtworkEnabled by viewModel.isAlbumArtworkEnabled.collectAsStateWithLifecycle()
     val crossfadeDuration by viewModel.crossfadeDuration.collectAsStateWithLifecycle()
 
     SettingsScreen(
         uiState = uiState,
+        defaultEqualizerPreset = defaultEqualizerPreset,
         isGlassmorphicEnabled = isGlassmorphicEnabled,
         isAlbumArtworkEnabled = isAlbumArtworkEnabled,
         crossfadeDuration = crossfadeDuration,
