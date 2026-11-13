@@ -15,6 +15,7 @@ import com.sftwr.cleandevelopment.musicplayer.data.model.ArtistQueryResult
 import com.sftwr.cleandevelopment.musicplayer.data.model.SongEntity
 import com.sftwr.cleandevelopment.musicplayer.data.source.local.SongDao
 import com.sftwr.cleandevelopment.musicplayer.data.util.AudioTagEditor
+import com.sftwr.cleandevelopment.musicplayer.data.util.FolderFilterHelper
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Artist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Folder
@@ -24,12 +25,15 @@ import com.sftwr.cleandevelopment.musicplayer.domain.model.GenreItem
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.DeleteResult
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.MusicRepository
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.SettingsRepository
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.UpdateTagResult
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -39,7 +43,8 @@ import kotlin.coroutines.resume
 class MusicRepositoryImpl @Inject constructor(
     @param:ApplicationContext private val context: Context,
     private val audioTagEditor: AudioTagEditor,
-    private val songDao: SongDao // Inject local database(cache)
+    private val songDao: SongDao, // Inject local database(cache)
+    private val settingsRepository: SettingsRepository
 ) : MusicRepository {
 
     /**
@@ -232,7 +237,11 @@ class MusicRepositoryImpl @Inject constructor(
     /**
      * Scans MediaStore directly from device storage and populates SongEntity with metadata.
      */
-    private fun fetchSongsFromMediaStore(): List<SongEntity> {
+    private suspend fun fetchSongsFromMediaStore(): List<SongEntity> {
+        val settings = runCatching { settingsRepository.getSettings().first() }.getOrNull()
+        val excludedFolders = settings?.excludedFolders ?: emptySet()
+        val minTrackDurationMs = (settings?.minTrackDurationSeconds ?: 30) * 1000L
+
         val collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
         val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
@@ -245,7 +254,7 @@ class MusicRepositoryImpl @Inject constructor(
             null,
             sortOrder
         )?.use { cursor ->
-            songEntities.addAll(parseSongEntitiesFromCursor(cursor))
+            songEntities.addAll(parseSongEntitiesFromCursor(cursor, excludedFolders, minTrackDurationMs))
         }
         return songEntities
     }
@@ -255,6 +264,10 @@ class MusicRepositoryImpl @Inject constructor(
      */
     override suspend fun searchSongs(query: String): List<Song> = withContext(Dispatchers.IO) {
         if (query.isBlank()) return@withContext emptyList()
+
+        val settings = runCatching { settingsRepository.getSettings().first() }.getOrNull()
+        val excludedFolders = settings?.excludedFolders ?: emptySet()
+        val minTrackDurationMs = (settings?.minTrackDurationSeconds ?: 30) * 1000L
 
         val collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
         val selection =
@@ -271,7 +284,7 @@ class MusicRepositoryImpl @Inject constructor(
                 selectionArgs,
                 sortOrder
             )?.use { cursor ->
-                songEntities.addAll(parseSongEntitiesFromCursor(cursor))
+                songEntities.addAll(parseSongEntitiesFromCursor(cursor, excludedFolders, minTrackDurationMs))
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -291,7 +304,11 @@ class MusicRepositoryImpl @Inject constructor(
         MediaStore.Audio.Media.DATE_ADDED
     )
 
-    private fun parseSongEntitiesFromCursor(cursor: Cursor): List<SongEntity> {
+    private fun parseSongEntitiesFromCursor(
+        cursor: Cursor,
+        excludedFolders: Set<String>,
+        minTrackDurationMs: Long
+    ): List<SongEntity> {
         val songEntities = mutableListOf<SongEntity>()
         val idCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media._ID)
         val titleCol = cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.TITLE)
@@ -312,6 +329,18 @@ class MusicRepositoryImpl @Inject constructor(
             val duration = cursor.getLong(durationCol)
             val size = cursor.getLong(sizeCol)
             val path = cursor.getString(dataCol) ?: ""
+
+            val parentFolder = if (path.isNotEmpty()) {
+                File(path).parent ?: path
+            } else "Storage"
+
+            val isExcluded = FolderFilterHelper.isPathExcluded(path, excludedFolders, context)
+            val isTooShort = duration < minTrackDurationMs
+
+            if (isExcluded || isTooShort) {
+                continue
+            }
+
             val rawDateAdded = if (dateAddedCol != -1) cursor.getLong(dateAddedCol) else 0L
             val dateAdded = if (rawDateAdded > 0) rawDateAdded * 1000L else System.currentTimeMillis()
 
