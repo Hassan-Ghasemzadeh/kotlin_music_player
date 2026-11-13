@@ -26,35 +26,27 @@ data class EqualizerBand(
  * @property name Human-readable name of the preset.
  * @property bandLevels Map of band index to gain level in millibels.
  */
-data class EqualizerPreset(
+enum class EqualizerPreset(
     val id: Short,
-    val name: String,
+    val displayName: String,
     val bandLevels: Map<Short, Short> = emptyMap()
 ) {
+    OFF(-2, "Off", emptyMap()),
+    NORMAL(0, "Normal", mapOf(0.toShort() to 0, 1.toShort() to 0, 2.toShort() to 0, 3.toShort() to 0, 4.toShort() to 0)),
+    FLAT(1, "Flat", mapOf(0.toShort() to 0, 1.toShort() to 0, 2.toShort() to 0, 3.toShort() to 0, 4.toShort() to 0)),
+    BASS_BOOSTER(2, "Bass Booster", mapOf(0.toShort() to 600, 1.toShort() to 400, 2.toShort() to 200, 3.toShort() to 0, 4.toShort() to 0)),
+    TREBLE_BOOSTER(3, "Treble Booster", mapOf(0.toShort() to 0, 1.toShort() to 0, 2.toShort() to 200, 3.toShort() to 400, 4.toShort() to 600)),
+    ROCK(4, "Rock", mapOf(0.toShort() to 500, 1.toShort() to 300, 2.toShort() to -100, 3.toShort() to 300, 4.toShort() to 500)),
+    POP(5, "Pop", mapOf(0.toShort() to -100, 1.toShort() to 200, 2.toShort() to 500, 3.toShort() to 100, 4.toShort() to -200)),
+    JAZZ(6, "Jazz", mapOf(0.toShort() to 400, 1.toShort() to 200, 2.toShort() to -200, 3.toShort() to 200, 4.toShort() to 500)),
+    CLASSICAL(7, "Classical", mapOf(0.toShort() to 500, 1.toShort() to 300, 2.toShort() to -200, 3.toShort() to 400, 4.toShort() to 400));
+
     companion object {
-        val CUSTOM_PRESET_ID: Short = -1
-        val CUSTOM_PRESET_NAME = "Custom"
+        const val CUSTOM_PRESET_ID: Short = -1
+        const val CUSTOM_PRESET_NAME = "Custom"
 
-        /**
-         * Standard 5-band audio presets for universal hardware fallback.
-         * Band order: [60Hz, 230Hz, 910Hz, 3.6kHz, 14kHz]
-         */
-        val DEFAULT_PRESETS = listOf(
-            EqualizerPreset(0, "Normal", mapOf(0.toShort() to 0, 1.toShort() to 0, 2.toShort() to 0, 3.toShort() to 0, 4.toShort() to 0)),
-            EqualizerPreset(1, "Classical", mapOf(0.toShort() to 500, 1.toShort() to 300, 2.toShort() to -200, 3.toShort() to 400, 4.toShort() to 400)),
-            EqualizerPreset(2, "Dance", mapOf(0.toShort() to 600, 1.toShort() to 0, 2.toShort() to 200, 3.toShort() to 400, 4.toShort() to 0)),
-            EqualizerPreset(3, "Flat", mapOf(0.toShort() to 0, 1.toShort() to 0, 2.toShort() to 0, 3.toShort() to 0, 4.toShort() to 0)),
-            EqualizerPreset(4, "Folk", mapOf(0.toShort() to 300, 1.toShort() to 0, 2.toShort() to 0, 3.toShort() to 200, 4.toShort() to -100)),
-            EqualizerPreset(5, "Heavy Metal", mapOf(0.toShort() to 400, 1.toShort() to 100, 2.toShort() to 900, 3.toShort() to 300, 4.toShort() to 0)),
-            EqualizerPreset(6, "Hip Hop", mapOf(0.toShort() to 500, 1.toShort() to 300, 2.toShort() to 0, 3.toShort() to 100, 4.toShort() to 300)),
-            EqualizerPreset(7, "Jazz", mapOf(0.toShort() to 400, 1.toShort() to 200, 2.toShort() to -200, 3.toShort() to 200, 4.toShort() to 500)),
-            EqualizerPreset(8, "Pop", mapOf(0.toShort() to -100, 1.toShort() to 200, 2.toShort() to 500, 3.toShort() to 100, 4.toShort() to -200)),
-            EqualizerPreset(9, "Rock", mapOf(0.toShort() to 500, 1.toShort() to 300, 2.toShort() to -100, 3.toShort() to 300, 4.toShort() to 500))
-        )
+        val DEFAULT_PRESETS: List<EqualizerPreset> = entries.filter { it != OFF }
 
-        /**
-         * Standard fallback 5 bands when hardware Equalizer instance is unavailable.
-         */
         val DEFAULT_BANDS = listOf(
             EqualizerBand(0, 60, "60Hz"),
             EqualizerBand(1, 230, "230Hz"),
@@ -62,6 +54,20 @@ data class EqualizerPreset(
             EqualizerBand(3, 3600, "3.6kHz"),
             EqualizerBand(4, 14000, "14kHz")
         )
+
+        fun fromName(name: String?): EqualizerPreset {
+            if (name.isNullOrBlank()) return NORMAL
+            val normalized = name.trim().replace(" ", "_").uppercase()
+            return entries.find {
+                it.name == normalized ||
+                it.displayName.equals(name, ignoreCase = true) ||
+                it.name.equals(name, ignoreCase = true)
+            } ?: NORMAL
+        }
+
+        fun fromId(id: Short): EqualizerPreset {
+            return entries.find { it.id == id } ?: NORMAL
+        }
     }
 }
 
