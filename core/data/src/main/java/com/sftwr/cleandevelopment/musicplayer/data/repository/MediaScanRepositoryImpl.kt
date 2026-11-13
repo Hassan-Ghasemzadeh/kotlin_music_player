@@ -8,8 +8,10 @@ import android.os.Environment
 import android.provider.MediaStore
 import com.sftwr.cleandevelopment.musicplayer.data.model.SongEntity
 import com.sftwr.cleandevelopment.musicplayer.data.source.local.SongDao
+import com.sftwr.cleandevelopment.musicplayer.data.util.FolderFilterHelper
 import com.sftwr.cleandevelopment.musicplayer.domain.model.ScanProgress
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.MediaScanRepository
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -20,6 +22,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -30,7 +33,8 @@ import javax.inject.Singleton
 @Singleton
 class MediaScanRepositoryImpl @Inject constructor(
     @param:ApplicationContext private val context: Context,
-    private val songDao: SongDao
+    private val songDao: SongDao,
+    private val settingsRepository: SettingsRepository
 ) : MediaScanRepository {
 
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -108,6 +112,10 @@ class MediaScanRepositoryImpl @Inject constructor(
         }
 
         // 2. Query MediaStore for audio files and update scanning progress dynamically
+        val settings = runCatching { settingsRepository.getSettings().first() }.getOrNull()
+        val excludedFolders = settings?.excludedFolders ?: emptySet()
+        val minTrackDurationMs = (settings?.minTrackDurationSeconds ?: 30) * 1000L
+
         val collection = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI
         val selection = "${MediaStore.Audio.Media.IS_MUSIC} != 0"
         val sortOrder = "${MediaStore.Audio.Media.TITLE} ASC"
@@ -151,14 +159,21 @@ class MediaScanRepositoryImpl @Inject constructor(
                 val duration = cursor.getLong(durationCol)
                 val size = cursor.getLong(sizeCol)
                 val path = cursor.getString(dataCol) ?: ""
-                val rawDateAdded = if (dateAddedCol != -1) cursor.getLong(dateAddedCol) else 0L
-                val dateAdded = if (rawDateAdded > 0) rawDateAdded * 1000L else System.currentTimeMillis()
 
                 val parentFolder = if (path.isNotEmpty()) {
                     File(path).parent ?: path
                 } else "Storage"
 
+                val isExcluded = FolderFilterHelper.isPathExcluded(path, excludedFolders, context)
+                val isTooShort = duration < minTrackDurationMs
+
+                if (isExcluded || isTooShort) {
+                    continue
+                }
+
                 count++
+                val rawDateAdded = if (dateAddedCol != -1) cursor.getLong(dateAddedCol) else 0L
+                val dateAdded = if (rawDateAdded > 0) rawDateAdded * 1000L else System.currentTimeMillis()
                 val (year, genre) = extractMetadataFromFile(path)
 
                 mediaStoreSongs.add(
