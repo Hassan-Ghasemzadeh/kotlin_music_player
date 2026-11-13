@@ -56,7 +56,6 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.sleeptimer.Sl
 import com.sftwr.cleandevelopment.musicplayer.model.Screen
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.InternalSerializationApi
 import java.util.Locale
 
 /**
