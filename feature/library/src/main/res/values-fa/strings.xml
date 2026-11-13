@@ -97,6 +97,7 @@
     <string name="excluded_folders">پوشه‌های نادیده‌گرفته‌شده</string>
     <string name="excluded_folders_desc">مدیریت پوشه‌های استثنا از اسکن موسیقی</string>
     <string name="add_excluded_folder">افزودن پوشه استثنا</string>
+    <string name="browse_and_add_folder">انتخاب و افزودن پوشه</string>
     <string name="enter_folder_path">مسیر پوشه را وارد کنید (مثال: /sdcard/WhatsApp)</string>
     <string name="no_excluded_folders">هیچ پوشه‌ای نادیده گرفته نشده است</string>
     <string name="min_track_duration">حداقل زمان آهنگ</string>
