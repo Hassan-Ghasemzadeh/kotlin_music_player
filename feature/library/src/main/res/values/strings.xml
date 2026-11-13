@@ -97,6 +97,7 @@
     <string name="excluded_folders">Excluded Folders</string>
     <string name="excluded_folders_desc">Manage storage folders hidden from music scan</string>
     <string name="add_excluded_folder">Add Excluded Folder</string>
+    <string name="browse_and_add_folder">Browse &amp; Add Folder</string>
     <string name="enter_folder_path">Enter folder path (e.g. /sdcard/WhatsApp)</string>
     <string name="no_excluded_folders">No folders excluded</string>
     <string name="min_track_duration">Minimum Track Duration</string>
