@@ -30,6 +30,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerPreset
+
 @OptIn(UnstableApi::class)
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -46,6 +48,14 @@ class SettingsViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+
+    val defaultEqualizerPreset: StateFlow<EqualizerPreset> = getSettingsUseCase()
+        .map { it.defaultEqualizerPreset }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = EqualizerPreset.NORMAL
+        )
 
     val isGlassmorphicEnabled: StateFlow<Boolean> = getSettingsUseCase()
         .map { it.glassmorphicStyleEnabled }
@@ -156,10 +166,14 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    fun onEqualizerPresetSelected(preset: String) {
+    fun onEqualizerPresetSelected(preset: EqualizerPreset) {
         viewModelScope.launch {
             updateAudioSettingsUseCase.setDefaultEqualizerPreset(preset)
         }
+    }
+
+    fun onEqualizerPresetSelected(preset: String) {
+        onEqualizerPresetSelected(EqualizerPreset.fromName(preset))
     }
 
     fun onReplayGainModeSelected(mode: ReplayGainMode) {
