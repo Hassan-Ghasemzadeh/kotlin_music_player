@@ -58,6 +58,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -75,17 +76,33 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.border
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.NeonBlue
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingSliderItem
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingSwitchItem
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
+import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerPreset
 import com.sftwr.cleandevelopment.musicplayer.domain.model.ReplayGainMode
 import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.CircularVisualizerType
 import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.AudioVisualizerManager
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.visualizer.VisualizerSelectorScreen
 import com.sftwr.cleandevelopment.musicplayer.home.R
 import java.util.Locale
+
+fun EqualizerPreset.getStringRes(): Int {
+    return when (this) {
+        EqualizerPreset.OFF -> R.string.eq_preset_off
+        EqualizerPreset.NORMAL -> R.string.eq_preset_normal
+        EqualizerPreset.FLAT -> R.string.eq_preset_flat
+        EqualizerPreset.BASS_BOOSTER -> R.string.eq_preset_bass_booster
+        EqualizerPreset.TREBLE_BOOSTER -> R.string.eq_preset_treble_booster
+        EqualizerPreset.ROCK -> R.string.eq_preset_rock
+        EqualizerPreset.POP -> R.string.eq_preset_pop
+        EqualizerPreset.JAZZ -> R.string.eq_preset_jazz
+        EqualizerPreset.CLASSICAL -> R.string.eq_preset_classical
+    }
+}
 
 val DarkBackgroundGradient = Brush.verticalGradient(
     colors = listOf(
@@ -99,9 +116,11 @@ val DarkBackgroundGradient = Brush.verticalGradient(
  * Modern glassmorphic Settings Screen providing categorization across Appearance,
  * Audio Effects, Library Management, Playback Controls, and System Permissions.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
     uiState: SettingsUiState,
+    defaultEqualizerPreset: EqualizerPreset = uiState.settings.defaultEqualizerPreset,
     isGlassmorphicEnabled: Boolean,
     isAlbumArtworkEnabled: Boolean,
     crossfadeDuration: Int,
@@ -115,7 +134,7 @@ fun SettingsScreen(
     onPlaybackPitchChange: (Float) -> Unit,
     onCrossfadeDurationChange: (Int) -> Unit,
     onSkipSilenceToggle: (Boolean) -> Unit,
-    onEqualizerPresetSelected: (String) -> Unit,
+    onEqualizerPresetSelected: (EqualizerPreset) -> Unit,
     onReplayGainModeSelected: (ReplayGainMode) -> Unit,
     onVisualizerClick: () -> Unit,
     onVisualizerDialogDismiss: () -> Unit,
@@ -293,20 +312,68 @@ fun SettingsScreen(
                         SettingsDivider()
 
                         // Equalizer Preset Selector
-                        SettingsChipSelectorRow(
-                            title = stringResource(R.string.default_eq_preset),
-                            options = listOf(
-                                "Flat",
-                                "Bass Booster",
-                                "Treble Booster",
-                                "Rock",
-                                "Pop",
-                                "Jazz",
-                                "Classical"
-                            ),
-                            selectedOption = settings.defaultEqualizerPreset,
-                            onOptionSelected = onEqualizerPresetSelected
-                        )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 8.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.default_eq_preset),
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+
+                            FlowRow(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                EqualizerPreset.entries.forEach { preset ->
+                                    val isSelected = preset == settings.defaultEqualizerPreset
+                                    val presetLabel = stringResource(preset.getStringRes())
+                                    val shape = RoundedCornerShape(20.dp)
+
+                                    Box(
+                                        modifier = Modifier
+                                            .clip(shape)
+                                            .background(
+                                                if (isSelected) {
+                                                    Brush.linearGradient(
+                                                        listOf(
+                                                            Color(0xFF0F0B21),
+                                                            Color(0xFF2C1454)
+                                                        )
+                                                    )
+                                                } else {
+                                                    Brush.linearGradient(
+                                                        listOf(
+                                                            Color.White.copy(alpha = 0.08f),
+                                                            Color.White.copy(alpha = 0.03f)
+                                                        )
+                                                    )
+                                                }
+                                            )
+                                            .border(
+                                                width = if (isSelected) 1.5.dp else 1.dp,
+                                                color = if (isSelected) NeonBlue else Color.White.copy(alpha = 0.15f),
+                                                shape = shape
+                                            )
+                                            .clickable { onEqualizerPresetSelected(preset) }
+                                            .padding(horizontal = 14.dp, vertical = 8.dp),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Text(
+                                            text = presetLabel,
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                color = if (isSelected) NeonBlue else Color.White.copy(alpha = 0.8f)
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                        }
 
                         SettingsDivider()
 
