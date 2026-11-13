@@ -95,17 +95,30 @@ class EqualizerAudioFxManager @Inject constructor(
      */
     private fun applyCurrentStateToHardware() {
         val state = activeState
+        val preset = EqualizerPreset.fromName(state.currentPresetName)
 
         // Apply to Equalizer
         equalizerEffect?.let { eq ->
             runCatching {
-                eq.enabled = state.isEnabled
-                if (state.isEnabled) {
+                val shouldEnable = state.isEnabled && preset != EqualizerPreset.OFF
+                eq.enabled = shouldEnable
+                if (shouldEnable) {
                     val minMb = eq.bandLevelRange?.get(0) ?: -1500
                     val maxMb = eq.bandLevelRange?.get(1) ?: 1500
 
-                    if (state.currentPresetId >= 0 && state.currentPresetId < eq.numberOfPresets) {
+                    if (preset == EqualizerPreset.NORMAL) {
+                        for (bandIdx in 0 until eq.numberOfBands) {
+                            eq.setBandLevel(bandIdx.toShort(), 0.toShort().coerceIn(minMb, maxMb))
+                        }
+                    } else if (state.currentPresetId >= 0 && state.currentPresetId < eq.numberOfPresets) {
                         runCatching { eq.usePreset(state.currentPresetId) }
+                    } else if (preset.bandLevels.isNotEmpty()) {
+                        preset.bandLevels.forEach { (bandIdx, level) ->
+                            if (bandIdx in 0 until eq.numberOfBands) {
+                                val clampedLevel = level.coerceIn(minMb, maxMb)
+                                eq.setBandLevel(bandIdx, clampedLevel)
+                            }
+                        }
                     } else {
                         state.bands.forEach { band ->
                             if (band.index in 0 until eq.numberOfBands) {
@@ -174,8 +187,7 @@ class EqualizerAudioFxManager @Inject constructor(
 
             (0 until presetCount).map { presetIdx ->
                 val shortIdx = presetIdx.toShort()
-                val name = eq.getPresetName(shortIdx) ?: "پیش‌فرض ${presetIdx + 1}"
-                EqualizerPreset(id = shortIdx, name = name)
+                EqualizerPreset.fromId(shortIdx)
             }
         }.getOrDefault(EqualizerPreset.DEFAULT_PRESETS)
     }
