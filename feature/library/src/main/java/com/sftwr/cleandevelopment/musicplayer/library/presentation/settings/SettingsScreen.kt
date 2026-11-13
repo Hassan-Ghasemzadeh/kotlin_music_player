@@ -846,7 +846,7 @@ fun SettingsActionRowItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = if (icon == Icons.Default.Album) NeonBlue else Color.White.copy(alpha = 0.8f),
+            tint = NeonBlue,
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -865,11 +865,32 @@ fun SettingsActionRowItem(
                 fontSize = 13.sp
             )
         }
-        Button(
-            onClick = onClick,
-            colors = ButtonDefaults.buttonColors(containerColor = NeonBlue)
+        Box(
+            modifier = Modifier
+                .clip(RoundedCornerShape(14.dp))
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFF0F0B21),
+                            Color(0xFF2C1454)
+                        )
+                    )
+                )
+                .border(
+                    width = 1.5.dp,
+                    color = NeonBlue,
+                    shape = RoundedCornerShape(14.dp)
+                )
+                .clickable(onClick = onClick)
+                .padding(horizontal = 14.dp, vertical = 8.dp),
+            contentAlignment = Alignment.Center
         ) {
-            Text(text = actionText, color = Color(0xFF0F0B21), fontWeight = FontWeight.Bold)
+            Text(
+                text = actionText,
+                color = NeonBlue,
+                fontWeight = FontWeight.Bold,
+                fontSize = 13.sp
+            )
         }
     }
 }
