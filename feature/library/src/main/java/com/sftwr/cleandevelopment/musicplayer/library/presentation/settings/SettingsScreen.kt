@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -30,6 +31,7 @@ import androidx.compose.material.icons.filled.AudioFile
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.FolderOff
+import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Headset
 import androidx.compose.material.icons.filled.Language
@@ -74,9 +76,11 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.border
+import com.sftwr.cleandevelopment.musicplayer.data.util.FolderFilterHelper
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.NeonBlue
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingSliderItem
@@ -143,7 +147,7 @@ fun SettingsScreen(
     onCircularVisualizerSelected: (CircularVisualizerType) -> Unit,
     onExcludedFoldersClick: () -> Unit,
     onExcludedFoldersDialogDismiss: () -> Unit,
-    onAddExcludedFolder: (String) -> Unit,
+    onBrowseFolderClick: () -> Unit,
     onRemoveExcludedFolder: (String) -> Unit,
     onMinTrackDurationChange: (Int) -> Unit,
     onRescanMediaClick: () -> Unit,
@@ -431,18 +435,18 @@ fun SettingsScreen(
 
                         SettingsDivider()
 
-                        // Minimum Duration Filter
-                        SettingsSliderRowItem(
+                        // Minimum Track Duration Slider
+                        SettingSliderItem(
                             title = stringResource(R.string.min_track_duration),
-                            valueText = stringResource(
-                                R.string.seconds_format,
-                                settings.minTrackDurationSeconds
-                            ),
-                            icon = Icons.Default.AudioFile,
                             value = settings.minTrackDurationSeconds.toFloat(),
                             valueRange = 0f..120f,
                             steps = 24,
-                            onValueChange = { onMinTrackDurationChange(it.toInt()) }
+                            valueTextFormatter = { currentVal ->
+                                String.format(Locale.US, "%d sec", currentVal.toInt())
+                            },
+                            icon = Icons.Default.AudioFile,
+                            onValueChange = {},
+                            onValueChangeFinished = { onMinTrackDurationChange(it.toInt()) }
                         )
 
                         SettingsDivider()
@@ -554,7 +558,7 @@ fun SettingsScreen(
     if (uiState.showExcludedFoldersDialog) {
         ExcludedFoldersDialog(
             excludedFolders = settings.excludedFolders,
-            onAddFolder = onAddExcludedFolder,
+            onBrowseFolderClick = onBrowseFolderClick,
             onRemoveFolder = onRemoveExcludedFolder,
             onDismiss = onExcludedFoldersDialogDismiss
         )
@@ -627,7 +631,7 @@ fun SettingsRowItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = if (icon == Icons.Default.Album) NeonBlue else Color.White.copy(alpha = 0.8f),
+            tint = if (icon == Icons.Default.Album || icon == Icons.Default.FolderOff || icon == Icons.Default.AudioFile) NeonBlue else Color.White.copy(alpha = 0.8f),
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -667,7 +671,7 @@ fun SettingsSwitchRowItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = if (icon == Icons.Default.Album) NeonBlue else Color.White.copy(alpha = 0.8f),
+            tint = if (icon == Icons.Default.Album || icon == Icons.Default.FolderOff || icon == Icons.Default.AudioFile) NeonBlue else Color.White.copy(alpha = 0.8f),
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -951,12 +955,10 @@ fun LanguageSelectionDialog(
 @Composable
 fun ExcludedFoldersDialog(
     excludedFolders: Set<String>,
-    onAddFolder: (String) -> Unit,
+    onBrowseFolderClick: () -> Unit,
     onRemoveFolder: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
-    var newFolderPath by remember { mutableStateOf("") }
-
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Color(0xFF1B1238),
@@ -972,69 +974,88 @@ fun ExcludedFoldersDialog(
             }
         },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier.fillMaxWidth()
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Button(
+                    onClick = onBrowseFolderClick,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(containerColor = NeonBlue),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    OutlinedTextField(
-                        value = newFolderPath,
-                        onValueChange = { newFolderPath = it },
-                        placeholder = {
-                            Text(
-                                stringResource(R.string.enter_folder_path),
-                                color = Color.Gray,
-                                fontSize = 12.sp
-                            )
-                        },
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White,
-                            focusedBorderColor = NeonBlue,
-                            unfocusedBorderColor = Color.White.copy(alpha = 0.3f)
-                        ),
-                        modifier = Modifier.weight(1f)
+                    Icon(
+                        imageVector = Icons.Default.FolderOpen,
+                        contentDescription = null,
+                        tint = Color(0xFF0F0B21)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
-                    IconButton(
-                        onClick = {
-                            if (newFolderPath.isNotBlank()) {
-                                onAddFolder(newFolderPath)
-                                newFolderPath = ""
-                            }
-                        },
-                        modifier = Modifier
-                            .clip(CircleShape)
-                            .background(NeonBlue)
-                    ) {
-                        Icon(Icons.Default.Add, contentDescription = null, tint = Color(0xFF0F0B21))
-                    }
+                    Text(
+                        text = stringResource(R.string.browse_and_add_folder),
+                        color = Color(0xFF0F0B21),
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 15.sp
+                    )
                 }
 
+                Spacer(modifier = Modifier.height(4.dp))
+
                 if (excludedFolders.isEmpty()) {
-                    Text(
-                        text = stringResource(R.string.no_excluded_folders),
-                        color = Color.White.copy(alpha = 0.5f),
-                        fontSize = 14.sp
-                    )
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = stringResource(R.string.no_excluded_folders),
+                            color = Color.White.copy(alpha = 0.5f),
+                            fontSize = 14.sp
+                        )
+                    }
                 } else {
-                    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 240.dp)
+                    ) {
                         excludedFolders.forEach { folderPath ->
+                            val displayName = remember(folderPath) {
+                                FolderFilterHelper.formatFolderPath(folderPath)
+                            }
                             Row(
                                 modifier = Modifier
                                     .fillMaxWidth()
-                                    .clip(RoundedCornerShape(8.dp))
+                                    .clip(RoundedCornerShape(12.dp))
                                     .background(Color.White.copy(alpha = 0.08f))
-                                    .padding(horizontal = 10.dp, vertical = 6.dp),
+                                    .padding(horizontal = 12.dp, vertical = 8.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
-                                Text(
-                                    text = folderPath,
-                                    color = Color.White,
-                                    fontSize = 13.sp,
-                                    modifier = Modifier.weight(1f)
-                                )
+                                Column(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(end = 8.dp)
+                                ) {
+                                    Text(
+                                        text = displayName,
+                                        color = Color.White,
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        maxLines = 1,
+                                        overflow = TextOverflow.Ellipsis
+                                    )
+                                    if (folderPath != displayName) {
+                                        Text(
+                                            text = folderPath,
+                                            color = Color.White.copy(alpha = 0.5f),
+                                            fontSize = 11.sp,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                    }
+                                }
                                 IconButton(onClick = { onRemoveFolder(folderPath) }) {
                                     Icon(
                                         Icons.Default.Delete,
