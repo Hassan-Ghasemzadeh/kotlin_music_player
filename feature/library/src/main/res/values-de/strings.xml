@@ -179,6 +179,15 @@
     <string name="audio_effects">Audioeffekte</string>
     <string name="bass_boost">Bass-Boost</string>
     <string name="virtualizer">3D-Virtualizer</string>
+    <string name="eq_preset_off">Aus</string>
+    <string name="eq_preset_normal">Normal</string>
+    <string name="eq_preset_flat">Flach</string>
+    <string name="eq_preset_bass_booster">Bass-Verstärker</string>
+    <string name="eq_preset_treble_booster">Höhen-Verstärker</string>
+    <string name="eq_preset_rock">Rock</string>
+    <string name="eq_preset_pop">Pop</string>
+    <string name="eq_preset_jazz">Jazz</string>
+    <string name="eq_preset_classical">Klassik</string>
 
     <!-- Search & Empty States -->
     <string name="search_placeholder">Songs, Künstler, Alben suchen...</string>

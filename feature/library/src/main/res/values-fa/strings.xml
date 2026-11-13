@@ -179,6 +179,15 @@
     <string name="audio_effects">افکت‌های صوتی</string>
     <string name="bass_boost">تقویت بیس</string>
     <string name="virtualizer">صدای سه بعدی</string>
+    <string name="eq_preset_off">خاموش</string>
+    <string name="eq_preset_normal">معمولی</string>
+    <string name="eq_preset_flat">تخت</string>
+    <string name="eq_preset_bass_booster">تقویت بیس</string>
+    <string name="eq_preset_treble_booster">تقویت زیر</string>
+    <string name="eq_preset_rock">راک</string>
+    <string name="eq_preset_pop">پاپ</string>
+    <string name="eq_preset_jazz">جاز</string>
+    <string name="eq_preset_classical">کلاسیک</string>
 
     <!-- Search & Empty States -->
     <string name="search_placeholder">جستجوی آهنگ، خواننده، آلبوم...</string>
