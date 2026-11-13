@@ -109,7 +109,8 @@ fun AppRootContent(
 
         val showBottomBar = currentRoute?.contains("Player") == false &&
                 currentRoute?.contains("Settings") == false &&
-                currentRoute?.contains("Visualizer") == false
+                currentRoute?.contains("Visualizer") == false &&
+                currentRoute?.contains("Permissions") == false
 
         val artUri by produceState<Bitmap?>(initialValue = null, key1 = currentSong?.uri) {
             val songUri = currentSong?.uri
