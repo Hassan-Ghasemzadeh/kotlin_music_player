@@ -20,6 +20,8 @@ import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
+import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerPreset
+
 private val Context.appSettingsDataStore: DataStore<Preferences> by preferencesDataStore(name = "music_player_app_settings")
 
 /**
@@ -41,7 +43,8 @@ class SettingsRepositoryImpl @Inject constructor(
         val CROSSFADE_SECONDS = intPreferencesKey("crossfade_seconds")
         val CROSSFADE_DURATION = intPreferencesKey("crossfade_duration")
         val SKIP_SILENCE = booleanPreferencesKey("skip_silence")
-        val DEFAULT_EQ_PRESET = stringPreferencesKey("default_eq_preset")
+        val DEFAULT_EQUALIZER_PRESET = stringPreferencesKey("default_eq_preset")
+        val DEFAULT_EQ_PRESET = DEFAULT_EQUALIZER_PRESET
         val CIRCULAR_VISUALIZER_TYPE = stringPreferencesKey("circular_visualizer_type")
         val REPLAY_GAIN_MODE = stringPreferencesKey("replay_gain_mode")
 
@@ -60,6 +63,9 @@ class SettingsRepositoryImpl @Inject constructor(
             val albumArtEnabled = preferences[PreferencesKeys.ALBUM_ARTWORK_ENABLED]
                 ?: preferences[PreferencesKeys.SHOW_ALBUM_ART]
                 ?: true
+            val rawPreset = preferences[PreferencesKeys.DEFAULT_EQUALIZER_PRESET]
+                ?: preferences[PreferencesKeys.DEFAULT_EQ_PRESET]
+                ?: EqualizerPreset.NORMAL.name
             AppSettings(
                 language = AppLanguage.fromCode(preferences[PreferencesKeys.LANGUAGE] ?: "en"),
                 glassmorphicStyleEnabled = preferences[PreferencesKeys.GLASSMORPHIC_ENABLED] ?: true,
@@ -70,7 +76,7 @@ class SettingsRepositoryImpl @Inject constructor(
                     ?: preferences[PreferencesKeys.CROSSFADE_SECONDS] 
                     ?: 0,
                 skipSilenceEnabled = preferences[PreferencesKeys.SKIP_SILENCE] ?: false,
-                defaultEqualizerPreset = preferences[PreferencesKeys.DEFAULT_EQ_PRESET] ?: "Flat",
+                defaultEqualizerPreset = EqualizerPreset.fromName(rawPreset),
                 circularVisualizerType = preferences[PreferencesKeys.CIRCULAR_VISUALIZER_TYPE] ?: "NEON_FREQUENCY_BARS",
                 replayGainMode = ReplayGainMode.fromKey(preferences[PreferencesKeys.REPLAY_GAIN_MODE] ?: "off"),
                 excludedFolders = preferences[PreferencesKeys.EXCLUDED_FOLDERS] ?: emptySet(),
@@ -132,10 +138,14 @@ class SettingsRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun updateDefaultEqualizerPreset(preset: String) {
+    override suspend fun updateDefaultEqualizerPreset(preset: EqualizerPreset) {
         context.appSettingsDataStore.edit { preferences ->
-            preferences[PreferencesKeys.DEFAULT_EQ_PRESET] = preset
+            preferences[PreferencesKeys.DEFAULT_EQUALIZER_PRESET] = preset.name
         }
+    }
+
+    override suspend fun updateDefaultEqualizerPreset(preset: String) {
+        updateDefaultEqualizerPreset(EqualizerPreset.fromName(preset))
     }
 
     override suspend fun updateCircularVisualizerType(typeKey: String) {
