@@ -9,12 +9,14 @@ import com.sftwr.cleandevelopment.musicplayer.model.Screen
  */
 fun NavGraphBuilder.settingsGraph(
     onBackClick: () -> Unit,
-    onNavigateToPermissions: () -> Unit
+    onNavigateToPermissions: () -> Unit,
+    onNavigateToVisualizerSelection: () -> Unit
 ) {
     composable<Screen.Settings> {
         SettingsRoute(
             onBackClick = onBackClick,
-            onNavigateToPermissions = onNavigateToPermissions
+            onNavigateToPermissions = onNavigateToPermissions,
+            onNavigateToVisualizerSelection = onNavigateToVisualizerSelection
         )
     }
 }

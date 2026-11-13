@@ -12,6 +12,8 @@ import com.sftwr.cleandevelopment.musicplayer.domain.repository.PlaylistReposito
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.AddSongToPlaylistUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetPlaylistsUseCase
+import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetSettingsUseCase
+import com.sftwr.cleandevelopment.musicplayer.model.VisualizerStyle
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.ShareUtils
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
@@ -39,7 +41,8 @@ class PlayerViewModel @Inject constructor(
     private val getDeviceSongsUseCase: GetDeviceSongsUseCase,
     private val playlistRepository: PlaylistRepository,
     getPlaylistsUseCase: GetPlaylistsUseCase,
-    private val addSongToPlaylistUseCase: AddSongToPlaylistUseCase
+    private val addSongToPlaylistUseCase: AddSongToPlaylistUseCase,
+    getSettingsUseCase: GetSettingsUseCase
 ) : ViewModel() {
 
     // Expose underlying ExoPlayer instance for audio session management
@@ -57,6 +60,16 @@ class PlayerViewModel @Inject constructor(
     // States are directly driven by PlayerManager or connected StateFlows
     val isPlaying: StateFlow<Boolean> = playerManager.isPlaying
     val currentSong: StateFlow<SongUiModel?> = playerManager.currentSong
+
+    val visualizerStyle: StateFlow<VisualizerStyle> = getSettingsUseCase()
+        .map { settings ->
+            VisualizerStyle.fromId(settings.selectedVisualizer.ifEmpty { settings.circularVisualizerType })
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = VisualizerStyle.DEFAULT
+        )
 
     // Only custom playlists are shown in the Add to Playlist dialog
     val playlists: StateFlow<List<Playlist>> = getPlaylistsUseCase()

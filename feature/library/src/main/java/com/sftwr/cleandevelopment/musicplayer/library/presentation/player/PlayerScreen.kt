@@ -100,6 +100,7 @@ fun PlayerScreen(
     val songState by viewModel.currentSong.collectAsState()
     val playlists by viewModel.playlists.collectAsState()
     val isAddToPlaylistDialogVisible by viewModel.isAddToPlaylistDialogVisible.collectAsState()
+    val visualizerStyle by viewModel.visualizerStyle.collectAsState()
 
     var showEqualizerSheet by remember { mutableStateOf(false) }
     var showSleepTimerDialog by remember { mutableStateOf(false) }
@@ -230,11 +231,12 @@ fun PlayerScreen(
                 contentAlignment = Alignment.Center
             ) {
                 NeonCircularVisualizer(
-                    type = CircularVisualizerType.NEON_FREQUENCY_BARS,
+                    type = visualizerStyle.type,
                     fftData = fftData,
                     albumArtUrl = songState?.uri,
                     isPlaying = isPlaying,
-                    size = 280.dp
+                    size = 310.dp,
+                    discRatio = 0.80f
                 )
             }
 
