@@ -29,7 +29,7 @@ data class AppSettings(
     val playbackPitch: Float = 1.0f,
     val crossfadeDurationSeconds: Int = 0,
     val skipSilenceEnabled: Boolean = false,
-    val defaultEqualizerPreset: String = "Flat",
+    val defaultEqualizerPreset: EqualizerPreset = EqualizerPreset.NORMAL,
     val circularVisualizerType: String = "NEON_FREQUENCY_BARS",
     val replayGainMode: ReplayGainMode = ReplayGainMode.OFF,
 
