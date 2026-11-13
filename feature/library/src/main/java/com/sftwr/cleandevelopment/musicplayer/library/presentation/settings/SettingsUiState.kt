@@ -12,5 +12,6 @@ data class SettingsUiState(
     val showExcludedFoldersDialog: Boolean = false,
     val showMinDurationDialog: Boolean = false,
     val showVisualizerDialog: Boolean = false,
+    val showScanMediaDialog: Boolean = false,
     val userMessage: String? = null
 )
