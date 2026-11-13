@@ -84,6 +84,7 @@ import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingSwit
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerPreset
 import com.sftwr.cleandevelopment.musicplayer.domain.model.ReplayGainMode
+import com.sftwr.cleandevelopment.musicplayer.model.VisualizerStyle
 import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.CircularVisualizerType
 import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.AudioVisualizerManager
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.visualizer.VisualizerSelectorScreen
@@ -124,6 +125,7 @@ fun SettingsScreen(
     isGlassmorphicEnabled: Boolean,
     isAlbumArtworkEnabled: Boolean,
     crossfadeDuration: Int,
+    replayGainMode: ReplayGainMode = uiState.settings.replayGainMode,
     onBackClick: () -> Unit,
     onLanguageClick: () -> Unit,
     onLanguageSelected: (AppLanguage) -> Unit,
@@ -380,9 +382,7 @@ fun SettingsScreen(
                         // Visualizer Selector Row
                         SettingsRowItem(
                             title = stringResource(R.string.visualizer_style),
-                            subtitle = runCatching { CircularVisualizerType.valueOf(settings.circularVisualizerType).title }.getOrDefault(
-                                "NEON FREQUENCY BARS"
-                            ),
+                            subtitle = VisualizerStyle.fromId(settings.selectedVisualizer.ifEmpty { settings.circularVisualizerType }).title,
                             icon = Icons.Default.GraphicEq,
                             onClick = onVisualizerClick
                         )
@@ -397,7 +397,7 @@ fun SettingsScreen(
                         SettingsChipSelectorRow(
                             title = stringResource(R.string.replay_gain),
                             options = listOf(replayGainOff, replayGainTrack, replayGainAlbum),
-                            selectedOption = when (settings.replayGainMode) {
+                            selectedOption = when (replayGainMode) {
                                 ReplayGainMode.OFF -> replayGainOff
                                 ReplayGainMode.TRACK -> replayGainTrack
                                 ReplayGainMode.ALBUM -> replayGainAlbum
@@ -781,27 +781,45 @@ fun SettingsChipSelectorRow(
         ) {
             options.forEach { option ->
                 val isSelected = option.equals(selectedOption, ignoreCase = true)
-                FilterChip(
-                    selected = isSelected,
-                    onClick = { onOptionSelected(option) },
-                    label = {
-                        Text(
-                            text = option,
-                            color = if (isSelected) Color(0xFF0F0B21) else Color.White,
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                val shape = RoundedCornerShape(20.dp)
+
+                Box(
+                    modifier = Modifier
+                        .clip(shape)
+                        .background(
+                            if (isSelected) {
+                                Brush.linearGradient(
+                                    listOf(
+                                        Color(0xFF0F0B21),
+                                        Color(0xFF2C1454)
+                                    )
+                                )
+                            } else {
+                                Brush.linearGradient(
+                                    listOf(
+                                        Color.White.copy(alpha = 0.08f),
+                                        Color.White.copy(alpha = 0.03f)
+                                    )
+                                )
+                            }
                         )
-                    },
-                    colors = FilterChipDefaults.filterChipColors(
-                        selectedContainerColor = NeonBlue,
-                        containerColor = Color.White.copy(alpha = 0.1f)
-                    ),
-                    border = FilterChipDefaults.filterChipBorder(
-                        enabled = true,
-                        selected = isSelected,
-                        borderColor = Color.White.copy(alpha = 0.2f),
-                        selectedBorderColor = NeonBlue
+                        .border(
+                            width = if (isSelected) 1.5.dp else 1.dp,
+                            color = if (isSelected) NeonBlue else Color.White.copy(alpha = 0.15f),
+                            shape = shape
+                        )
+                        .clickable { onOptionSelected(option) }
+                        .padding(horizontal = 14.dp, vertical = 8.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = option,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            color = if (isSelected) NeonBlue else Color.White.copy(alpha = 0.8f)
+                        )
                     )
-                )
+                }
             }
         }
     }
