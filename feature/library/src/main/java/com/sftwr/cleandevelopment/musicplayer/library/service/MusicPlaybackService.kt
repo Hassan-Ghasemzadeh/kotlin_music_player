@@ -117,10 +117,12 @@ class MusicPlaybackService : MediaSessionService() {
             }
 
             private fun loadDefaultBitmap(): Bitmap {
-                return BitmapFactory.decodeResource(
-                    resources,
-                    com.sftwr.cleandevelopment.musicplayer.home.R.drawable.ic_default_album_art
-                )
+                return runCatching {
+                    BitmapFactory.decodeResource(
+                        resources,
+                        com.sftwr.cleandevelopment.musicplayer.home.R.drawable.ic_default_album_art
+                    )
+                }.getOrNull() ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
             }
         }
 

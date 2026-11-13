@@ -735,7 +735,6 @@ class PlayerManager @Inject constructor(
             return
         }
 
-        startPlaybackService()
         activeQueue = processedQueue
         val clickedSong = processedQueue[startIndex]
 
@@ -768,6 +767,7 @@ class PlayerManager @Inject constructor(
                     isSettingQueue = false
                 }
             }
+            startPlaybackService()
             loadArtworkForIndex(startIndex)
         }
     }
