@@ -74,5 +74,8 @@ sealed interface Screen {
     data object Settings : Screen
 
     @Serializable
+    data object VisualizerSelection : Screen
+
+    @Serializable
     data object Permissions : Screen
 }
