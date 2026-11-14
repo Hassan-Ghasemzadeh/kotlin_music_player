@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.speech.RecognizerIntent
 import android.widget.Toast
+import java.util.Locale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
@@ -17,6 +18,8 @@ import com.sftwr.cleandevelopment.musicplayer.library.domain.usecase.SkipNextUse
 import com.sftwr.cleandevelopment.musicplayer.library.domain.usecase.SkipPreviousUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.domain.usecase.TogglePlayPauseUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.drive_mode.DriveModeUiState
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.drive_mode.CommandMatcher
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.drive_mode.PlayerCommand
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -89,40 +92,25 @@ class DriveModeViewModel @Inject constructor(
         }
     }
 
+    val currentLanguage: AppLanguage
+        get() = settingsState.value.language
+
+    fun setListening(listening: Boolean) {
+        _isListening.value = listening
+    }
+
+    fun executeVoiceCommand(command: String) {
+        val commandType = CommandMatcher.match(command, currentLanguage)
+        when (commandType) {
+            PlayerCommand.PLAY -> if (!isPlaying.value) togglePlayPause()
+            PlayerCommand.PAUSE -> if (isPlaying.value) togglePlayPause()
+            PlayerCommand.NEXT -> skipNext()
+            PlayerCommand.PREVIOUS -> skipPrevious()
+            PlayerCommand.UNKNOWN -> {}
+        }
+    }
+
     fun launchVoiceAssistant(context: Context) {
-        _isListening.value = true
-        val currentLanguage = settingsState.value.language
-        val languageCode = currentLanguage.code // "en", "fa", "de", "tr"
-
-        val promptText = when (currentLanguage) {
-            AppLanguage.PERSIAN -> "فرمان صوتی (پخش، توقف، بعدی، قبلی)..."
-            AppLanguage.GERMAN -> "Sprachbefehl (Wiedergabe, Pause, Weiter, Zurück)..."
-            AppLanguage.TURKISH -> "Sesli komut (Oynat, Duraklat, Sonraki, Önceki)..."
-            else -> "Play music or command (Play, Pause, Next, Previous)..."
-        }
-
-        val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE, languageCode)
-            putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, languageCode)
-            putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, languageCode)
-            putExtra(RecognizerIntent.EXTRA_PROMPT, promptText)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        }
-        try {
-            context.startActivity(intent)
-        } catch (_: ActivityNotFoundException) {
-            val errorMessage = when (currentLanguage) {
-                AppLanguage.PERSIAN -> "جستجوی صوتی روی این دستگاه پشتیبانی نمی‌شود"
-                AppLanguage.GERMAN -> "Sprachsuche wird auf diesem Gerät nicht unterstützt"
-                AppLanguage.TURKISH -> "Sesli arama bu cihazda desteklenmiyor"
-                else -> "Voice Search not supported on this device"
-            }
-            Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
-        }
-        viewModelScope.launch {
-            kotlinx.coroutines.delay(4000)
-            _isListening.value = false
-        }
+        // Handled via SpeechRecognizer in UI layer
     }
 }
