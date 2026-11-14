@@ -40,6 +40,7 @@ import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -118,10 +119,13 @@ fun PlayerScreen(
     val isAddToPlaylistDialogVisible by viewModel.isAddToPlaylistDialogVisible.collectAsState()
     val visualizerStyle by viewModel.visualizerStyle.collectAsState()
     val queue by viewModel.queue.collectAsState()
+    val volume by viewModel.volume.collectAsState()
+    val playbackPitch by viewModel.playbackPitch.collectAsState()
 
     var showEqualizerSheet by remember { mutableStateOf(false) }
     var showSleepTimerDialog by remember { mutableStateOf(false) }
     var showQueueSheet by remember { mutableStateOf(false) }
+    var showAudioControlsSheet by remember { mutableStateOf(false) }
 
     val totalDuration = songState?.duration ?: ""
     val songTitle = songState?.title ?: stringResource(R.string.unknown_title)
@@ -287,6 +291,14 @@ fun PlayerScreen(
                     modifier = Modifier.weight(1f)
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { showAudioControlsSheet = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Tune,
+                            contentDescription = "Audio Controls",
+                            tint = Color(0xFF91D8FB),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                     IconButton(onClick = { showQueueSheet = true }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.QueueMusic,
@@ -707,6 +719,100 @@ fun PlayerScreen(
                                     }
                                 }
                             }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Audio Controls Modal Bottom Sheet
+        if (showAudioControlsSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showAudioControlsSheet = false },
+                sheetState = rememberModalBottomSheetState(),
+                containerColor = Color.Transparent,
+                dragHandle = { BottomSheetDefaults.DragHandle(color = Color.White.copy(alpha = 0.4f)) }
+            ) {
+                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(Color(0xFF0F0B21), Color(0xFF181035), Color(0xFF2C1454))
+                                )
+                            )
+                            .padding(24.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(20.dp)
+                        ) {
+                            Text(
+                                text = stringResource(R.string.audio_controls),
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White
+                                )
+                            )
+
+                            // Volume Slider
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.playback_volume),
+                                        style = MaterialTheme.typography.bodyMedium.copy(color = Color.White.copy(alpha = 0.8f))
+                                    )
+                                    Text(
+                                        text = "${(volume * 100).toInt()}%",
+                                        style = MaterialTheme.typography.bodyMedium.copy(color = Color(0xFF91D8FB), fontWeight = FontWeight.Bold)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Slider(
+                                    value = volume,
+                                    onValueChange = { viewModel.setVolume(it) },
+                                    valueRange = 0f..1f,
+                                    colors = SliderDefaults.colors(
+                                        thumbColor = Color(0xFF91D8FB),
+                                        activeTrackColor = Color(0xFF91D8FB),
+                                        inactiveTrackColor = Color(0x3391D8FB)
+                                    )
+                                )
+                            }
+
+                            // Pitch / Speed Slider
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.playback_pitch),
+                                        style = MaterialTheme.typography.bodyMedium.copy(color = Color.White.copy(alpha = 0.8f))
+                                    )
+                                    Text(
+                                        text = String.format(java.util.Locale.US, "%.2fx", playbackPitch),
+                                        style = MaterialTheme.typography.bodyMedium.copy(color = Color(0xFF91D8FB), fontWeight = FontWeight.Bold)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Slider(
+                                    value = playbackPitch,
+                                    onValueChange = { viewModel.setPlaybackPitch(it) },
+                                    valueRange = 0.5f..2.0f,
+                                    colors = SliderDefaults.colors(
+                                        thumbColor = Color(0xFF91D8FB),
+                                        activeTrackColor = Color(0xFF91D8FB),
+                                        inactiveTrackColor = Color(0x3391D8FB)
+                                    )
+                                )
+                            }
+
+                            Spacer(modifier = Modifier.height(16.dp))
                         }
                     }
                 }
