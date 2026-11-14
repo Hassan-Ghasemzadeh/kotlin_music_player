@@ -8,6 +8,7 @@ import android.os.Bundle
 import android.speech.RecognitionListener
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -213,6 +214,7 @@ private fun startVoiceRecognition(
         override fun onResults(results: Bundle?) {
             viewModel.setListening(false)
             val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+            Log.d("VoiceRecognition", "Recognized matches: $matches for language: $languageTag")
             if (!matches.isNullOrEmpty()) {
                 val commandText = matches[0]
                 val matchedCommand = CommandMatcher.match(commandText, currentLang)
