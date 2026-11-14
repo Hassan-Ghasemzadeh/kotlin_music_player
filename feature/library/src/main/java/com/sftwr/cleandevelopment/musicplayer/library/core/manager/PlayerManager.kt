@@ -605,7 +605,19 @@ class PlayerManager @Inject constructor(
             if (!lastSongId.isNullOrEmpty() && _currentSong.value == null) {
                 val matchingSong = _allSongs.value.find { it.id == lastSongId }
                 if (matchingSong != null && _currentSong.value == null) {
-                    _currentSong.value = matchingSong
+                    withContext(Dispatchers.Main) {
+                        _currentSong.value = matchingSong
+                        activeQueue = _allSongs.value.ifEmpty { listOf(matchingSong) }
+                        _queue.value = activeQueue
+                        val index = activeQueue.indexOfFirst { it.id == matchingSong.id }.coerceAtLeast(0)
+                        val mediaItems = activeQueue.map { song ->
+                            val artBytes = artworkCache[song.id]
+                            song.toMediaItem(artBytes)
+                        }
+                        currentPlayer.setMediaItems(mediaItems, index, 0L)
+                        currentPlayer.prepare()
+                        loadArtworkForIndex(index)
+                    }
                     isRestoredOnStartup = true
                 } else if (matchingSong == null) {
                     isRestoredOnStartup = true
