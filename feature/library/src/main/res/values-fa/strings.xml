@@ -74,6 +74,8 @@
     <string name="glassmorphic_style_desc">فعال‌سازی کارت‌های شیشه‌ای و درخشش نئون</string>
     <string name="album_art_display">نمایش کاور آلبوم</string>
     <string name="album_art_display_desc">نمایش کاور آلبوم در لیست‌ها و پخش‌کننده</string>
+    <string name="color_palette_theme">پالت رنگی پوسته</string>
+    <string name="color_palette_theme_desc">انتخاب از میان ۱۵ پالت رنگی اختصاصی</string>
 
     <!-- Audio & Playback Effects -->
     <string name="audio_and_effects">صدا و افکت‌های پخش</string>

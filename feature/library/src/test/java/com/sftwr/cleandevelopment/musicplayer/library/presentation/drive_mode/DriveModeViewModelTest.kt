@@ -9,6 +9,7 @@ import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.PlaylistRepository
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppSettings
+import com.sftwr.cleandevelopment.musicplayer.domain.model.ColorPalette
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerPreset
 import com.sftwr.cleandevelopment.musicplayer.domain.model.ReplayGainMode
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.SettingsRepository
@@ -75,6 +76,7 @@ class DriveModeViewModelTest {
     private val fakeSettingsRepository = object : SettingsRepository {
         override fun getSettings(): Flow<AppSettings> = MutableStateFlow(AppSettings())
         override suspend fun updateLanguage(language: AppLanguage) {}
+        override suspend fun updateColorPalette(palette: ColorPalette) {}
         override suspend fun updateGlassmorphicStyle(enabled: Boolean) {}
         override suspend fun updateAlbumArtworkEnabled(enabled: Boolean) {}
         override suspend fun updateShowAlbumArt(enabled: Boolean) {}

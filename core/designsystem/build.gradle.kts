@@ -22,6 +22,7 @@ android {
 }
 
 dependencies {
+    implementation(project(":core:domain"))
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.compose.foundation.layout)
     implementation(libs.androidx.core.ktx)

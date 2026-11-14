@@ -2,6 +2,7 @@ package com.sftwr.cleandevelopment.musicplayer.domain.repository
 
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppSettings
+import com.sftwr.cleandevelopment.musicplayer.domain.model.ColorPalette
 import com.sftwr.cleandevelopment.musicplayer.domain.model.ReplayGainMode
 import kotlinx.coroutines.flow.Flow
 
@@ -17,6 +18,7 @@ interface SettingsRepository {
     fun getSettings(): Flow<AppSettings>
 
     suspend fun updateLanguage(language: AppLanguage)
+    suspend fun updateColorPalette(palette: ColorPalette)
     suspend fun updateGlassmorphicStyle(enabled: Boolean)
     suspend fun updateAlbumArtworkEnabled(enabled: Boolean)
     suspend fun updateShowAlbumArt(enabled: Boolean)

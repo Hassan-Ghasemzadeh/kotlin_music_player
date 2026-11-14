@@ -2,6 +2,7 @@ package com.sftwr.cleandevelopment.musicplayer.library.presentation.equalizer
 
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppSettings
+import com.sftwr.cleandevelopment.musicplayer.domain.model.ColorPalette
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerPreset
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerState
 import com.sftwr.cleandevelopment.musicplayer.domain.model.ReplayGainMode
@@ -159,6 +160,7 @@ private class FakeSettingsRepository : SettingsRepository {
     private val settingsFlow = MutableStateFlow(AppSettings())
     override fun getSettings(): Flow<AppSettings> = settingsFlow
     override suspend fun updateLanguage(language: AppLanguage) {}
+    override suspend fun updateColorPalette(palette: ColorPalette) {}
     override suspend fun updateGlassmorphicStyle(enabled: Boolean) {}
     override suspend fun updateAlbumArtworkEnabled(enabled: Boolean) {}
     override suspend fun updateShowAlbumArt(enabled: Boolean) {}

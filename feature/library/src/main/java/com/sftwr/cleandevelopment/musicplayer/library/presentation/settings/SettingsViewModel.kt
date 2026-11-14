@@ -8,7 +8,9 @@ import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.util.UnstableApi
 import com.sftwr.cleandevelopment.musicplayer.data.util.LocaleHelper
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
+import com.sftwr.cleandevelopment.musicplayer.domain.model.ColorPalette
 import com.sftwr.cleandevelopment.musicplayer.domain.model.ReplayGainMode
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.SettingsRepository
 import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.CircularVisualizerType
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetSettingsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.ScanMediaUseCase
@@ -43,6 +45,7 @@ class SettingsViewModel @Inject constructor(
     private val updateControlsSettingsUseCase: UpdateControlsSettingsUseCase,
     private val scanMediaUseCase: ScanMediaUseCase,
     private val playerManager: PlayerManager,
+    private val settingsRepository: SettingsRepository,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -144,6 +147,17 @@ class SettingsViewModel @Inject constructor(
 
     fun showLanguageDialog(show: Boolean) {
         _uiState.update { it.copy(showLanguageDialog = show) }
+    }
+
+    fun showColorPaletteDialog(show: Boolean) {
+        _uiState.update { it.copy(showColorPaletteDialog = show) }
+    }
+
+    fun onColorPaletteSelected(palette: ColorPalette) {
+        viewModelScope.launch {
+            settingsRepository.updateColorPalette(palette)
+            showColorPaletteDialog(false)
+        }
     }
 
     fun showExcludedFoldersDialog(show: Boolean) {

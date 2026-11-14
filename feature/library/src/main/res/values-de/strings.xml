@@ -74,6 +74,8 @@
     <string name="glassmorphic_style_desc">Transparente Karten und Neon-Effekte aktivieren</string>
     <string name="album_art_display">Album-Cover anzeigen</string>
     <string name="album_art_display_desc">Album-Cover in Listen und Player anzeigen</string>
+    <string name="color_palette_theme">Farbenpalette</string>
+    <string name="color_palette_theme_desc">Wählen Sie aus 15 Farbkombinationen</string>
 
     <!-- Audio & Playback Effects -->
     <string name="audio_and_effects">Audio &amp; Wiedergabeeffekte</string>

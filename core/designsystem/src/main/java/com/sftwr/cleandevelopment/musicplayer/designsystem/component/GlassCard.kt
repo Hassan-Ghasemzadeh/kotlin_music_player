@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
+import com.sftwr.cleandevelopment.musicplayer.domain.model.ColorPalette
 
 /**
  * CompositionLocal providing whether Glassmorphic UI Style is globally enabled.
@@ -22,6 +23,11 @@ val LocalGlassmorphicEnabled = compositionLocalOf { true }
  * CompositionLocal providing whether Album Artwork Display is globally enabled.
  */
 val LocalAlbumArtworkEnabled = compositionLocalOf { true }
+
+/**
+ * CompositionLocal providing the active global [ColorPalette] theme.
+ */
+val LocalColorPalette = compositionLocalOf { ColorPalette.NEON_DARK }
 
 /**
  * A reusable Glassmorphism container card featuring a translucent gradient background

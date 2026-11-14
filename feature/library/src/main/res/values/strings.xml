@@ -74,6 +74,8 @@
     <string name="glassmorphic_style_desc">Enable glow translucent cards and glass visuals</string>
     <string name="album_art_display">Album Artwork Display</string>
     <string name="album_art_display_desc">Show album cover art on list items and player</string>
+    <string name="color_palette_theme">Color Palette Theme</string>
+    <string name="color_palette_theme_desc">Choose from 15 hand-crafted theme color combinations</string>
 
     <!-- Audio & Playback Effects -->
     <string name="audio_and_effects">Audio &amp; Playback Effects</string>

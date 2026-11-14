@@ -21,6 +21,7 @@ enum class ReplayGainMode(val key: String) {
 data class AppSettings(
     // Appearance & Language
     val language: AppLanguage = AppLanguage.ENGLISH,
+    val colorPalette: ColorPalette = ColorPalette.NEON_DARK,
     val glassmorphicStyleEnabled: Boolean = true,
     val isAlbumArtworkEnabled: Boolean = true,
 

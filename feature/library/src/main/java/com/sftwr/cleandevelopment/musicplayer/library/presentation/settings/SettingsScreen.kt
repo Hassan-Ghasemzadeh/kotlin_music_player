@@ -86,6 +86,7 @@ import com.sftwr.cleandevelopment.musicplayer.designsystem.component.NeonBlue
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingSliderItem
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingSwitchItem
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
+import com.sftwr.cleandevelopment.musicplayer.domain.model.ColorPalette
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerPreset
 import com.sftwr.cleandevelopment.musicplayer.domain.model.ReplayGainMode
 import com.sftwr.cleandevelopment.musicplayer.model.VisualizerStyle
@@ -139,6 +140,9 @@ fun SettingsScreen(
     onLanguageClick: () -> Unit,
     onLanguageSelected: (AppLanguage) -> Unit,
     onLanguageDialogDismiss: () -> Unit,
+    onColorPaletteClick: () -> Unit,
+    onColorPaletteSelected: (ColorPalette) -> Unit,
+    onColorPaletteDialogDismiss: () -> Unit,
     onGlassmorphicToggle: (Boolean) -> Unit,
     onAlbumArtToggle: (Boolean) -> Unit,
     onPlaybackSpeedChange: (Float) -> Unit,
@@ -238,6 +242,17 @@ fun SettingsScreen(
                             subtitle = settings.language.nativeName + " (" + settings.language.displayName + ")",
                             icon = Icons.Default.Language,
                             onClick = onLanguageClick
+                        )
+
+                        SettingsDivider()
+
+                        // Color Palette Theme Selector
+                        val paletteSubtitle = if (settings.language == AppLanguage.PERSIAN) settings.colorPalette.nativeName else settings.colorPalette.displayName
+                        SettingsRowItem(
+                            title = stringResource(R.string.color_palette_theme),
+                            subtitle = paletteSubtitle,
+                            icon = Icons.Default.Palette,
+                            onClick = onColorPaletteClick
                         )
 
                         SettingsDivider()
@@ -560,6 +575,16 @@ fun SettingsScreen(
                 }
             }
         }
+    }
+
+    // Color Palette Selection Dialog
+    if (uiState.showColorPaletteDialog) {
+        ColorPaletteDialog(
+            currentPalette = settings.colorPalette,
+            currentLanguage = settings.language,
+            onPaletteSelected = onColorPaletteSelected,
+            onDismissRequest = onColorPaletteDialogDismiss
+        )
     }
 
     // Language Selection Dialog

@@ -74,6 +74,8 @@
     <string name="glassmorphic_style_desc">Yarı saydam kartlar ve neon efektlerini açın</string>
     <string name="album_art_display">Albüm Kapağını Göster</string>
     <string name="album_art_display_desc">Listelerde ve oynatıcıda albüm kapağını görüntüleyin</string>
+    <string name="color_palette_theme">Renk Paleti</string>
+    <string name="color_palette_theme_desc">15 özel renk kombinasyonundan birini seçin</string>
 
     <!-- Audio & Playback Effects -->
     <string name="audio_and_effects">Ses ve Oynatma Efektleri</string>

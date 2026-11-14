@@ -9,6 +9,7 @@ data class SettingsUiState(
     val settings: AppSettings = AppSettings(),
     val isLoading: Boolean = false,
     val showLanguageDialog: Boolean = false,
+    val showColorPaletteDialog: Boolean = false,
     val showExcludedFoldersDialog: Boolean = false,
     val showMinDurationDialog: Boolean = false,
     val showVisualizerDialog: Boolean = false,

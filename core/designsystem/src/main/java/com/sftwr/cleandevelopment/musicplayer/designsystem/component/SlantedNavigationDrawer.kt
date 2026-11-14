@@ -92,6 +92,7 @@ fun SlantedNavigationDrawerContent(
     onCloseDrawer: () -> Unit
 ) {
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    val currentPalette = LocalColorPalette.current
 
     val menuItems = listOf(
         DrawerMenuItem("Equalizer", stringResource(R.string.equalizer), Icons.Default.GraphicEq, onClick = onEqualizerClick),
@@ -108,7 +109,7 @@ fun SlantedNavigationDrawerContent(
         modifier = Modifier
             .fillMaxHeight()
             .width(280.dp)
-            .background(DrawerDarkGradient)
+            .background(currentPalette.gradientBrush)
             .statusBarsPadding()
             .navigationBarsPadding()
             .padding(top = 16.dp, bottom = 24.dp, start = 20.dp, end = 20.dp)
@@ -135,12 +136,12 @@ fun SlantedNavigationDrawerContent(
                             .background(
                                 Brush.linearGradient(
                                     colors = listOf(
-                                        NeonBlue.copy(alpha = 0.4f),
-                                        Color(0xFF2C1454)
+                                        currentPalette.accent.copy(alpha = 0.4f),
+                                        currentPalette.surfaceCard
                                     )
                                 )
                             )
-                            .border(1.5.dp, NeonBlue, CircleShape),
+                            .border(1.5.dp, currentPalette.accent, CircleShape),
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
@@ -163,7 +164,7 @@ fun SlantedNavigationDrawerContent(
                         Spacer(modifier = Modifier.height(2.dp))
                         Text(
                             text = stringResource(R.string.drawer_subtitle),
-                            color = NeonBlue,
+                            color = currentPalette.accent,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -203,7 +204,7 @@ fun SlantedNavigationDrawerContent(
                             Icon(
                                 imageVector = item.icon,
                                 contentDescription = item.title,
-                                tint = if (isSelected) NeonBlue else Color.White.copy(alpha = 0.9f),
+                                tint = if (isSelected) currentPalette.accent else Color.White.copy(alpha = 0.9f),
                                 modifier = Modifier.size(22.dp)
                             )
                             Text(

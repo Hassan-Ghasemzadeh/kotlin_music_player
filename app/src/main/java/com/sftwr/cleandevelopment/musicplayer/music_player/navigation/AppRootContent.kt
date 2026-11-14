@@ -43,6 +43,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import com.sftwr.cleandevelopment.musicplayer.data.util.LocaleHelper
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.BottomPlayerBar
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalAlbumArtworkEnabled
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalGlassmorphicEnabled
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingsDialog
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SlantedNavigationDrawerContent
@@ -95,7 +96,8 @@ fun AppRootContent(
     CompositionLocalProvider(
         LocalLayoutDirection provides layoutDirection,
         LocalGlassmorphicEnabled provides settings.glassmorphicStyleEnabled,
-        LocalAlbumArtworkEnabled provides settings.isAlbumArtworkEnabled
+        LocalAlbumArtworkEnabled provides settings.isAlbumArtworkEnabled,
+        LocalColorPalette provides settings.colorPalette
     ) {
         val currentSong by playerManager.currentSong.collectAsStateWithLifecycle()
         val isPlaying by playerManager.isPlaying.collectAsStateWithLifecycle()
@@ -145,7 +147,7 @@ fun AppRootContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color(0xFF2C1454))
+                .background(settings.colorPalette.surfaceCard)
         ) {
             // 1. Drawer Content rendered underneath
             SlantedNavigationDrawerContent(
@@ -183,7 +185,7 @@ fun AppRootContent(
                             topEnd = 24.dp * drawerProgress.coerceAtLeast(0f)
                         )
                     )
-                    .background(Color(0xFF0F0B21))
+                    .background(settings.colorPalette.primaryBackground)
                     .clickable(
                         enabled = isDrawerOpen,
                         onClick = { isDrawerOpen = false }

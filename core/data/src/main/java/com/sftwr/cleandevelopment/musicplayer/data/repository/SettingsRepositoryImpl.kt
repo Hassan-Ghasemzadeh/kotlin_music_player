@@ -12,6 +12,7 @@ import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppSettings
+import com.sftwr.cleandevelopment.musicplayer.domain.model.ColorPalette
 import com.sftwr.cleandevelopment.musicplayer.domain.model.ReplayGainMode
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -34,6 +35,7 @@ class SettingsRepositoryImpl @Inject constructor(
 
     private object PreferencesKeys {
         val LANGUAGE = stringPreferencesKey("app_language")
+        val COLOR_PALETTE = stringPreferencesKey("color_palette")
         val GLASSMORPHIC_ENABLED = booleanPreferencesKey("glassmorphic_enabled")
         val ALBUM_ARTWORK_ENABLED = booleanPreferencesKey("album_artwork_enabled")
         val SHOW_ALBUM_ART = booleanPreferencesKey("show_album_art")
@@ -86,6 +88,7 @@ class SettingsRepositoryImpl @Inject constructor(
                 ?: true
             AppSettings(
                 language = AppLanguage.fromCode(preferences[PreferencesKeys.LANGUAGE] ?: "en"),
+                colorPalette = ColorPalette.fromId(preferences[PreferencesKeys.COLOR_PALETTE]),
                 glassmorphicStyleEnabled = preferences[PreferencesKeys.GLASSMORPHIC_ENABLED] ?: true,
                 isAlbumArtworkEnabled = albumArtEnabled,
                 playbackSpeed = preferences[PreferencesKeys.PLAYBACK_SPEED] ?: 1.0f,
@@ -115,6 +118,12 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun updateLanguage(language: AppLanguage) {
         context.appSettingsDataStore.edit { preferences ->
             preferences[PreferencesKeys.LANGUAGE] = language.code
+        }
+    }
+
+    override suspend fun updateColorPalette(palette: ColorPalette) {
+        context.appSettingsDataStore.edit { preferences ->
+            preferences[PreferencesKeys.COLOR_PALETTE] = palette.id
         }
     }
 
