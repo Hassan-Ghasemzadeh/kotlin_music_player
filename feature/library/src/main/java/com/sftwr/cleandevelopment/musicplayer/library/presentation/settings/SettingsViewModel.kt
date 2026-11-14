@@ -89,6 +89,38 @@ class SettingsViewModel @Inject constructor(
             initialValue = ReplayGainMode.OFF
         )
 
+    val isLockscreenControlsEnabled: StateFlow<Boolean> = getSettingsUseCase()
+        .map { it.lockscreenControlsEnabled }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = true
+        )
+
+    val isScreenOffPlaybackEnabled: StateFlow<Boolean> = getSettingsUseCase()
+        .map { it.screenOffPlaybackEnabled }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = true
+        )
+
+    val isHeadsetControlsEnabled: StateFlow<Boolean> = getSettingsUseCase()
+        .map { it.headsetControlsEnabled }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = true
+        )
+
+    val isAllowExternalDevicePlaybackEnabled: StateFlow<Boolean> = getSettingsUseCase()
+        .map { it.allowExternalDevicePlayback }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = true
+        )
+
     init {
         viewModelScope.launch {
             getSettingsUseCase().collect { settings ->
