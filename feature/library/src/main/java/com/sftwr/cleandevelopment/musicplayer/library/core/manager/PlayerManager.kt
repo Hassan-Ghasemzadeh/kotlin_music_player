@@ -79,6 +79,23 @@ class PlayerManager @Inject constructor(
 
     private var currentReplayGainMode = ReplayGainMode.OFF
 
+    private val _volume = MutableStateFlow(1.0f)
+    val volume: StateFlow<Float> = _volume.asStateFlow()
+
+    private var userMasterVolume = 1.0f
+
+    fun setVolume(vol: Float) {
+        runOnMainThread {
+            val clamped = vol.coerceIn(0f, 1f)
+            userMasterVolume = clamped
+            _volume.value = clamped
+            setPlayerVolume(currentPlayer, 1.0f)
+            if (isCrossfading) {
+                setPlayerVolume(nextPlayer, 1.0f)
+            }
+        }
+    }
+
     private val replayGainMultiplier: Float
         get() = when (currentReplayGainMode) {
             ReplayGainMode.OFF -> 1.0f
@@ -87,7 +104,7 @@ class PlayerManager @Inject constructor(
         }
 
     private fun setPlayerVolume(player: ExoPlayer, volume: Float) {
-        player.volume = (volume * replayGainMultiplier).coerceIn(0f, 1f)
+        player.volume = (volume * userMasterVolume * replayGainMultiplier).coerceIn(0f, 1f)
     }
 
     private val audioFocusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
@@ -707,6 +724,15 @@ class PlayerManager @Inject constructor(
         runOnMainThread {
             cancelCrossfade()
             currentPlayer.seekTo(position)
+        }
+    }
+
+    fun setPlaybackParameters(speed: Float, pitch: Float) {
+        runOnMainThread {
+            exoPlayer.playbackParameters = PlaybackParameters(speed, pitch)
+            if (isCrossfading) {
+                nextPlayer.playbackParameters = PlaybackParameters(speed, pitch)
+            }
         }
     }
 
