@@ -3,21 +3,28 @@ package com.sftwr.cleandevelopment.musicplayer.library.service
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
 import androidx.annotation.OptIn
+import androidx.core.app.NotificationCompat
 import androidx.media3.common.util.BitmapLoader
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MediaMetadata
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.session.CommandButton
 import androidx.media3.session.DefaultMediaNotificationProvider
+import androidx.media3.session.MediaNotification
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import com.google.common.collect.ImmutableList
 import com.google.common.util.concurrent.FutureCallback
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
@@ -45,6 +52,13 @@ interface MusicPlaybackServiceEntryPoint {
 class MusicPlaybackService : MediaSessionService() {
 
     private var mediaSession: MediaSession? = null
+    private var screenOffReceiver: BroadcastReceiver? = null
+    private var bluetoothReceiver: BroadcastReceiver? = null
+    private var lockscreenControlsEnabled = true
+    private var screenOffPlaybackEnabled = true
+    private var headsetControlsEnabled = true
+    private var allowExternalDevicePlayback = true
+    private var isAlbumArtworkEnabled = true
 
     companion object {
         private const val NOTIFICATION_ID = 1001
@@ -62,11 +76,57 @@ class MusicPlaybackService : MediaSessionService() {
         val player = entryPoint.player()
         val settingsUseCase = entryPoint.getSettingsUseCase()
 
-        var isAlbumArtworkEnabled = true
         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
             settingsUseCase().collect { settings ->
                 isAlbumArtworkEnabled = settings.isAlbumArtworkEnabled
+                lockscreenControlsEnabled = settings.lockscreenControlsEnabled
+                screenOffPlaybackEnabled = settings.screenOffPlaybackEnabled
+                headsetControlsEnabled = settings.headsetControlsEnabled
+                allowExternalDevicePlayback = settings.allowExternalDevicePlayback
             }
+        }
+
+        screenOffReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action == Intent.ACTION_SCREEN_OFF) {
+                    if (!screenOffPlaybackEnabled) {
+                        mediaSession?.player?.let { p ->
+                            if (p.isPlaying) {
+                                p.pause()
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        val filter = IntentFilter(Intent.ACTION_SCREEN_OFF)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(screenOffReceiver, filter, RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(screenOffReceiver, filter)
+        }
+
+        bluetoothReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action == android.bluetooth.BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED) {
+                    val state = intent.getIntExtra(android.bluetooth.BluetoothA2dp.EXTRA_STATE, android.bluetooth.BluetoothA2dp.STATE_DISCONNECTED)
+                    if (state == android.bluetooth.BluetoothA2dp.STATE_CONNECTED) {
+                        if (!allowExternalDevicePlayback) {
+                            mediaSession?.player?.let { p ->
+                                if (p.isPlaying) {
+                                    p.pause()
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        val btFilter = IntentFilter(android.bluetooth.BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            registerReceiver(bluetoothReceiver, btFilter, RECEIVER_NOT_EXPORTED)
+        } else {
+            registerReceiver(bluetoothReceiver, btFilter)
         }
 
         val customBitmapLoader = object : BitmapLoader {
@@ -144,13 +204,8 @@ class MusicPlaybackService : MediaSessionService() {
         mediaSession = session
         addSession(session)
 
-        setMediaNotificationProvider(
-            DefaultMediaNotificationProvider.Builder(this)
-                .setNotificationId(NOTIFICATION_ID)
-                .setChannelId(NOTIFICATION_CHANNEL_ID)
-                .setChannelName(com.sftwr.cleandevelopment.musicplayer.home.R.string.media_notification_channel_name)
-                .build()
-        )
+        val notificationProvider = CustomMediaNotificationProvider(this) { lockscreenControlsEnabled }
+        setMediaNotificationProvider(notificationProvider)
     }
 
     override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? =
@@ -165,6 +220,18 @@ class MusicPlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        screenOffReceiver?.let {
+            try {
+                unregisterReceiver(it)
+            } catch (_: Exception) {}
+            screenOffReceiver = null
+        }
+        bluetoothReceiver?.let {
+            try {
+                unregisterReceiver(it)
+            } catch (_: Exception) {}
+            bluetoothReceiver = null
+        }
         mediaSession?.run {
             player.release()
             release()
@@ -187,6 +254,17 @@ class MusicPlaybackService : MediaSessionService() {
     }
 
     private inner class MediaSessionCallback : MediaSession.Callback {
+        override fun onMediaButtonEvent(
+            session: MediaSession,
+            controllerInfo: MediaSession.ControllerInfo,
+            intent: Intent
+        ): Boolean {
+            if (!headsetControlsEnabled) {
+                return true
+            }
+            return super.onMediaButtonEvent(session, controllerInfo, intent)
+        }
+
         override fun onAddMediaItems(
             mediaSession: MediaSession,
             controller: MediaSession.ControllerInfo,
@@ -199,5 +277,41 @@ class MusicPlaybackService : MediaSessionService() {
             }.toMutableList()
             return Futures.immediateFuture(updated)
         }
+    }
+}
+
+@OptIn(UnstableApi::class)
+private class CustomMediaNotificationProvider(
+    context: Context,
+    private val getLockscreenControlsEnabled: () -> Boolean
+) : MediaNotification.Provider {
+    private val defaultProvider = DefaultMediaNotificationProvider.Builder(context)
+        .setNotificationId(1001)
+        .setChannelId("music_playback_channel")
+        .setChannelName(com.sftwr.cleandevelopment.musicplayer.home.R.string.media_notification_channel_name)
+        .build()
+
+    override fun createNotification(
+        mediaSession: MediaSession,
+        customLayout: ImmutableList<CommandButton>,
+        actionFactory: MediaNotification.ActionFactory,
+        callback: MediaNotification.Provider.Callback
+    ): MediaNotification {
+        val mediaNotification = defaultProvider.createNotification(mediaSession, customLayout, actionFactory, callback)
+        val visibility = if (getLockscreenControlsEnabled()) {
+            NotificationCompat.VISIBILITY_PUBLIC
+        } else {
+            NotificationCompat.VISIBILITY_SECRET
+        }
+        mediaNotification.notification.visibility = visibility
+        return mediaNotification
+    }
+
+    override fun handleCustomCommand(
+        session: MediaSession,
+        action: String,
+        extras: android.os.Bundle
+    ): Boolean {
+        return defaultProvider.handleCustomCommand(session, action, extras)
     }
 }
