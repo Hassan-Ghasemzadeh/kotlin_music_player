@@ -217,4 +217,6 @@
     <string name="seconds_format">%1$d sec</string>
     <string name="speed_format">%1$.2fx</string>
     <string name="playing_queue">Playing Queue</string>
+    <string name="audio_controls">Audio Controls</string>
+    <string name="playback_volume">Volume</string>
 </resources>
