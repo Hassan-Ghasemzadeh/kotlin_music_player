@@ -94,6 +94,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.viewmo
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.viewmodel.RepeatMode
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.sleeptimer.SleepTimerDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.visualizer.NeonCircularVisualizer
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlin.time.Duration.Companion.milliseconds
@@ -109,18 +110,18 @@ fun PlayerScreen(
     viewModel: PlayerViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
 ) {
-    // Collecting player state flows reactively from the ViewModel
-    val isPlaying by viewModel.isPlaying.collectAsState()
-    val currentPosition by viewModel.currentPosition.collectAsState()
-    val isShuffleEnabled by viewModel.isShuffleEnabled.collectAsState()
-    val repeatMode by viewModel.repeatMode.collectAsState()
-    val songState by viewModel.currentSong.collectAsState()
-    val playlists by viewModel.playlists.collectAsState()
-    val isAddToPlaylistDialogVisible by viewModel.isAddToPlaylistDialogVisible.collectAsState()
-    val visualizerStyle by viewModel.visualizerStyle.collectAsState()
-    val queue by viewModel.queue.collectAsState()
-    val volume by viewModel.volume.collectAsState()
-    val playbackPitch by viewModel.playbackPitch.collectAsState()
+    // Collecting player state flows reactively from the ViewModel with lifecycle awareness
+    val isPlaying by viewModel.isPlaying.collectAsStateWithLifecycle()
+    val currentPosition by viewModel.currentPosition.collectAsStateWithLifecycle()
+    val isShuffleEnabled by viewModel.isShuffleEnabled.collectAsStateWithLifecycle()
+    val repeatMode by viewModel.repeatMode.collectAsStateWithLifecycle()
+    val songState by viewModel.currentSong.collectAsStateWithLifecycle()
+    val playlists by viewModel.playlists.collectAsStateWithLifecycle()
+    val isAddToPlaylistDialogVisible by viewModel.isAddToPlaylistDialogVisible.collectAsStateWithLifecycle()
+    val visualizerStyle by viewModel.visualizerStyle.collectAsStateWithLifecycle()
+    val queue by viewModel.queue.collectAsStateWithLifecycle()
+    val volume by viewModel.volume.collectAsStateWithLifecycle()
+    val playbackPitch by viewModel.playbackPitch.collectAsStateWithLifecycle()
 
     var showEqualizerSheet by remember { mutableStateOf(false) }
     var showSleepTimerDialog by remember { mutableStateOf(false) }
@@ -291,14 +292,6 @@ fun PlayerScreen(
                     modifier = Modifier.weight(1f)
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    IconButton(onClick = { showAudioControlsSheet = true }) {
-                        Icon(
-                            imageVector = Icons.Default.Tune,
-                            contentDescription = "Audio Controls",
-                            tint = Color(0xFF91D8FB),
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
                     IconButton(onClick = { showQueueSheet = true }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.QueueMusic,
@@ -371,6 +364,15 @@ fun PlayerScreen(
                     Icon(
                         imageVector = Icons.Default.Timer,
                         contentDescription = "Sleep Timer",
+                        tint = Color(0xFF91D8FB),
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                IconButton(onClick = { showAudioControlsSheet = true }) {
+                    Icon(
+                        imageVector = Icons.Default.Tune,
+                        contentDescription = "Audio Controls",
                         tint = Color(0xFF91D8FB),
                         modifier = Modifier.size(24.dp)
                     )

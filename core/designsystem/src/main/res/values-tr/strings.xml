@@ -2,6 +2,9 @@
     <string name="drawer_title">Music Player</string>
     <string name="drawer_subtitle">Mükemmel Müzik Deneyimi</string>
     <string name="equalizer">Ekolayzer</string>
+    <string name="drive_mode">Sürüş Modu</string>
+    <string name="tap_or_swipe_hint">Oynat/Duraklat için dokunun • Atlamak için kaydırın</string>
+    <string name="voice_assistant">Sesli Asistan</string>
     <string name="sleep_timer">Uyku Zamanlayıcı</string>
     <string name="scan_media">Medyayı Tara</string>
     <string name="notification_permissions">Bildirim ve İzinler</string>

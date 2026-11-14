@@ -103,10 +103,12 @@ fun AppRootContent(
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
 
-        val showBottomBar =
-            currentRoute?.contains("Player") == false && !currentRoute.contains("Settings") && !currentRoute.contains(
-                "Visualizer"
-            ) && !currentRoute.contains("Permissions")
+        val showBottomBar = currentRoute != null &&
+                !currentRoute.contains("Player") &&
+                !currentRoute.contains("DriveMode") &&
+                !currentRoute.contains("Settings") &&
+                !currentRoute.contains("Visualizer") &&
+                !currentRoute.contains("Permissions")
 
         val artUri by produceState<Bitmap?>(initialValue = null, key1 = currentSong?.uri) {
             val songUri = currentSong?.uri
@@ -150,6 +152,7 @@ fun AppRootContent(
                 selectedItem = selectedDrawerItem,
                 onItemSelected = { selectedDrawerItem = it },
                 onEqualizerClick = { showEqualizerDialog = true },
+                onDriveModeClick = { navController.navigate(Screen.DriveMode) },
                 onSleepTimerClick = { showSleepTimerDialog = true },
                 onScanMediaClick = { showScanMediaDialog = true },
                 onPermissionsClick = { navController.navigate(Screen.Permissions) },

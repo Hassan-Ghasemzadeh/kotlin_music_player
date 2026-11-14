@@ -58,7 +58,7 @@ class PlayerManager @Inject constructor(
     val equalizerAudioFxManager: EqualizerAudioFxManager,
     private val getSettingsUseCase: GetSettingsUseCase,
     @param:ApplicationContext private val context: Context,
-) {
+) : PlayerController {
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
@@ -194,10 +194,10 @@ class PlayerManager @Inject constructor(
     }
 
     private val _currentSong = MutableStateFlow<SongUiModel?>(null)
-    val currentSong: StateFlow<SongUiModel?> = _currentSong.asStateFlow()
+    override val currentSong: StateFlow<SongUiModel?> = _currentSong.asStateFlow()
 
     private val _isPlaying = MutableStateFlow(false)
-    val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
+    override val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
     private val _queue = MutableStateFlow<List<SongUiModel>>(emptyList())
     val queue: StateFlow<List<SongUiModel>> = _queue.asStateFlow()
@@ -658,7 +658,7 @@ class PlayerManager @Inject constructor(
         return result
     }
 
-    fun playNext() {
+    override fun playNext() {
         runOnMainThread {
             cancelCrossfade()
             if (exoPlayer.hasNextMediaItem()) {
@@ -689,7 +689,7 @@ class PlayerManager @Inject constructor(
         }
     }
 
-    fun playPrevious() {
+    override fun playPrevious() {
         runOnMainThread {
             cancelCrossfade()
             if (exoPlayer.hasPreviousMediaItem()) {
@@ -955,7 +955,7 @@ class PlayerManager @Inject constructor(
         }
     }
 
-    fun togglePlayPause() {
+    override fun togglePlayPause() {
         runOnMainThread {
             if (exoPlayer.isPlaying) {
                 currentPlayer.pause()

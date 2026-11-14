@@ -12,6 +12,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.albums.albumD
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.albums.albumsGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.artists.artistDetailGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.artists.artistsGraph
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.drive_mode.driveModeGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.edit.editTagScreenGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.permissions.permissionsGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.settings.settingsGraph
@@ -291,6 +292,13 @@ fun AppNavGraph(
                 },
             )
         }
+
+        // Dedicated full-screen Drive Mode destination route
+        driveModeGraph(
+            onBackClick = {
+                navController.popBackStack()
+            }
+        )
 
         // Detailed song metadata view destination route
         composable<Screen.SongDetail> {

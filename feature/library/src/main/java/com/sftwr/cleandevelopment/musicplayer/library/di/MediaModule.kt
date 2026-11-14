@@ -71,4 +71,10 @@ object MediaModule {
     fun providePlayer(
         playerManager: PlayerManager
     ): Player = playerManager.exoPlayer
+
+    @Provides
+    @Singleton
+    fun providePlayerController(
+        playerManager: PlayerManager
+    ): com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerController = playerManager
 }

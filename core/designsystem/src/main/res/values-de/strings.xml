@@ -2,6 +2,9 @@
     <string name="drawer_title">Music Player</string>
     <string name="drawer_subtitle">Das ultimative Erlebnis</string>
     <string name="equalizer">Equalizer</string>
+    <string name="drive_mode">Fahrmodus</string>
+    <string name="tap_or_swipe_hint">Tippen zum Abspielen/Pausieren • Wischen zum Überspringen</string>
+    <string name="voice_assistant">Sprachassistent</string>
     <string name="sleep_timer">Sleeptimer</string>
     <string name="scan_media">Medien scannen</string>
     <string name="notification_permissions">Benachrichtigungen &amp; Berechtigungen</string>

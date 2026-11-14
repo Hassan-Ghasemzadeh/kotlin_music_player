@@ -18,6 +18,9 @@ sealed interface Screen {
     data object Player : Screen
 
     @Serializable
+    data object DriveMode : Screen
+
+    @Serializable
     data object Search : Screen
 
     @Serializable

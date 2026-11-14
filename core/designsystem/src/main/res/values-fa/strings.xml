@@ -2,6 +2,9 @@
     <string name="drawer_title">موزیک پلیر</string>
     <string name="drawer_subtitle">تجربه بی‌نظیر موسیقی</string>
     <string name="equalizer">اکولایزر</string>
+    <string name="drive_mode">حالت رانندگی</string>
+    <string name="tap_or_swipe_hint">برای پخش/توقف ضربه بزنید • برای تغییر آهنگ بکشید</string>
+    <string name="voice_assistant">دستیار صوتی</string>
     <string name="sleep_timer">تایمر خواب</string>
     <string name="scan_media">اسکن فایل‌های صوتی</string>
     <string name="notification_permissions">اعلان‌ها و مجوزها</string>

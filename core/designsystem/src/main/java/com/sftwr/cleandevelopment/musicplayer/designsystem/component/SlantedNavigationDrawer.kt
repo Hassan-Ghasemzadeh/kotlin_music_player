@@ -82,6 +82,7 @@ fun SlantedNavigationDrawerContent(
     selectedItem: String = "Equalizer",
     onItemSelected: (String) -> Unit,
     onEqualizerClick: () -> Unit,
+    onDriveModeClick: () -> Unit = {},
     onSleepTimerClick: () -> Unit,
     onScanMediaClick: () -> Unit,
     onPermissionsClick: () -> Unit = {},
@@ -94,6 +95,7 @@ fun SlantedNavigationDrawerContent(
 
     val menuItems = listOf(
         DrawerMenuItem("Equalizer", stringResource(R.string.equalizer), Icons.Default.GraphicEq, onClick = onEqualizerClick),
+        DrawerMenuItem("Drive Mode", stringResource(R.string.drive_mode), Icons.Default.DirectionsCar, onClick = onDriveModeClick),
         DrawerMenuItem("Sleep Timer", stringResource(R.string.sleep_timer), Icons.Default.Timer, onClick = onSleepTimerClick),
         DrawerMenuItem("Scan Media", stringResource(R.string.scan_media), Icons.Default.FolderOpen, onClick = onScanMediaClick),
         DrawerMenuItem("Notification / Permissions", stringResource(R.string.notification_permissions), Icons.Default.Notifications, onClick = onPermissionsClick),
