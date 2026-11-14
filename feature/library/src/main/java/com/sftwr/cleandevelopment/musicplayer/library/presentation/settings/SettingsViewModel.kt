@@ -121,6 +121,14 @@ class SettingsViewModel @Inject constructor(
             initialValue = true
         )
 
+    val isSwipeArtworkToSkipEnabled: StateFlow<Boolean> = getSettingsUseCase()
+        .map { it.swipeArtworkToSkipEnabled }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = true
+        )
+
     init {
         viewModelScope.launch {
             getSettingsUseCase().collect { settings ->
@@ -277,6 +285,12 @@ class SettingsViewModel @Inject constructor(
     fun onShakeToSkipToggle(enabled: Boolean) {
         viewModelScope.launch {
             updateControlsSettingsUseCase.setShakeToSkip(enabled)
+        }
+    }
+
+    fun onSwipeArtworkToSkipToggle(enabled: Boolean) {
+        viewModelScope.launch {
+            updateControlsSettingsUseCase.setSwipeArtworkToSkip(enabled)
         }
     }
 
