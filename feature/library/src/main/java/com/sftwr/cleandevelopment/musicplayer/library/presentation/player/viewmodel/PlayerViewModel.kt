@@ -18,6 +18,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.ShareUtils
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,11 +43,77 @@ class PlayerViewModel @Inject constructor(
     private val playlistRepository: PlaylistRepository,
     getPlaylistsUseCase: GetPlaylistsUseCase,
     private val addSongToPlaylistUseCase: AddSongToPlaylistUseCase,
-    getSettingsUseCase: GetSettingsUseCase
+    getSettingsUseCase: GetSettingsUseCase,
+    @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
     // Expose underlying ExoPlayer instance for audio session management
     val exoPlayer = playerManager.exoPlayer
+
+    val swipeArtworkToSkip: StateFlow<Boolean> = getSettingsUseCase()
+        .map { it.swipeArtworkToSkipEnabled }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = true
+        )
+
+    val shakeToSkip: StateFlow<Boolean> = getSettingsUseCase()
+        .map { it.shakeToSkipEnabled }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
+    private class ShakeDetector(
+        context: Context,
+        private val onShake: () -> Unit
+    ) : android.hardware.SensorEventListener {
+        private val sensorManager = context.getSystemService(Context.SENSOR_SERVICE) as? android.hardware.SensorManager
+        private val accelerometer = sensorManager?.getDefaultSensor(android.hardware.Sensor.TYPE_ACCELEROMETER)
+        private var lastShakeTime = 0L
+
+        fun start() {
+            accelerometer?.let {
+                sensorManager?.registerListener(this, it, android.hardware.SensorManager.SENSOR_DELAY_NORMAL)
+            }
+        }
+
+        fun stop() {
+            sensorManager?.unregisterListener(this)
+        }
+
+        override fun onSensorChanged(event: android.hardware.SensorEvent?) {
+            if (event?.sensor?.type == android.hardware.Sensor.TYPE_ACCELEROMETER) {
+                val x = event.values[0]
+                val y = event.values[1]
+                val z = event.values[2]
+
+                val gX = x / android.hardware.SensorManager.GRAVITY_EARTH
+                val gY = y / android.hardware.SensorManager.GRAVITY_EARTH
+                val gZ = z / android.hardware.SensorManager.GRAVITY_EARTH
+
+                val gForce = kotlin.math.sqrt((gX * gX + gY * gY + gZ * gZ).toDouble()).toFloat()
+
+                if (gForce > 2.7f) {
+                    val currentTime = System.currentTimeMillis()
+                    if (currentTime - lastShakeTime > 1500) {
+                        lastShakeTime = currentTime
+                        onShake()
+                    }
+                }
+            }
+        }
+
+        override fun onAccuracyChanged(sensor: android.hardware.Sensor?, accuracy: Int) {}
+    }
+
+    private val shakeDetector = ShakeDetector(context) {
+        if (shakeToSkip.value && isPlaying.value) {
+            skipNext()
+        }
+    }
 
     // Safely retrieve the active audio session ID for visualizers
     val audioSessionId: Int
@@ -104,6 +171,24 @@ class PlayerViewModel @Inject constructor(
         loadDeviceSongs()
         startPositionUpdater()
         observeCurrentSong()
+        observeShakeToSkip()
+    }
+
+    private fun observeShakeToSkip() {
+        viewModelScope.launch {
+            shakeToSkip.collect { enabled ->
+                if (enabled) {
+                    shakeDetector.start()
+                } else {
+                    shakeDetector.stop()
+                }
+            }
+        }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        shakeDetector.stop()
     }
 
     private fun observeCurrentSong() {
