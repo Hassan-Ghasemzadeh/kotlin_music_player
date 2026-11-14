@@ -134,6 +134,7 @@ fun SettingsScreen(
     isScreenOffPlaybackEnabled: Boolean = uiState.settings.screenOffPlaybackEnabled,
     isHeadsetControlsEnabled: Boolean = uiState.settings.headsetControlsEnabled,
     isAllowExternalDevicePlaybackEnabled: Boolean = uiState.settings.allowExternalDevicePlayback,
+    isSwipeArtworkToSkipEnabled: Boolean = uiState.settings.swipeArtworkToSkipEnabled,
     onBackClick: () -> Unit,
     onLanguageClick: () -> Unit,
     onLanguageSelected: (AppLanguage) -> Unit,
@@ -160,6 +161,7 @@ fun SettingsScreen(
     onHeadsetControlsToggle: (Boolean) -> Unit,
     onAllowExternalDeviceToggle: (Boolean) -> Unit,
     onShakeToSkipToggle: (Boolean) -> Unit,
+    onSwipeArtworkToSkipToggle: (Boolean) -> Unit,
     onNavigateToPermissions: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -523,6 +525,17 @@ fun SettingsScreen(
                             icon = Icons.Default.Vibration,
                             checked = settings.shakeToSkipEnabled,
                             onCheckedChange = onShakeToSkipToggle
+                        )
+
+                        SettingsDivider()
+
+                        // Swipe Artwork to Skip Toggle
+                        SettingsSwitchRowItem(
+                            title = stringResource(R.string.swipe_artwork_to_skip),
+                            subtitle = stringResource(R.string.swipe_artwork_to_skip_desc),
+                            icon = Icons.Default.MusicNote,
+                            checked = settings.swipeArtworkToSkipEnabled,
+                            onCheckedChange = onSwipeArtworkToSkipToggle
                         )
                     }
                 }
