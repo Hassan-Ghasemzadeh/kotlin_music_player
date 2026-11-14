@@ -4,6 +4,7 @@ import android.Manifest
 import android.content.pm.PackageManager
 import android.util.Log
 import android.widget.Toast
+import com.sftwr.cleandevelopment.musicplayer.home.R
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
@@ -24,6 +25,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -37,15 +40,22 @@ import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
@@ -107,13 +117,15 @@ fun PlayerScreen(
     val playlists by viewModel.playlists.collectAsState()
     val isAddToPlaylistDialogVisible by viewModel.isAddToPlaylistDialogVisible.collectAsState()
     val visualizerStyle by viewModel.visualizerStyle.collectAsState()
+    val queue by viewModel.queue.collectAsState()
 
     var showEqualizerSheet by remember { mutableStateOf(false) }
     var showSleepTimerDialog by remember { mutableStateOf(false) }
+    var showQueueSheet by remember { mutableStateOf(false) }
 
     val totalDuration = songState?.duration ?: ""
-    val songTitle = songState?.title ?: androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.unknown_title)
-    val artistName = songState?.artist ?: androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.unknown_artist)
+    val songTitle = songState?.title ?: stringResource(R.string.unknown_title)
+    val artistName = songState?.artist ?: stringResource(R.string.unknown_artist)
 
     val context = LocalContext.current
     val visualizerManager = remember { AudioVisualizerManager() }
@@ -183,17 +195,32 @@ fun PlayerScreen(
                     onDragEnd = {
                         scope.launch {
                             if (dragOffset < -80f) {
-                                animatedOffset.animateTo(-screenWidthPx, animationSpec = androidx.compose.animation.core.tween(200))
+                                animatedOffset.animateTo(
+                                    -screenWidthPx,
+                                    animationSpec = androidx.compose.animation.core.tween(200)
+                                )
                                 viewModel.skipNext()
                                 animatedOffset.snapTo(screenWidthPx)
-                                animatedOffset.animateTo(0f, animationSpec = androidx.compose.animation.core.tween(200))
+                                animatedOffset.animateTo(
+                                    0f,
+                                    animationSpec = androidx.compose.animation.core.tween(200)
+                                )
                             } else if (dragOffset > 80f) {
-                                animatedOffset.animateTo(screenWidthPx, animationSpec = androidx.compose.animation.core.tween(200))
+                                animatedOffset.animateTo(
+                                    screenWidthPx,
+                                    animationSpec = androidx.compose.animation.core.tween(200)
+                                )
                                 viewModel.skipPrevious()
                                 animatedOffset.snapTo(-screenWidthPx)
-                                animatedOffset.animateTo(0f, animationSpec = androidx.compose.animation.core.tween(200))
+                                animatedOffset.animateTo(
+                                    0f,
+                                    animationSpec = androidx.compose.animation.core.tween(200)
+                                )
                             } else {
-                                animatedOffset.animateTo(0f, animationSpec = androidx.compose.animation.core.spring())
+                                animatedOffset.animateTo(
+                                    0f,
+                                    animationSpec = androidx.compose.animation.core.spring()
+                                )
                             }
                             dragOffset = 0f
                         }
@@ -259,13 +286,23 @@ fun PlayerScreen(
                     textAlign = TextAlign.Center,
                     modifier = Modifier.weight(1f)
                 )
-                IconButton(onClick = { showEqualizerSheet = true }) {
-                    Icon(
-                        imageVector = Icons.Default.Equalizer,
-                        contentDescription = "Equalizer",
-                        tint = Color(0xFF91D8FB),
-                        modifier = Modifier.size(24.dp)
-                    )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = { showQueueSheet = true }) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.QueueMusic,
+                            contentDescription = "Playing Queue",
+                            tint = Color(0xFF91D8FB),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                    IconButton(onClick = { showEqualizerSheet = true }) {
+                        Icon(
+                            imageVector = Icons.Default.Equalizer,
+                            contentDescription = "Equalizer",
+                            tint = Color(0xFF91D8FB),
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
                 }
             }
 
@@ -347,7 +384,9 @@ fun PlayerScreen(
                 Text(
                     text = songTitle,
                     style = MaterialTheme.typography.headlineSmall.copy(
-                        fontWeight = FontWeight.Bold, color = Color.White, textAlign = TextAlign.Center
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White,
+                        textAlign = TextAlign.Center
                     ),
                     maxLines = 1,
                     modifier = Modifier.padding(horizontal = 24.dp)
@@ -377,11 +416,19 @@ fun PlayerScreen(
                     ) {
                         Text(
                             text = currentPosition.formatTime(),
-                            style = MaterialTheme.typography.labelSmall.copy(color = Color.White.copy(alpha = 0.6f))
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = Color.White.copy(
+                                    alpha = 0.6f
+                                )
+                            )
                         )
                         Text(
                             text = totalDuration,
-                            style = MaterialTheme.typography.labelSmall.copy(color = Color.White.copy(alpha = 0.6f))
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = Color.White.copy(
+                                    alpha = 0.6f
+                                )
+                            )
                         )
                     }
 
@@ -427,7 +474,9 @@ fun PlayerScreen(
                             Icon(
                                 imageVector = Icons.Default.Shuffle,
                                 contentDescription = "Shuffle",
-                                tint = if (isShuffleEnabled) Color(0xFF00D2FF) else Color.White.copy(alpha = 0.6f)
+                                tint = if (isShuffleEnabled) Color(0xFF00D2FF) else Color.White.copy(
+                                    alpha = 0.6f
+                                )
                             )
                         }
                         IconButton(onClick = { viewModel.skipPrevious() }) {
@@ -447,7 +496,10 @@ fun PlayerScreen(
                                 .clickable {
                                     viewModel.togglePlayPause()
                                 }) {
-                            Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                            Box(
+                                contentAlignment = Alignment.Center,
+                                modifier = Modifier.fillMaxSize()
+                            ) {
                                 Icon(
                                     imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                                     contentDescription = if (isPlaying) "Pause" else "Play",
@@ -516,6 +568,149 @@ fun PlayerScreen(
                     showSleepTimerDialog = false
                 }
             )
+        }
+
+        // Playing Queue Modal Bottom Sheet
+        if (showQueueSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showQueueSheet = false },
+                sheetState = rememberModalBottomSheetState(),
+                containerColor = Color.Transparent,
+                dragHandle = { BottomSheetDefaults.DragHandle(color = Color.White.copy(alpha = 0.4f)) }
+            ) {
+                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(0.7f)
+                            .background(
+                                brush = Brush.verticalGradient(
+                                    colors = listOf(
+                                        Color(0xFF0F0B21),
+                                        Color(0xFF181035),
+                                        Color(0xFF2C1454)
+                                    )
+                                )
+                            )
+                            .padding(16.dp)
+                    ) {
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.playing_queue),
+                                    style = MaterialTheme.typography.titleLarge.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                )
+                                Text(
+                                    text = "${queue.size} tracks",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        color = Color.White.copy(alpha = 0.7f)
+                                    )
+                                )
+                            }
+
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                itemsIndexed(queue) { index, song ->
+                                    val isCurrentSong = song.id == songState?.id
+                                    Card(
+                                        onClick = {
+                                            viewModel.playQueueItem(index)
+                                        },
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = if (isCurrentSong) Color(0xFF6200EE).copy(
+                                                alpha = 0.3f
+                                            ) else Color(0x11FFFFFF)
+                                        ),
+                                        shape = MaterialTheme.shapes.medium,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(12.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(48.dp)
+                                                    .background(
+                                                        Color(0x33FFFFFF),
+                                                        MaterialTheme.shapes.small
+                                                    ),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                if (isCurrentSong && isPlaying) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.PlayArrow,
+                                                        contentDescription = "Playing",
+                                                        tint = Color(0xFF91D8FB),
+                                                        modifier = Modifier.size(24.dp)
+                                                    )
+                                                } else {
+                                                    Text(
+                                                        text = "${index + 1}",
+                                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                                            color = Color.White.copy(alpha = 0.7f),
+                                                            fontWeight = FontWeight.Bold
+                                                        )
+                                                    )
+                                                }
+                                            }
+
+                                            Spacer(modifier = Modifier.width(12.dp))
+
+                                            Column(
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Text(
+                                                    text = song.title,
+                                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                                        fontWeight = if (isCurrentSong) FontWeight.Bold else FontWeight.Medium,
+                                                        color = if (isCurrentSong) Color(0xFF91D8FB) else Color.White
+                                                    ),
+                                                    maxLines = 1
+                                                )
+                                                Spacer(modifier = Modifier.height(2.dp))
+                                                Text(
+                                                    text = song.artist,
+                                                    style = MaterialTheme.typography.bodySmall.copy(
+                                                        color = Color.White.copy(alpha = 0.6f)
+                                                    ),
+                                                    maxLines = 1
+                                                )
+                                            }
+
+                                            IconButton(
+                                                onClick = { viewModel.removeFromQueue(index) }
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Close,
+                                                    contentDescription = "Remove from Queue",
+                                                    tint = Color.White.copy(alpha = 0.6f),
+                                                    modifier = Modifier.size(20.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
     }
 }
