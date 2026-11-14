@@ -118,6 +118,8 @@
     <string name="allow_external_device_desc">Allow Bluetooth car audio or external devices to start playback</string>
     <string name="shake_to_skip">Shake to Skip Track</string>
     <string name="shake_to_skip_desc">Shake physical device to skip to next track</string>
+    <string name="swipe_artwork_to_skip">Swipe Artwork to Skip</string>
+    <string name="swipe_artwork_to_skip_desc">Swipe album art left for next track, right for previous track</string>
 
     <!-- System, Data & Permissions -->
     <string name="system_and_permissions">System, Data &amp; Permissions</string>

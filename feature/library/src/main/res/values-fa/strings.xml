@@ -118,6 +118,8 @@
     <string name="allow_external_device_desc">اجازه به بلوتوث خودرو و دستگاه‌های خارجی برای شروع پخش</string>
     <string name="shake_to_skip">تکان دادن گوشی برای رد کردن آهنگ</string>
     <string name="shake_to_skip_desc">تکان دادن فیزیکی گوشی برای رفتن به آهنگ بعدی</string>
+    <string name="swipe_artwork_to_skip">کشیدن تصویر آلبوم برای رد کردن</string>
+    <string name="swipe_artwork_to_skip_desc">تصویر آلبوم را برای آهنگ بعدی به چپ و برای آهنگ قبلی به راست بکشید</string>
 
     <!-- System, Data & Permissions -->
     <string name="system_and_permissions">سیستم، داده‌ها و مجوزها</string>

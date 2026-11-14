@@ -118,6 +118,8 @@
     <string name="allow_external_device_desc">Bluetooth araç veya harici cihazların oynatma başlatmasına izin verin</string>
     <string name="shake_to_skip">Sallayarak Parça Değiştir</string>
     <string name="shake_to_skip_desc">Sonraki parçaya geçmek için cihazı sallayın</string>
+    <string name="swipe_artwork_to_skip">Parça Değiştirmek İçin Albüm Resmini Kaydır</string>
+    <string name="swipe_artwork_to_skip_desc">Sonraki parça için albüm resmini sola, önceki parça için sağa kaydırın</string>
 
     <!-- System, Data & Permissions -->
     <string name="system_and_permissions">Sistem, Veriler ve İzinler</string>

@@ -118,6 +118,8 @@
     <string name="allow_external_device_desc">Wiedergabestart durch externe Bluetooth-Geräte erlauben</string>
     <string name="shake_to_skip">Schütteln zum Überspringen</string>
     <string name="shake_to_skip_desc">Gerät schütteln, um zum nächsten Titel zu wechseln</string>
+    <string name="swipe_artwork_to_skip">Artwork durch Wischen überspringen</string>
+    <string name="swipe_artwork_to_skip_desc">Albumcover nach links für nächsten Titel, nach rechts für vorherigen Titel wischen</string>
 
     <!-- System, Data & Permissions -->
     <string name="system_and_permissions">System, Daten &amp; Berechtigungen</string>
