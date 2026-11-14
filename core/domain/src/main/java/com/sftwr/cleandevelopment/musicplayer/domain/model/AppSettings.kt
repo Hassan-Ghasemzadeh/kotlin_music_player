@@ -43,7 +43,8 @@ data class AppSettings(
     val screenOffPlaybackEnabled: Boolean = true,
     val headsetControlsEnabled: Boolean = true,
     val allowExternalDevicePlayback: Boolean = true,
-    val shakeToSkipEnabled: Boolean = false
+    val shakeToSkipEnabled: Boolean = false,
+    val swipeArtworkToSkipEnabled: Boolean = true
 ) {
     val isGlassmorphicEnabled: Boolean
         get() = glassmorphicStyleEnabled
