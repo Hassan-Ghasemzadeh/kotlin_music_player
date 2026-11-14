@@ -54,12 +54,17 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -67,6 +72,7 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.launch
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.toMillis
 import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.AudioVisualizerManager
@@ -162,6 +168,48 @@ fun PlayerScreen(
     }
 
     val fftData by visualizerManager.fftData.collectAsState()
+    val swipeArtworkToSkip by viewModel.swipeArtworkToSkip.collectAsState()
+    val density = LocalDensity.current
+    val screenWidthPx = with(density) { 350.dp.toPx() }
+    var dragOffset by remember { mutableStateOf(0f) }
+    val animatedOffset = remember { androidx.compose.animation.core.Animatable(0f) }
+    val scope = rememberCoroutineScope()
+
+    val artworkModifier = if (swipeArtworkToSkip) {
+        Modifier
+            .graphicsLayer { translationX = animatedOffset.value }
+            .pointerInput(swipeArtworkToSkip) {
+                detectHorizontalDragGestures(
+                    onDragEnd = {
+                        scope.launch {
+                            if (dragOffset < -80f) {
+                                animatedOffset.animateTo(-screenWidthPx, animationSpec = androidx.compose.animation.core.tween(200))
+                                viewModel.skipNext()
+                                animatedOffset.snapTo(screenWidthPx)
+                                animatedOffset.animateTo(0f, animationSpec = androidx.compose.animation.core.tween(200))
+                            } else if (dragOffset > 80f) {
+                                animatedOffset.animateTo(screenWidthPx, animationSpec = androidx.compose.animation.core.tween(200))
+                                viewModel.skipPrevious()
+                                animatedOffset.snapTo(-screenWidthPx)
+                                animatedOffset.animateTo(0f, animationSpec = androidx.compose.animation.core.tween(200))
+                            } else {
+                                animatedOffset.animateTo(0f, animationSpec = androidx.compose.animation.core.spring())
+                            }
+                            dragOffset = 0f
+                        }
+                    },
+                    onHorizontalDrag = { change, dragAmount ->
+                        change.consume()
+                        dragOffset += dragAmount
+                        scope.launch {
+                            animatedOffset.snapTo(animatedOffset.value + dragAmount)
+                        }
+                    }
+                )
+            }
+    } else {
+        Modifier
+    }
 
     // Ensure audio visualizer resources are cleanly released when leaving the screen
     DisposableEffect(Unit) {
@@ -227,7 +275,8 @@ fun PlayerScreen(
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f),
+                    .weight(1f)
+                    .then(artworkModifier),
                 contentAlignment = Alignment.Center
             ) {
                 NeonCircularVisualizer(
