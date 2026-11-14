@@ -61,6 +61,7 @@ class SettingsRepositoryImpl @Inject constructor(
         val ALLOW_EXTERNAL_DEVICE_PLAYBACK = booleanPreferencesKey("allow_external_device_playback")
         val EXTERNAL_DEVICE_PLAYBACK_ENABLED = booleanPreferencesKey("external_device_playback_enabled")
         val SHAKE_TO_SKIP = booleanPreferencesKey("shake_to_skip")
+        val SWIPE_ARTWORK_TO_SKIP_ENABLED = booleanPreferencesKey("swipe_artwork_to_skip_enabled")
     }
 
     override fun getSettings(): Flow<AppSettings> {
@@ -105,7 +106,8 @@ class SettingsRepositoryImpl @Inject constructor(
                 screenOffPlaybackEnabled = screenOffEnabled,
                 headsetControlsEnabled = headsetEnabled,
                 allowExternalDevicePlayback = externalDeviceEnabled,
-                shakeToSkipEnabled = preferences[PreferencesKeys.SHAKE_TO_SKIP] ?: false
+                shakeToSkipEnabled = preferences[PreferencesKeys.SHAKE_TO_SKIP] ?: false,
+                swipeArtworkToSkipEnabled = preferences[PreferencesKeys.SWIPE_ARTWORK_TO_SKIP_ENABLED] ?: true
             )
         }
     }
@@ -232,6 +234,12 @@ class SettingsRepositoryImpl @Inject constructor(
     override suspend fun updateShakeToSkip(enabled: Boolean) {
         context.appSettingsDataStore.edit { preferences ->
             preferences[PreferencesKeys.SHAKE_TO_SKIP] = enabled
+        }
+    }
+
+    override suspend fun updateSwipeArtworkToSkip(enabled: Boolean) {
+        context.appSettingsDataStore.edit { preferences ->
+            preferences[PreferencesKeys.SWIPE_ARTWORK_TO_SKIP_ENABLED] = enabled
         }
     }
 }
