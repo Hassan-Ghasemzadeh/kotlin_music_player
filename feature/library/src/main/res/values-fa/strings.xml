@@ -217,4 +217,6 @@
     <string name="seconds_format">%1$d ثانیه</string>
     <string name="speed_format">%1$.2fx</string>
     <string name="playing_queue">صف پخش</string>
+    <string name="audio_controls">کنترل‌های صوتی</string>
+    <string name="playback_volume">حجم صدا</string>
 </resources>
