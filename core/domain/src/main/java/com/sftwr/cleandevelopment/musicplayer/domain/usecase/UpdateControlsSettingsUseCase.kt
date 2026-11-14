@@ -28,4 +28,8 @@ class UpdateControlsSettingsUseCase @Inject constructor(
     suspend fun setShakeToSkip(enabled: Boolean) {
         settingsRepository.updateShakeToSkip(enabled)
     }
+
+    suspend fun setSwipeArtworkToSkip(enabled: Boolean) {
+        settingsRepository.updateSwipeArtworkToSkip(enabled)
+    }
 }
