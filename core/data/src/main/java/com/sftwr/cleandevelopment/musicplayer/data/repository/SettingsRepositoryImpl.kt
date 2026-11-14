@@ -53,9 +53,13 @@ class SettingsRepositoryImpl @Inject constructor(
         val MIN_TRACK_DURATION = intPreferencesKey("min_track_duration")
 
         val LOCKSCREEN_CONTROLS = booleanPreferencesKey("lockscreen_controls")
+        val LOCKSCREEN_CONTROLS_ENABLED = booleanPreferencesKey("lockscreen_controls_enabled")
         val SCREEN_OFF_PLAYBACK = booleanPreferencesKey("screen_off_playback")
+        val SCREEN_OFF_PLAYBACK_ENABLED = booleanPreferencesKey("screen_off_playback_enabled")
         val HEADSET_CONTROLS = booleanPreferencesKey("headset_controls")
+        val HEADSET_CONTROLS_ENABLED = booleanPreferencesKey("headset_controls_enabled")
         val ALLOW_EXTERNAL_DEVICE_PLAYBACK = booleanPreferencesKey("allow_external_device_playback")
+        val EXTERNAL_DEVICE_PLAYBACK_ENABLED = booleanPreferencesKey("external_device_playback_enabled")
         val SHAKE_TO_SKIP = booleanPreferencesKey("shake_to_skip")
     }
 
@@ -67,6 +71,18 @@ class SettingsRepositoryImpl @Inject constructor(
             val rawPreset = preferences[PreferencesKeys.DEFAULT_EQUALIZER_PRESET]
                 ?: preferences[PreferencesKeys.DEFAULT_EQ_PRESET]
                 ?: EqualizerPreset.NORMAL.name
+            val lockscreenEnabled = preferences[PreferencesKeys.LOCKSCREEN_CONTROLS_ENABLED]
+                ?: preferences[PreferencesKeys.LOCKSCREEN_CONTROLS]
+                ?: true
+            val screenOffEnabled = preferences[PreferencesKeys.SCREEN_OFF_PLAYBACK_ENABLED]
+                ?: preferences[PreferencesKeys.SCREEN_OFF_PLAYBACK]
+                ?: true
+            val headsetEnabled = preferences[PreferencesKeys.HEADSET_CONTROLS_ENABLED]
+                ?: preferences[PreferencesKeys.HEADSET_CONTROLS]
+                ?: true
+            val externalDeviceEnabled = preferences[PreferencesKeys.EXTERNAL_DEVICE_PLAYBACK_ENABLED]
+                ?: preferences[PreferencesKeys.ALLOW_EXTERNAL_DEVICE_PLAYBACK]
+                ?: true
             AppSettings(
                 language = AppLanguage.fromCode(preferences[PreferencesKeys.LANGUAGE] ?: "en"),
                 glassmorphicStyleEnabled = preferences[PreferencesKeys.GLASSMORPHIC_ENABLED] ?: true,
@@ -85,10 +101,10 @@ class SettingsRepositoryImpl @Inject constructor(
                 replayGainMode = ReplayGainMode.fromKey(preferences[PreferencesKeys.REPLAY_GAIN_MODE] ?: "off"),
                 excludedFolders = preferences[PreferencesKeys.EXCLUDED_FOLDERS] ?: emptySet(),
                 minTrackDurationSeconds = preferences[PreferencesKeys.MIN_TRACK_DURATION] ?: 30,
-                lockscreenControlsEnabled = preferences[PreferencesKeys.LOCKSCREEN_CONTROLS] ?: true,
-                screenOffPlaybackEnabled = preferences[PreferencesKeys.SCREEN_OFF_PLAYBACK] ?: true,
-                headsetControlsEnabled = preferences[PreferencesKeys.HEADSET_CONTROLS] ?: true,
-                allowExternalDevicePlayback = preferences[PreferencesKeys.ALLOW_EXTERNAL_DEVICE_PLAYBACK] ?: true,
+                lockscreenControlsEnabled = lockscreenEnabled,
+                screenOffPlaybackEnabled = screenOffEnabled,
+                headsetControlsEnabled = headsetEnabled,
+                allowExternalDevicePlayback = externalDeviceEnabled,
                 shakeToSkipEnabled = preferences[PreferencesKeys.SHAKE_TO_SKIP] ?: false
             )
         }
@@ -187,24 +203,28 @@ class SettingsRepositoryImpl @Inject constructor(
 
     override suspend fun updateLockscreenControls(enabled: Boolean) {
         context.appSettingsDataStore.edit { preferences ->
+            preferences[PreferencesKeys.LOCKSCREEN_CONTROLS_ENABLED] = enabled
             preferences[PreferencesKeys.LOCKSCREEN_CONTROLS] = enabled
         }
     }
 
     override suspend fun updateScreenOffPlayback(enabled: Boolean) {
         context.appSettingsDataStore.edit { preferences ->
+            preferences[PreferencesKeys.SCREEN_OFF_PLAYBACK_ENABLED] = enabled
             preferences[PreferencesKeys.SCREEN_OFF_PLAYBACK] = enabled
         }
     }
 
     override suspend fun updateHeadsetControls(enabled: Boolean) {
         context.appSettingsDataStore.edit { preferences ->
+            preferences[PreferencesKeys.HEADSET_CONTROLS_ENABLED] = enabled
             preferences[PreferencesKeys.HEADSET_CONTROLS] = enabled
         }
     }
 
     override suspend fun updateAllowExternalDevicePlayback(enabled: Boolean) {
         context.appSettingsDataStore.edit { preferences ->
+            preferences[PreferencesKeys.EXTERNAL_DEVICE_PLAYBACK_ENABLED] = enabled
             preferences[PreferencesKeys.ALLOW_EXTERNAL_DEVICE_PLAYBACK] = enabled
         }
     }
