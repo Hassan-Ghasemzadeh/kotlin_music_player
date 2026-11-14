@@ -5,6 +5,8 @@ import androidx.annotation.OptIn
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.Player
+import androidx.media3.common.PlaybackParameters
+import com.sftwr.cleandevelopment.musicplayer.domain.usecase.UpdateAudioSettingsUseCase
 import androidx.media3.common.util.UnstableApi
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
@@ -44,6 +46,7 @@ class PlayerViewModel @Inject constructor(
     getPlaylistsUseCase: GetPlaylistsUseCase,
     private val addSongToPlaylistUseCase: AddSongToPlaylistUseCase,
     getSettingsUseCase: GetSettingsUseCase,
+    private val updateAudioSettingsUseCase: UpdateAudioSettingsUseCase,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -51,6 +54,36 @@ class PlayerViewModel @Inject constructor(
     val exoPlayer = playerManager.exoPlayer
 
     val queue: StateFlow<List<SongUiModel>> = playerManager.queue
+
+    val volume: StateFlow<Float> = playerManager.volume
+
+    val playbackPitch: StateFlow<Float> = getSettingsUseCase()
+        .map { it.playbackPitch }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 1.0f
+        )
+
+    val playbackSpeed: StateFlow<Float> = getSettingsUseCase()
+        .map { it.playbackSpeed }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = 1.0f
+        )
+
+    fun setVolume(vol: Float) {
+        playerManager.setVolume(vol)
+    }
+
+    fun setPlaybackPitch(pitch: Float) {
+        viewModelScope.launch {
+            updateAudioSettingsUseCase.setPlaybackPitch(pitch)
+            val speed = playbackSpeed.value
+            playerManager.setPlaybackParameters(speed, pitch)
+        }
+    }
 
     fun playQueueItem(index: Int) {
         playerManager.playQueueItem(index)
