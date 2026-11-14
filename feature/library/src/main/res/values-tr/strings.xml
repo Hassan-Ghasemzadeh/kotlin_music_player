@@ -216,4 +216,5 @@
     <!-- Seconds/Speed Formatting -->
     <string name="seconds_format">%1$d sn</string>
     <string name="speed_format">%1$.2fx</string>
+    <string name="playing_queue">Oynatma Sırası</string>
 </resources>
