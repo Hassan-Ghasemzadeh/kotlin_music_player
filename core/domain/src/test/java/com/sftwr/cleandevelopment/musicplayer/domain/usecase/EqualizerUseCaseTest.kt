@@ -161,6 +161,7 @@ private class FakeSettingsRepository : SettingsRepository {
     override suspend fun updateHeadsetControls(enabled: Boolean) {}
     override suspend fun updateAllowExternalDevicePlayback(enabled: Boolean) {}
     override suspend fun updateShakeToSkip(enabled: Boolean) {}
+    override suspend fun updateSwipeArtworkToSkip(enabled: Boolean) {}
 }
 
 private class FakeEqualizerRepository : EqualizerRepository {
