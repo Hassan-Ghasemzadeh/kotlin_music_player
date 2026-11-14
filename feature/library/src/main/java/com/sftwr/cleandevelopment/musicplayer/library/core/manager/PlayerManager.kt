@@ -182,6 +182,9 @@ class PlayerManager @Inject constructor(
     private val _isPlaying = MutableStateFlow(false)
     val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
+    private val _queue = MutableStateFlow<List<SongUiModel>>(emptyList())
+    val queue: StateFlow<List<SongUiModel>> = _queue.asStateFlow()
+
     private var activeQueue: List<SongUiModel> = emptyList()
     val hasNext: Boolean
         get() {
@@ -558,6 +561,9 @@ class PlayerManager @Inject constructor(
         if (mergedSongs.isNotEmpty() || _allSongs.value.isEmpty()) {
             _allSongs.value = mergedSongs
         }
+        if (activeQueue.isEmpty()) {
+            _queue.value = mergedSongs
+        }
         _currentSong.value?.let { current ->
             val updatedCurrent = mergedSongs.find { it.id == current.id }
             if (updatedCurrent != null) {
@@ -651,6 +657,7 @@ class PlayerManager @Inject constructor(
                         val nextSong = songs[currentIndex + 1]
                         val nextIndex = currentIndex + 1
                         activeQueue = songs
+                        _queue.value = songs
                         val mediaItems = songs.map { artworkCache[it.id].let { art -> it.toMediaItem(art) } }
                         _currentSong.value = nextSong
                         currentPlayer.setMediaItems(mediaItems, nextIndex, 0L)
@@ -681,6 +688,7 @@ class PlayerManager @Inject constructor(
                         val prevSong = songs[currentIndex - 1]
                         val prevIndex = currentIndex - 1
                         activeQueue = songs
+                        _queue.value = songs
                         val mediaItems = songs.map { artworkCache[it.id].let { art -> it.toMediaItem(art) } }
                         _currentSong.value = prevSong
                         currentPlayer.setMediaItems(mediaItems, prevIndex, 0L)
@@ -755,6 +763,7 @@ class PlayerManager @Inject constructor(
         }
 
         activeQueue = processedQueue
+        _queue.value = processedQueue
         val clickedSong = processedQueue[startIndex]
 
         val mediaItems = withContext(Dispatchers.Default) {
@@ -813,6 +822,7 @@ class PlayerManager @Inject constructor(
         val finalSong = editedSongsCache[song.id] ?: song
         _currentSong.value = finalSong
         activeQueue = listOf(finalSong)
+        _queue.value = listOf(finalSong)
 
         val mediaItem = finalSong.toMediaItem()
         runOnMainThread {
@@ -820,6 +830,31 @@ class PlayerManager @Inject constructor(
             currentPlayer.setMediaItem(mediaItem)
             currentPlayer.prepare()
             currentPlayer.play()
+        }
+    }
+
+    fun playQueueItem(index: Int) {
+        runOnMainThread {
+            val songs = if (activeQueue.isNotEmpty()) activeQueue else _allSongs.value
+            if (index in songs.indices) {
+                playerScope.launch {
+                    setQueue(songs, index)
+                }
+            }
+        }
+    }
+
+    fun removeFromQueue(index: Int) {
+        runOnMainThread {
+            val currentQueue = if (activeQueue.isNotEmpty()) activeQueue.toMutableList() else _allSongs.value.toMutableList()
+            if (index in currentQueue.indices) {
+                currentQueue.removeAt(index)
+                activeQueue = currentQueue
+                _queue.value = currentQueue
+                try {
+                    exoPlayer.removeMediaItem(index)
+                } catch (_: Exception) {}
+            }
         }
     }
 
