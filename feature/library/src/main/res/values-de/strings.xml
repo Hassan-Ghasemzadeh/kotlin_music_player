@@ -216,4 +216,5 @@
     <!-- Seconds/Speed Formatting -->
     <string name="seconds_format">%1$d Sek</string>
     <string name="speed_format">%1$.2fx</string>
+    <string name="playing_queue">Wiedergabewarteschlange</string>
 </resources>
