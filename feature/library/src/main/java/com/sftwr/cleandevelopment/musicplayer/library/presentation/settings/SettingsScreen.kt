@@ -130,6 +130,10 @@ fun SettingsScreen(
     isAlbumArtworkEnabled: Boolean,
     crossfadeDuration: Int,
     replayGainMode: ReplayGainMode = uiState.settings.replayGainMode,
+    isLockscreenControlsEnabled: Boolean = uiState.settings.lockscreenControlsEnabled,
+    isScreenOffPlaybackEnabled: Boolean = uiState.settings.screenOffPlaybackEnabled,
+    isHeadsetControlsEnabled: Boolean = uiState.settings.headsetControlsEnabled,
+    isAllowExternalDevicePlaybackEnabled: Boolean = uiState.settings.allowExternalDevicePlayback,
     onBackClick: () -> Unit,
     onLanguageClick: () -> Unit,
     onLanguageSelected: (AppLanguage) -> Unit,
@@ -469,44 +473,44 @@ fun SettingsScreen(
                         icon = Icons.Default.Phonelink
                     ) {
                         // Lockscreen Controls Toggle
-                        SettingsSwitchRowItem(
+                        SettingSwitchItem(
                             title = stringResource(R.string.lockscreen_controls),
                             subtitle = stringResource(R.string.lockscreen_controls_desc),
                             icon = Icons.Default.ScreenLockPortrait,
-                            checked = settings.lockscreenControlsEnabled,
+                            checked = isLockscreenControlsEnabled,
                             onCheckedChange = onLockscreenControlsToggle
                         )
 
                         SettingsDivider()
 
                         // Screen Off Playback Toggle
-                        SettingsSwitchRowItem(
+                        SettingSwitchItem(
                             title = stringResource(R.string.screen_off_playback),
                             subtitle = stringResource(R.string.screen_off_playback_desc),
                             icon = Icons.Default.LockClock,
-                            checked = settings.screenOffPlaybackEnabled,
+                            checked = isScreenOffPlaybackEnabled,
                             onCheckedChange = onScreenOffPlaybackToggle
                         )
 
                         SettingsDivider()
 
                         // Headset Controls Toggle
-                        SettingsSwitchRowItem(
+                        SettingSwitchItem(
                             title = stringResource(R.string.headset_controls),
                             subtitle = stringResource(R.string.headset_controls_desc),
                             icon = Icons.Default.Headset,
-                            checked = settings.headsetControlsEnabled,
+                            checked = isHeadsetControlsEnabled,
                             onCheckedChange = onHeadsetControlsToggle
                         )
 
                         SettingsDivider()
 
                         // External Device Playback Toggle
-                        SettingsSwitchRowItem(
+                        SettingSwitchItem(
                             title = stringResource(R.string.allow_external_device),
                             subtitle = stringResource(R.string.allow_external_device_desc),
                             icon = Icons.Default.Phonelink,
-                            checked = settings.allowExternalDevicePlayback,
+                            checked = isAllowExternalDevicePlaybackEnabled,
                             onCheckedChange = onAllowExternalDeviceToggle
                         )
 
