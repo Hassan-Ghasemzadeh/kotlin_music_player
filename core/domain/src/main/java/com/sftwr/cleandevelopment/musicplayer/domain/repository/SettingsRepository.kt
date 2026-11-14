@@ -39,4 +39,5 @@ interface SettingsRepository {
     suspend fun updateHeadsetControls(enabled: Boolean)
     suspend fun updateAllowExternalDevicePlayback(enabled: Boolean)
     suspend fun updateShakeToSkip(enabled: Boolean)
+    suspend fun updateSwipeArtworkToSkip(enabled: Boolean)
 }
