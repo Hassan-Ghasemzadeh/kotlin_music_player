@@ -85,6 +85,14 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
+    fun setPlaybackSpeed(speed: Float) {
+        viewModelScope.launch {
+            updateAudioSettingsUseCase.setPlaybackSpeed(speed)
+            val pitch = playbackPitch.value
+            playerManager.setPlaybackParameters(speed, pitch)
+        }
+    }
+
     fun playQueueItem(index: Int) {
         playerManager.playQueueItem(index)
     }

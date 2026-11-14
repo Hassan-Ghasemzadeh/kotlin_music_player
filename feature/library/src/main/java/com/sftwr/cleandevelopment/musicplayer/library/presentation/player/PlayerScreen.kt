@@ -125,6 +125,7 @@ fun PlayerScreen(
     val queue by viewModel.queue.collectAsStateWithLifecycle()
     val volume by viewModel.volume.collectAsStateWithLifecycle()
     val playbackPitch by viewModel.playbackPitch.collectAsStateWithLifecycle()
+    val playbackSpeed by viewModel.playbackSpeed.collectAsStateWithLifecycle()
 
     var showEqualizerSheet by remember { mutableStateOf(false) }
     var showSleepTimerDialog by remember { mutableStateOf(false) }
@@ -803,7 +804,7 @@ fun PlayerScreen(
                                 )
                             }
 
-                            // Pitch / Speed Slider
+                            // Pitch Slider
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 Row(
                                     modifier = Modifier.fillMaxWidth(),
@@ -822,6 +823,34 @@ fun PlayerScreen(
                                 Slider(
                                     value = playbackPitch,
                                     onValueChange = { viewModel.setPlaybackPitch(it) },
+                                    valueRange = 0.5f..2.0f,
+                                    colors = SliderDefaults.colors(
+                                        thumbColor = Color(0xFF91D8FB),
+                                        activeTrackColor = Color(0xFF91D8FB),
+                                        inactiveTrackColor = Color(0x3391D8FB)
+                                    )
+                                )
+                            }
+
+                            // Playback Speed Slider
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween
+                                ) {
+                                    Text(
+                                        text = stringResource(R.string.playback_speed),
+                                        style = MaterialTheme.typography.bodyMedium.copy(color = Color.White.copy(alpha = 0.8f))
+                                    )
+                                    Text(
+                                        text = String.format(java.util.Locale.US, "%.2fx", playbackSpeed),
+                                        style = MaterialTheme.typography.bodyMedium.copy(color = Color(0xFF91D8FB), fontWeight = FontWeight.Bold)
+                                    )
+                                }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Slider(
+                                    value = playbackSpeed,
+                                    onValueChange = { viewModel.setPlaybackSpeed(it) },
                                     valueRange = 0.5f..2.0f,
                                     colors = SliderDefaults.colors(
                                         thumbColor = Color(0xFF91D8FB),
