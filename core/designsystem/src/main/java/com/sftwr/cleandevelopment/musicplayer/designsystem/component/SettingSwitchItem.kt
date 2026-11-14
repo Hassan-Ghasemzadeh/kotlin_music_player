@@ -39,7 +39,6 @@ fun SettingSwitchItem(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable { onCheckedChange(!checked) }
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -51,7 +50,9 @@ fun SettingSwitchItem(
         )
         Spacer(modifier = Modifier.width(16.dp))
         Column(
-            modifier = Modifier.weight(1f)
+            modifier = Modifier
+                .weight(1f)
+                .clickable { onCheckedChange(!checked) }
         ) {
             Text(
                 text = title,
