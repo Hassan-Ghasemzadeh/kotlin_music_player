@@ -147,7 +147,8 @@ fun PlayerScreen(
         val controller = window?.let { WindowInsetsControllerCompat(it, it.decorView) }
         controller?.let {
             it.hide(WindowInsetsCompat.Type.systemBars())
-            it.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            it.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
         onDispose {
             controller?.let {
@@ -473,14 +474,17 @@ fun PlayerScreen(
                             Box(
                                 modifier = Modifier
                                     .size(12.dp)
-                                    .background(Color(0xFF6200EE), CircleShape)
+                                    .background(
+                                        accent,
+                                        CircleShape
+                                    )
                             )
                         },
                         track = { sliderState ->
                             SliderDefaults.Track(
                                 colors = SliderDefaults.colors(
-                                    activeTrackColor = Color(0xFF6200EE),
-                                    inactiveTrackColor = Color(0x33A855F7)
+                                    activeTrackColor = accent,                    // مسیر طی شده با رنگ اکسنتر نئون
+                                    inactiveTrackColor = accent.copy(alpha = 0.2f) // مسیر باقی‌مانده با کمترین شفافیت از همان رنگ
                                 ),
                                 enabled = true,
                                 sliderState = sliderState,
@@ -519,7 +523,7 @@ fun PlayerScreen(
                         }
                         Card(
                             shape = CircleShape,
-                            colors = CardDefaults.cardColors(containerColor = Color(0xFF6200EE)),
+                            colors = CardDefaults.cardColors(containerColor = accent),
                             elevation = CardDefaults.cardElevation(8.dp),
                             modifier = Modifier
                                 .size(72.dp)
@@ -654,7 +658,7 @@ fun PlayerScreen(
                                             viewModel.playQueueItem(index)
                                         },
                                         colors = CardDefaults.cardColors(
-                                            containerColor = if (isCurrentSong) Color(0xFF6200EE).copy(
+                                            containerColor = if (isCurrentSong) accent.copy(
                                                 alpha = 0.3f
                                             ) else Color(0x11FFFFFF)
                                         ),
@@ -671,8 +675,10 @@ fun PlayerScreen(
                                                 modifier = Modifier
                                                     .size(48.dp)
                                                     .background(
-                                                        Color(0x33FFFFFF),
-                                                        MaterialTheme.shapes.small
+                                                        color = if (isCurrentSong) accent.copy(alpha = 0.3f) else Color(
+                                                            0x22FFFFFF
+                                                        ),
+                                                        shape = MaterialTheme.shapes.small
                                                     ),
                                                 contentAlignment = Alignment.Center
                                             ) {
@@ -774,11 +780,18 @@ fun PlayerScreen(
                                 ) {
                                     Text(
                                         text = stringResource(R.string.playback_volume),
-                                        style = MaterialTheme.typography.bodyMedium.copy(color = Color.White.copy(alpha = 0.8f))
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            color = Color.White.copy(
+                                                alpha = 0.8f
+                                            )
+                                        )
                                     )
                                     Text(
                                         text = "${(volume * 100).toInt()}%",
-                                        style = MaterialTheme.typography.bodyMedium.copy(color = accent, fontWeight = FontWeight.Bold)
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            color = accent,
+                                            fontWeight = FontWeight.Bold
+                                        )
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -802,11 +815,22 @@ fun PlayerScreen(
                                 ) {
                                     Text(
                                         text = stringResource(R.string.playback_pitch),
-                                        style = MaterialTheme.typography.bodyMedium.copy(color = Color.White.copy(alpha = 0.8f))
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            color = Color.White.copy(
+                                                alpha = 0.8f
+                                            )
+                                        )
                                     )
                                     Text(
-                                        text = String.format(java.util.Locale.US, "%.2fx", playbackPitch),
-                                        style = MaterialTheme.typography.bodyMedium.copy(color = accent, fontWeight = FontWeight.Bold)
+                                        text = String.format(
+                                            java.util.Locale.US,
+                                            "%.2fx",
+                                            playbackPitch
+                                        ),
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            color = accent,
+                                            fontWeight = FontWeight.Bold
+                                        )
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -830,11 +854,22 @@ fun PlayerScreen(
                                 ) {
                                     Text(
                                         text = stringResource(R.string.playback_speed),
-                                        style = MaterialTheme.typography.bodyMedium.copy(color = Color.White.copy(alpha = 0.8f))
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            color = Color.White.copy(
+                                                alpha = 0.8f
+                                            )
+                                        )
                                     )
                                     Text(
-                                        text = String.format(java.util.Locale.US, "%.2fx", playbackSpeed),
-                                        style = MaterialTheme.typography.bodyMedium.copy(color = accent, fontWeight = FontWeight.Bold)
+                                        text = String.format(
+                                            java.util.Locale.US,
+                                            "%.2fx",
+                                            playbackSpeed
+                                        ),
+                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                            color = accent,
+                                            fontWeight = FontWeight.Bold
+                                        )
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))

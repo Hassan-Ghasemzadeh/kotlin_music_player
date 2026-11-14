@@ -41,6 +41,7 @@ fun GlassCard(
     content: @Composable () -> Unit
 ) {
     val isGlassmorphicEnabled = LocalGlassmorphicEnabled.current
+    val colorPalette = LocalColorPalette.current
 
     val backgroundModifier = if (isGlassmorphicEnabled) {
         Modifier
@@ -64,10 +65,10 @@ fun GlassCard(
             )
     } else {
         Modifier
-            .background(Color(0xFF1B1238))
+            .background(colorPalette.secondaryBackground)
             .border(
                 width = 1.dp,
-                color = Color.White.copy(alpha = 0.1f),
+                color = colorPalette.accent.copy(alpha = 0.2f),
                 shape = shape
             )
     }

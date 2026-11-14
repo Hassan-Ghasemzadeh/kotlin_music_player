@@ -1,8 +1,5 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.equalizer
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -11,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -28,8 +24,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.SurroundSound
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -58,13 +52,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerBand
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerPreset
-import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerState
 import com.sftwr.cleandevelopment.musicplayer.home.R
-
-private val NeonBlue = Color(0xFF91D8FB)
-private val DarkGlassBackground = Color(0xF2140D2B)
 
 /**
  * Custom Bottom Sheet Dialog providing a dark glassmorphic UI for tuning audio equalizer bands,
@@ -78,11 +69,13 @@ fun EqualizerBottomSheet(
     onDismissRequest: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsState()
+    val palette = LocalColorPalette.current
+    val accent = palette.accent
 
     ModalBottomSheet(
         onDismissRequest = onDismissRequest,
         sheetState = sheetState,
-        containerColor = DarkGlassBackground,
+        containerColor = palette.primaryBackground.copy(alpha = 0.96f),
         scrimColor = Color.Black.copy(alpha = 0.6f),
         dragHandle = {
             Box(
@@ -102,6 +95,8 @@ fun EqualizerBottomSheet(
         ) {
             EqualizerHeader(
                 isEnabled = uiState.isEnabled,
+                accentColor = accent,
+                secondaryColor = palette.surfaceCard,
                 onToggleEnabled = { viewModel.toggleEnabled(it) },
                 onClose = onDismissRequest
             )
@@ -118,6 +113,8 @@ fun EqualizerBottomSheet(
                         availablePresets = uiState.availablePresets,
                         currentPresetId = uiState.currentPresetId,
                         isEnabled = uiState.isEnabled,
+                        accentColor = accent,
+                        secondaryColor = palette.surfaceCard,
                         onPresetSelected = { viewModel.selectPreset(it) }
                     )
 
@@ -126,6 +123,7 @@ fun EqualizerBottomSheet(
                     FrequencyBandsSection(
                         bands = uiState.bands,
                         isEnabled = uiState.isEnabled,
+                        accentColor = accent,
                         onBandLevelChanged = { index, levelMb ->
                             viewModel.setBandLevel(index, levelMb)
                         }
@@ -137,6 +135,7 @@ fun EqualizerBottomSheet(
                         bassBoost = uiState.bassBoostStrength,
                         virtualizer = uiState.virtualizerStrength,
                         isEnabled = uiState.isEnabled,
+                        accentColor = accent,
                         onBassBoostChanged = { viewModel.setBassBoostStrength(it) },
                         onVirtualizerChanged = { viewModel.setVirtualizerStrength(it) }
                     )
@@ -151,6 +150,8 @@ fun EqualizerBottomSheet(
 @Composable
 private fun EqualizerHeader(
     isEnabled: Boolean,
+    accentColor: Color,
+    secondaryColor: Color,
     onToggleEnabled: (Boolean) -> Unit,
     onClose: () -> Unit
 ) {
@@ -169,18 +170,18 @@ private fun EqualizerHeader(
                     .background(
                         Brush.linearGradient(
                             listOf(
-                                NeonBlue.copy(alpha = 0.3f),
-                                Color(0xFF6200EE).copy(alpha = 0.3f)
+                                accentColor.copy(alpha = 0.3f),
+                                secondaryColor.copy(alpha = 0.5f)
                             )
                         )
                     )
-                    .border(1.dp, NeonBlue.copy(alpha = 0.6f), CircleShape),
+                    .border(1.dp, accentColor.copy(alpha = 0.6f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = Icons.Default.GraphicEq,
                     contentDescription = null,
-                    tint = NeonBlue,
+                    tint = accentColor,
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -204,7 +205,7 @@ private fun EqualizerHeader(
                 onCheckedChange = onToggleEnabled,
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = Color.Black,
-                    checkedTrackColor = NeonBlue,
+                    checkedTrackColor = accentColor,
                     uncheckedThumbColor = Color.White.copy(alpha = 0.7f),
                     uncheckedTrackColor = Color.White.copy(alpha = 0.2f)
                 )
@@ -228,6 +229,8 @@ private fun PresetsSection(
     availablePresets: List<EqualizerPreset>,
     currentPresetId: Short,
     isEnabled: Boolean,
+    accentColor: Color,
+    secondaryColor: Color,
     onPresetSelected: (EqualizerPreset) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -258,8 +261,8 @@ private fun PresetsSection(
                             if (isSelected) {
                                 Brush.linearGradient(
                                     listOf(
-                                        NeonBlue.copy(alpha = 0.35f),
-                                        Color(0xFF6200EE).copy(alpha = 0.25f)
+                                        accentColor.copy(alpha = 0.35f),
+                                        secondaryColor.copy(alpha = 0.45f)
                                     )
                                 )
                             } else {
@@ -273,7 +276,7 @@ private fun PresetsSection(
                         )
                         .border(
                             width = if (isSelected) 1.5.dp else 1.dp,
-                            color = if (isSelected) NeonBlue else Color.White.copy(alpha = 0.15f),
+                            color = if (isSelected) accentColor else Color.White.copy(alpha = 0.15f),
                             shape = shape
                         )
                         .clickable(enabled = isEnabled) {
@@ -285,7 +288,7 @@ private fun PresetsSection(
                         text = preset.name,
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            color = if (isSelected) NeonBlue else Color.White.copy(alpha = 0.8f)
+                            color = if (isSelected) accentColor else Color.White.copy(alpha = 0.8f)
                         )
                     )
                 }
@@ -298,6 +301,7 @@ private fun PresetsSection(
 private fun FrequencyBandsSection(
     bands: List<EqualizerBand>,
     isEnabled: Boolean,
+    accentColor: Color,
     onBandLevelChanged: (bandIndex: Short, levelMb: Short) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxWidth()) {
@@ -326,6 +330,7 @@ private fun FrequencyBandsSection(
                     EqualizerBandItem(
                         band = band,
                         isEnabled = isEnabled,
+                        accentColor = accentColor,
                         onLevelChanged = { levelMb ->
                             onBandLevelChanged(band.index, levelMb)
                         }
@@ -341,6 +346,7 @@ private fun FrequencyBandsSection(
 private fun EqualizerBandItem(
     band: EqualizerBand,
     isEnabled: Boolean,
+    accentColor: Color,
     onLevelChanged: (Short) -> Unit
 ) {
     val levelDb = band.currentLevelMb / 100f
@@ -355,7 +361,7 @@ private fun EqualizerBandItem(
             style = MaterialTheme.typography.labelSmall.copy(
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (band.currentLevelMb != 0.toShort()) NeonBlue else Color.White.copy(alpha = 0.6f)
+                color = if (band.currentLevelMb != 0.toShort()) accentColor else Color.White.copy(alpha = 0.6f)
             ),
             maxLines = 1
         )
@@ -373,14 +379,14 @@ private fun EqualizerBandItem(
                 Box(
                     modifier = Modifier
                         .size(14.dp)
-                        .background(NeonBlue, CircleShape)
+                        .background(accentColor, CircleShape)
                         .border(1.5.dp, Color.Black, CircleShape)
                 )
             },
             colors = SliderDefaults.colors(
-                activeTrackColor = NeonBlue,
+                activeTrackColor = accentColor,
                 inactiveTrackColor = Color.White.copy(alpha = 0.2f),
-                disabledActiveTrackColor = NeonBlue.copy(alpha = 0.3f),
+                disabledActiveTrackColor = accentColor.copy(alpha = 0.3f),
                 disabledInactiveTrackColor = Color.White.copy(alpha = 0.1f)
             ),
             modifier = Modifier
@@ -407,6 +413,7 @@ private fun AudioEffectsSection(
     bassBoost: Short,
     virtualizer: Short,
     isEnabled: Boolean,
+    accentColor: Color,
     onBassBoostChanged: (Short) -> Unit,
     onVirtualizerChanged: (Short) -> Unit
 ) {
@@ -437,6 +444,7 @@ private fun AudioEffectsSection(
                     value = bassBoost,
                     maxValue = 1000,
                     isEnabled = isEnabled,
+                    accentColor = accentColor,
                     onValueChanged = onBassBoostChanged
                 )
 
@@ -449,6 +457,7 @@ private fun AudioEffectsSection(
                     value = virtualizer,
                     maxValue = 1000,
                     isEnabled = isEnabled,
+                    accentColor = accentColor,
                     onValueChanged = onVirtualizerChanged
                 )
             }
@@ -465,6 +474,7 @@ private fun EffectSliderRow(
     value: Short,
     maxValue: Short,
     isEnabled: Boolean,
+    accentColor: Color,
     onValueChanged: (Short) -> Unit
 ) {
     val percentage = ((value.toFloat() / maxValue.toFloat()) * 100).toInt()
@@ -479,7 +489,7 @@ private fun EffectSliderRow(
                 Icon(
                     imageVector = icon,
                     contentDescription = title,
-                    tint = NeonBlue,
+                    tint = accentColor,
                     modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(10.dp))
@@ -504,7 +514,7 @@ private fun EffectSliderRow(
                 text = "$percentage%",
                 style = MaterialTheme.typography.titleMedium.copy(
                     fontWeight = FontWeight.Bold,
-                    color = NeonBlue
+                    color = accentColor
                 )
             )
         }
@@ -520,14 +530,14 @@ private fun EffectSliderRow(
                 Box(
                     modifier = Modifier
                         .size(16.dp)
-                        .background(NeonBlue, CircleShape)
+                        .background(accentColor, CircleShape)
                         .border(1.5.dp, Color.Black, CircleShape)
                 )
             },
             colors = SliderDefaults.colors(
-                activeTrackColor = NeonBlue,
+                activeTrackColor = accentColor,
                 inactiveTrackColor = Color.White.copy(alpha = 0.15f),
-                disabledActiveTrackColor = NeonBlue.copy(alpha = 0.3f),
+                disabledActiveTrackColor = accentColor.copy(alpha = 0.3f),
                 disabledInactiveTrackColor = Color.White.copy(alpha = 0.08f)
             ),
             modifier = Modifier.fillMaxWidth()
