@@ -1,7 +1,20 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.drive_mode
 
+import android.Manifest
+import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
+import android.os.Bundle
+import android.speech.RecognitionListener
+import android.speech.RecognizerIntent
+import android.speech.SpeechRecognizer
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.Animatable
+import androidx.compose.runtime.DisposableEffect
+import androidx.core.content.ContextCompat
+import java.util.Locale
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -74,6 +87,7 @@ import androidx.compose.ui.unit.sp
 import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
 import com.sftwr.cleandevelopment.musicplayer.home.R
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.drive_mode.viewmodel.DriveModeViewModel
@@ -102,6 +116,30 @@ fun DriveModeRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
+    val speechRecognizer = remember {
+        if (SpeechRecognizer.isRecognitionAvailable(context)) {
+            SpeechRecognizer.createSpeechRecognizer(context)
+        } else {
+            null
+        }
+    }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            speechRecognizer?.destroy()
+        }
+    }
+
+    val permissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            startVoiceRecognition(context, speechRecognizer, viewModel)
+        } else {
+            Toast.makeText(context, "Microphone permission is required for voice commands", Toast.LENGTH_SHORT).show()
+        }
+    }
+
     DriveModeScreen(
         uiState = uiState,
         onBackClick = onBackClick,
@@ -109,8 +147,105 @@ fun DriveModeRoute(
         onSkipNextClick = viewModel::skipNext,
         onSkipPreviousClick = viewModel::skipPrevious,
         onFavoriteClick = viewModel::toggleFavorite,
-        onVoiceAssistantClick = { viewModel.launchVoiceAssistant(context) }
+        onVoiceAssistantClick = {
+            if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+                startVoiceRecognition(context, speechRecognizer, viewModel)
+            } else {
+                permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+            }
+        }
     )
+}
+
+private fun startVoiceRecognition(
+    context: android.content.Context,
+    speechRecognizer: SpeechRecognizer?,
+    viewModel: DriveModeViewModel
+) {
+    if (speechRecognizer == null) {
+        Toast.makeText(context, "Speech recognition not available on this device", Toast.LENGTH_SHORT).show()
+        return
+    }
+
+    val currentLang = viewModel.currentLanguage
+    val languageTag = CommandMatcher.getBcp47LocaleTag(currentLang)
+
+    val intent = Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
+        putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
+        putExtra(RecognizerIntent.EXTRA_LANGUAGE, languageTag)
+        putExtra(RecognizerIntent.EXTRA_LANGUAGE_PREFERENCE, languageTag)
+        putExtra(RecognizerIntent.EXTRA_ONLY_RETURN_LANGUAGE_PREFERENCE, languageTag)
+        putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 5)
+    }
+
+    speechRecognizer.setRecognitionListener(object : RecognitionListener {
+        override fun onReadyForSpeech(params: Bundle?) {
+            viewModel.setListening(true)
+            val listeningMsg = when (currentLang) {
+                AppLanguage.PERSIAN -> "در حال گوش دادن به فرمان صوتی..."
+                AppLanguage.GERMAN -> "Höre zu..."
+                AppLanguage.TURKISH -> "Dinleniyor..."
+                else -> "Listening for voice command..."
+            }
+            Toast.makeText(context, listeningMsg, Toast.LENGTH_SHORT).show()
+        }
+        override fun onBeginningOfSpeech() {}
+        override fun onRmsChanged(rmsdB: Float) {}
+        override fun onBufferReceived(buffer: ByteArray?) {}
+        override fun onEndOfSpeech() {
+            viewModel.setListening(false)
+        }
+        override fun onError(error: Int) {
+            viewModel.setListening(false)
+            val errorMsg = when (error) {
+                SpeechRecognizer.ERROR_NO_MATCH -> when (currentLang) {
+                    AppLanguage.PERSIAN -> "متوجه نشدم، دوباره تلاش کنید"
+                    AppLanguage.GERMAN -> "Nicht verstanden, bitte erneut versuchen"
+                    AppLanguage.TURKISH -> "Anlaşılamadı, tekrar deneyin"
+                    else -> "Didn't catch that, tap to try again"
+                }
+                SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
+                SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Insufficient permissions"
+                else -> "Recognition error ($error)"
+            }
+            Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+        }
+        override fun onResults(results: Bundle?) {
+            viewModel.setListening(false)
+            val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
+            if (!matches.isNullOrEmpty()) {
+                val commandText = matches[0]
+                val matchedCommand = CommandMatcher.match(commandText, currentLang)
+                if (matchedCommand != PlayerCommand.UNKNOWN) {
+                    viewModel.executeVoiceCommand(commandText)
+                    val successMsg = when (currentLang) {
+                        AppLanguage.PERSIAN -> "فرمان اجرا شد: \"$commandText\""
+                        AppLanguage.GERMAN -> "Befehl ausgeführt: \"$commandText\""
+                        AppLanguage.TURKISH -> "Komut uygulandı: \"$commandText\""
+                        else -> "Command: \"$commandText\""
+                    }
+                    Toast.makeText(context, successMsg, Toast.LENGTH_SHORT).show()
+                } else {
+                    val unmatchedMsg = when (currentLang) {
+                        AppLanguage.PERSIAN -> "فرمان در زبان انتخابی شناخته نشد: \"$commandText\""
+                        AppLanguage.GERMAN -> "Befehl in gewählter Sprache nicht erkannt: \"$commandText\""
+                        AppLanguage.TURKISH -> "Seçilen dilde komut tanınmadı: \"$commandText\""
+                        else -> "Command not recognized in selected language: \"$commandText\""
+                    }
+                    Toast.makeText(context, unmatchedMsg, Toast.LENGTH_SHORT).show()
+                }
+            }
+        }
+        override fun onPartialResults(partialResults: Bundle?) {}
+        override fun onEvent(eventType: Int, params: Bundle?) {}
+    })
+
+    try {
+        speechRecognizer.startListening(intent)
+    } catch (e: Exception) {
+        viewModel.setListening(false)
+        Toast.makeText(context, "Failed to start voice recognition", Toast.LENGTH_SHORT).show()
+    }
 }
 
 /**
