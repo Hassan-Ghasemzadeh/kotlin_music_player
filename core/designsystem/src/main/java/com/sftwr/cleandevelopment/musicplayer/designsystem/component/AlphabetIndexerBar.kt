@@ -46,6 +46,7 @@ fun AlphabetIndexerBar(
     // Total measured height of the indexer bar container
     var totalHeight by remember { mutableStateOf(0f) }
     val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+
     /**
      * Helper function to map vertical touch coordinates (Y position) to
      * the corresponding alphabet letter index safely.
@@ -53,9 +54,8 @@ fun AlphabetIndexerBar(
     fun updateSelectedLetter(posY: Float) {
         if (totalHeight > 0f && letters.isNotEmpty()) {
             val clampedY = posY.coerceIn(0f, totalHeight)
-            val index = ((clampedY / totalHeight) * letters.size)
-                .toInt()
-                .coerceIn(0, letters.size - 1)
+            val index =
+                ((clampedY / totalHeight) * letters.size).toInt().coerceIn(0, letters.size - 1)
 
             val letter = letters[index]
             if (selectedLetter != letter) {
@@ -88,8 +88,7 @@ fun AlphabetIndexerBar(
                 modifier = Modifier
                     .size(50.dp)
                     .clip(CircleShape)
-                    .background(neonColor.copy(alpha = 0.85f)),
-                contentAlignment = Alignment.Center
+                    .background(neonColor.copy(alpha = 0.85f)), contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = selectedLetter ?: "",
@@ -111,26 +110,20 @@ fun AlphabetIndexerBar(
                     totalHeight = coordinates.size.height.toFloat()
                 }
                 .pointerInput(letters, totalHeight) {
-                    detectDragGestures(
-                        onDragStart = { offset ->
-                            isDragging = true
-                            updateSelectedLetter(offset.y)
-                        },
-                        onDrag = { change, _ ->
-                            change.consume()
-                            updateSelectedLetter(change.position.y)
-                        },
-                        onDragEnd = {
-                            isDragging = false
-                            selectedLetter = null
-                        },
-                        onDragCancel = {
-                            isDragging = false
-                            selectedLetter = null
-                        }
-                    )
-                },
-            contentAlignment = Alignment.Center
+                    detectDragGestures(onDragStart = { offset ->
+                        isDragging = true
+                        updateSelectedLetter(offset.y)
+                    }, onDrag = { change, _ ->
+                        change.consume()
+                        updateSelectedLetter(change.position.y)
+                    }, onDragEnd = {
+                        isDragging = false
+                        selectedLetter = null
+                    }, onDragCancel = {
+                        isDragging = false
+                        selectedLetter = null
+                    })
+                }, contentAlignment = Alignment.Center
         ) {
             // Column displaying all indexer letters vertically distributed
             Column(
