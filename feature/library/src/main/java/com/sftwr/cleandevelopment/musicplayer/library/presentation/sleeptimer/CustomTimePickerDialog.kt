@@ -37,9 +37,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.home.R
 
-val CustomTimeNeonBlue = Color(0xFF91D8FB)
 
 @Composable
 fun CustomTimePickerDialog(
@@ -50,25 +50,22 @@ fun CustomTimePickerDialog(
 ) {
     var hours by remember { mutableIntStateOf(initialHours.coerceIn(0, 23)) }
     var minutes by remember { mutableIntStateOf(initialMinutes.coerceIn(0, 59)) }
-
+    val secondary = LocalColorPalette.current.secondaryBackground
+    val gradient = LocalColorPalette.current.gradientBrush
+    val accent = LocalColorPalette.current.accent
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
             shape = RoundedCornerShape(28.dp),
-            color = Color(0xFF1B1238),
+            color = secondary,
             tonalElevation = 8.dp
         ) {
             Box(
                 modifier = Modifier
                     .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color(0xFF2C1454),
-                                Color(0xFF0F0B21)
-                            )
-                        )
+                        gradient
                     )
                     .border(
                         width = 1.dp,
@@ -105,7 +102,11 @@ fun CustomTimePickerDialog(
                                 fontSize = 12.sp
                             )
                             IconButton(onClick = { if (hours < 23) hours++ else hours = 0 }) {
-                                Icon(Icons.Default.KeyboardArrowUp, contentDescription = null, tint = CustomTimeNeonBlue)
+                                Icon(
+                                    Icons.Default.KeyboardArrowUp,
+                                    contentDescription = null,
+                                    tint = accent.copy(0.5f)
+                                )
                             }
                             Text(
                                 text = "%02d".format(hours),
@@ -114,13 +115,17 @@ fun CustomTimePickerDialog(
                                 fontWeight = FontWeight.Bold
                             )
                             IconButton(onClick = { if (hours > 0) hours-- else hours = 23 }) {
-                                Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = CustomTimeNeonBlue)
+                                Icon(
+                                    Icons.Default.KeyboardArrowDown,
+                                    contentDescription = null,
+                                    tint = accent.copy(0.5f)
+                                )
                             }
                         }
 
                         Text(
                             text = ":",
-                            color = CustomTimeNeonBlue,
+                            color = accent.copy(0.5f),
                             fontSize = 32.sp,
                             fontWeight = FontWeight.Bold
                         )
@@ -132,7 +137,11 @@ fun CustomTimePickerDialog(
                                 fontSize = 12.sp
                             )
                             IconButton(onClick = { if (minutes < 59) minutes++ else minutes = 0 }) {
-                                Icon(Icons.Default.KeyboardArrowUp, contentDescription = null, tint = CustomTimeNeonBlue)
+                                Icon(
+                                    Icons.Default.KeyboardArrowUp,
+                                    contentDescription = null,
+                                    tint = accent.copy(0.5f)
+                                )
                             }
                             Text(
                                 text = "%02d".format(minutes),
@@ -141,7 +150,11 @@ fun CustomTimePickerDialog(
                                 fontWeight = FontWeight.Bold
                             )
                             IconButton(onClick = { if (minutes > 0) minutes-- else minutes = 59 }) {
-                                Icon(Icons.Default.KeyboardArrowDown, contentDescription = null, tint = CustomTimeNeonBlue)
+                                Icon(
+                                    Icons.Default.KeyboardArrowDown,
+                                    contentDescription = null,
+                                    tint = accent.copy(0.5f)
+                                )
                             }
                         }
                     }
@@ -152,7 +165,10 @@ fun CustomTimePickerDialog(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         TextButton(onClick = onDismiss) {
-                            Text(stringResource(R.string.cancel), color = Color.White.copy(alpha = 0.7f))
+                            Text(
+                                stringResource(R.string.cancel),
+                                color = Color.White.copy(alpha = 0.7f)
+                            )
                         }
                         Spacer(modifier = Modifier.width(8.dp))
                         Button(
@@ -160,9 +176,13 @@ fun CustomTimePickerDialog(
                                 onConfirm(hours, minutes)
                                 onDismiss()
                             },
-                            colors = ButtonDefaults.buttonColors(containerColor = CustomTimeNeonBlue)
+                            colors = ButtonDefaults.buttonColors(containerColor = accent.copy(0.5f))
                         ) {
-                            Text(stringResource(R.string.set_timer), color = Color(0xFF0F0B21), fontWeight = FontWeight.Bold)
+                            Text(
+                                stringResource(R.string.set_timer),
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
+                            )
                         }
                     }
                 }

@@ -65,6 +65,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.AlphabetIndexerBar
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.albums.AlbumItemCard
@@ -115,6 +116,9 @@ fun FavoritesScreen(
     val gridStateGenres = rememberLazyGridState()
     val alphabet = remember { ('A'..'Z').map { it.toString() } }
 
+    val accent = LocalColorPalette.current.accent
+    val primary = LocalColorPalette.current.primaryBackground
+    val secondary = LocalColorPalette.current.secondaryBackground
     LaunchedEffect(pagerState.currentPage) {
         if (uiState.selectedTabIndex != pagerState.currentPage) {
             onTabSelected(pagerState.currentPage)
@@ -147,7 +151,7 @@ fun FavoritesScreen(
                                 }
                             }
                         },
-                        containerColor = Color(0xFF91D8FB),
+                        containerColor = accent,
                         contentColor = Color.Black,
                         shape = CircleShape,
                         modifier = Modifier
@@ -167,13 +171,7 @@ fun FavoritesScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF0F0B21),
-                            Color(0xFF181035),
-                            Color(0xFF2C1454)
-                        )
-                    )
+                    LocalColorPalette.current.gradientBrush
                 )
                 .padding(innerPadding)
         ) {
@@ -224,7 +222,7 @@ fun FavoritesScreen(
                         if (uiState.selectedTabIndex < tabPositions.size) {
                             TabRowDefaults.SecondaryIndicator(
                                 modifier = Modifier.tabIndicatorOffset(tabPositions[uiState.selectedTabIndex]),
-                                color = Color(0xFF91D8FB)
+                                color = accent
                             )
                         }
                     }
@@ -236,7 +234,7 @@ fun FavoritesScreen(
                             coroutineScope.launch { pagerState.animateScrollToPage(0) }
                         },
                         text = { Text("${androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.tracks)} (${uiState.favoriteSongs.size})", fontWeight = FontWeight.Bold) },
-                        selectedContentColor = Color(0xFF91D8FB),
+                        selectedContentColor = accent,
                         unselectedContentColor = Color.White.copy(alpha = 0.6f)
                     )
                     Tab(
@@ -246,7 +244,7 @@ fun FavoritesScreen(
                             coroutineScope.launch { pagerState.animateScrollToPage(1) }
                         },
                         text = { Text("${androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.albums)} (${uiState.favoriteAlbums.size})", fontWeight = FontWeight.Bold) },
-                        selectedContentColor = Color(0xFF91D8FB),
+                        selectedContentColor = accent,
                         unselectedContentColor = Color.White.copy(alpha = 0.6f)
                     )
                     Tab(
@@ -256,7 +254,7 @@ fun FavoritesScreen(
                             coroutineScope.launch { pagerState.animateScrollToPage(2) }
                         },
                         text = { Text("${androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.artists)} (${uiState.favoriteArtists.size})", fontWeight = FontWeight.Bold) },
-                        selectedContentColor = Color(0xFF91D8FB),
+                        selectedContentColor = accent,
                         unselectedContentColor = Color.White.copy(alpha = 0.6f)
                     )
                     Tab(
@@ -266,7 +264,7 @@ fun FavoritesScreen(
                             coroutineScope.launch { pagerState.animateScrollToPage(3) }
                         },
                         text = { Text("${androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.genres)} (${uiState.favoriteGenres.size})", fontWeight = FontWeight.Bold) },
-                        selectedContentColor = Color(0xFF91D8FB),
+                        selectedContentColor = accent,
                         unselectedContentColor = Color.White.copy(alpha = 0.6f)
                     )
                 }
@@ -307,7 +305,7 @@ fun FavoritesScreen(
                                                     Icon(
                                                         imageVector = Icons.Default.Favorite,
                                                         contentDescription = null,
-                                                        tint = Color(0xFFFF5252),
+                                                        tint = Color.White,
                                                         modifier = Modifier.size(24.dp)
                                                     )
                                                     Spacer(modifier = Modifier.width(12.dp))
@@ -322,8 +320,8 @@ fun FavoritesScreen(
                                                 Button(
                                                     onClick = onPlayAllClick,
                                                     colors = ButtonDefaults.buttonColors(
-                                                        containerColor = Color(0xFF91D8FB),
-                                                        contentColor = Color(0xFF0F0B21)
+                                                        containerColor = accent,
+                                                        contentColor = primary
                                                     ),
                                                     shape = RoundedCornerShape(12.dp),
                                                     contentPadding = PaddingValues(horizontal = 14.dp, vertical = 6.dp)
@@ -570,7 +568,7 @@ fun EmptyFavoritesState(title: String, subtitle: String) {
             imageVector = Icons.Default.Favorite,
             contentDescription = null,
             modifier = Modifier.size(64.dp),
-            tint = Color(0xFFFF5252).copy(alpha = 0.4f)
+            tint = Color.White.copy(alpha = 0.4f)
         )
         Spacer(modifier = Modifier.height(16.dp))
         Text(

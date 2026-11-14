@@ -111,7 +111,6 @@ fun EqualizerPreset.getStringRes(): Int {
 }
 
 
-
 /**
  * Modern glassmorphic Settings Screen providing categorization across Appearance,
  * Audio Effects, Library Management, Playback Controls, and System Permissions.
@@ -243,7 +242,8 @@ fun SettingsScreen(
                         SettingsDivider()
 
                         // Color Palette Theme Selector
-                        val paletteSubtitle = if (settings.language == AppLanguage.PERSIAN) settings.colorPalette.nativeName else settings.colorPalette.displayName
+                        val paletteSubtitle =
+                            if (settings.language == AppLanguage.PERSIAN) settings.colorPalette.nativeName else settings.colorPalette.displayName
                         SettingsRowItem(
                             title = stringResource(R.string.color_palette_theme),
                             subtitle = paletteSubtitle,
@@ -374,7 +374,9 @@ fun SettingsScreen(
                                             )
                                             .border(
                                                 width = if (isSelected) 1.5.dp else 1.dp,
-                                                color = if (isSelected) accent else Color.White.copy(alpha = 0.15f),
+                                                color = if (isSelected) accent else Color.White.copy(
+                                                    alpha = 0.15f
+                                                ),
                                                 shape = shape
                                             )
                                             .clickable { onEqualizerPresetSelected(preset) }
@@ -385,7 +387,9 @@ fun SettingsScreen(
                                             text = presetLabel,
                                             style = MaterialTheme.typography.bodyMedium.copy(
                                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                                color = if (isSelected) accent else Color.White.copy(alpha = 0.8f)
+                                                color = if (isSelected) accent else Color.White.copy(
+                                                    alpha = 0.8f
+                                                )
                                             )
                                         )
                                     }
@@ -666,7 +670,9 @@ fun SettingsRowItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = if (icon == Icons.Default.Album || icon == Icons.Default.FolderOff || icon == Icons.Default.AudioFile) accent else Color.White.copy(alpha = 0.8f),
+            tint = if (icon == Icons.Default.Album || icon == Icons.Default.FolderOff || icon == Icons.Default.AudioFile) accent else Color.White.copy(
+                alpha = 0.8f
+            ),
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -707,7 +713,9 @@ fun SettingsSwitchRowItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = if (icon == Icons.Default.Album || icon == Icons.Default.FolderOff || icon == Icons.Default.AudioFile) accent else Color.White.copy(alpha = 0.8f),
+            tint = if (icon == Icons.Default.Album || icon == Icons.Default.FolderOff || icon == Icons.Default.AudioFile) accent else Color.White.copy(
+                alpha = 0.8f
+            ),
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -941,9 +949,11 @@ fun LanguageSelectionDialog(
     onDismiss: () -> Unit
 ) {
     val accent = LocalColorPalette.current.accent
+
+    val secondaryBackGroundHex = LocalColorPalette.current.secondaryBackgroundHex
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = Color(0xFF1B1238),
+        containerColor = Color(secondaryBackGroundHex),
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.Language, contentDescription = null, tint = accent)
@@ -1011,9 +1021,11 @@ fun ExcludedFoldersDialog(
     onDismiss: () -> Unit
 ) {
     val accent = LocalColorPalette.current.accent
+    val primaryBackGroundHex = LocalColorPalette.current.primaryBackgroundHex
+    val secondaryBackGroundHex = LocalColorPalette.current.secondaryBackgroundHex
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = Color(0xFF1B1238),
+        containerColor = Color(secondaryBackGroundHex),
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.FolderOff, contentDescription = null, tint = accent)
@@ -1039,12 +1051,12 @@ fun ExcludedFoldersDialog(
                     Icon(
                         imageVector = Icons.Default.FolderOpen,
                         contentDescription = null,
-                        tint = Color(0xFF0F0B21)
+                        tint = Color(primaryBackGroundHex)
                     )
                     Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = stringResource(R.string.browse_and_add_folder),
-                        color = Color(0xFF0F0B21),
+                        color = Color(primaryBackGroundHex),
                         fontWeight = FontWeight.Bold,
                         fontSize = 15.sp
                     )
@@ -1112,7 +1124,7 @@ fun ExcludedFoldersDialog(
                                     Icon(
                                         Icons.Default.Delete,
                                         contentDescription = null,
-                                        tint = Color(0xFFFF5252)
+                                        tint = accent
                                     )
                                 }
                             }
@@ -1141,9 +1153,11 @@ fun VisualizerSelectorDialog(
     val accent = LocalColorPalette.current.accent
     val audioVisualizerManager = remember { AudioVisualizerManager() }
 
+    val primaryBackGroundHex = LocalColorPalette.current.primaryBackgroundHex
+    val secondaryBackGroundHex = LocalColorPalette.current.secondaryBackgroundHex
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = Color(0xFF1B1238),
+        containerColor = Color(secondaryBackGroundHex),
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(Icons.Default.GraphicEq, contentDescription = null, tint = accent)

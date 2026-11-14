@@ -27,6 +27,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.neonBorder
 import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.AudioVisualizerManager
 import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.CircularVisualizerType
@@ -44,11 +45,12 @@ fun VisualizerSelectorScreen(
     // Collecting real-time FFT frequency data from the visualizer manager
     val fftData by audioVisualizerManager.fftData.collectAsState()
     val types = CircularVisualizerType.entries.toTypedArray()
-
+    val primaryBackground = LocalColorPalette.current.primaryBackground
+    val surface = LocalColorPalette.current.surfaceCard
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color(0xFF0F0B21))
+            .background(primaryBackground)
             .padding(12.dp)
     ) {
         // Screen Header Title
@@ -72,7 +74,7 @@ fun VisualizerSelectorScreen(
                 val cardShape = RoundedCornerShape(16.dp)
                 Card(
                     shape = cardShape,
-                    colors = CardDefaults.cardColors(containerColor = Color(0xFF191336)),
+                    colors = CardDefaults.cardColors(containerColor = surface),
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(180.dp)

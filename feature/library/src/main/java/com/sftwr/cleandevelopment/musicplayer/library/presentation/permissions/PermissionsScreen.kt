@@ -52,30 +52,24 @@ import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.domain.model.PermissionItem
 import com.sftwr.cleandevelopment.musicplayer.domain.model.PermissionStatus
 import com.sftwr.cleandevelopment.musicplayer.home.R
 
-val PermissionsNeonBlue = Color(0xFF91D8FB)
-val BackgroundDarkGradient = Brush.verticalGradient(
-    colors = listOf(
-        Color(0xFF0F0B21),
-        Color(0xFF2C1454)
-    )
-)
 
 /**
  * Screen component displaying app runtime permission statuses and grant controls.
  */
 @Composable
 fun PermissionsScreen(
-    viewModel: PermissionsViewModel,
-    onBackClick: () -> Unit
+    viewModel: PermissionsViewModel, onBackClick: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
-
+    val permissionsNeonBlue = LocalColorPalette.current.accent
+    val backgroundDarkGradient = LocalColorPalette.current.gradientBrush
     val launcher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.RequestPermission()
     ) {
@@ -97,7 +91,7 @@ fun PermissionsScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(BackgroundDarkGradient)
+            .background(backgroundDarkGradient)
             .statusBarsPadding()
     ) {
         Column(
@@ -133,8 +127,7 @@ fun PermissionsScreen(
             ) {
                 item {
                     GlassCard(
-                        modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(20.dp)
+                        modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(20.dp)
                     ) {
                         Row(
                             modifier = Modifier
@@ -148,27 +141,32 @@ fun PermissionsScreen(
                                     .size(48.dp)
                                     .clip(CircleShape)
                                     .background(
-                                        if (uiState.allGranted) PermissionsNeonBlue.copy(alpha = 0.2f)
+                                        if (uiState.allGranted) permissionsNeonBlue.copy(alpha = 0.2f)
                                         else Color(0xFFFF9800).copy(alpha = 0.2f)
                                     )
                                     .border(
                                         1.dp,
-                                        if (uiState.allGranted) PermissionsNeonBlue else Color(0xFFFF9800),
+                                        if (uiState.allGranted) permissionsNeonBlue else Color(
+                                            0xFFFF9800
+                                        ),
                                         CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
+                                    ), contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = if (uiState.allGranted) Icons.Default.CheckCircle else Icons.Default.Warning,
                                     contentDescription = null,
-                                    tint = if (uiState.allGranted) PermissionsNeonBlue else Color(0xFFFF9800),
+                                    tint = if (uiState.allGranted) permissionsNeonBlue else Color(
+                                        0xFFFF9800
+                                    ),
                                     modifier = Modifier.size(24.dp)
                                 )
                             }
 
                             Column(modifier = Modifier.weight(1f)) {
                                 Text(
-                                    text = if (uiState.allGranted) stringResource(R.string.all_permissions_granted) else stringResource(R.string.notification_permissions_status),
+                                    text = if (uiState.allGranted) stringResource(R.string.all_permissions_granted) else stringResource(
+                                        R.string.notification_permissions_status
+                                    ),
                                     color = Color.White,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold
@@ -186,18 +184,17 @@ fun PermissionsScreen(
 
                 items(uiState.permissions, key = { it.permission }) { item ->
                     PermissionCardItem(
-                        item = item,
-                        onRequestPermission = {
+                        item = item, onRequestPermission = {
                             if (item.permission.isNotEmpty()) {
                                 launcher.launch(item.permission)
                             } else {
-                                val intent = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                                    data = Uri.fromParts("package", context.packageName, null)
-                                }
+                                val intent =
+                                    Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                        data = Uri.fromParts("package", context.packageName, null)
+                                    }
                                 context.startActivity(intent)
                             }
-                        }
-                    )
+                        })
                 }
             }
         }
@@ -206,14 +203,14 @@ fun PermissionsScreen(
 
 @Composable
 private fun PermissionCardItem(
-    item: PermissionItem,
-    onRequestPermission: () -> Unit
+    item: PermissionItem, onRequestPermission: () -> Unit
 ) {
     val isGranted = item.status == PermissionStatus.GRANTED
+    val permissionsNeonBlue = LocalColorPalette.current.accent
+    val primaryBackgroundHex = LocalColorPalette.current.primaryBackgroundHex
 
     GlassCard(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(16.dp)
+        modifier = Modifier.fillMaxWidth(), shape = RoundedCornerShape(16.dp)
     ) {
         Row(
             modifier = Modifier
@@ -227,18 +224,20 @@ private fun PermissionCardItem(
                     .size(42.dp)
                     .clip(CircleShape)
                     .background(
-                        if (isGranted) PermissionsNeonBlue.copy(alpha = 0.15f)
+                        if (isGranted) permissionsNeonBlue.copy(alpha = 0.15f)
                         else Color.White.copy(alpha = 0.08f)
-                    ),
-                contentAlignment = Alignment.Center
+                    ), contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = when {
-                        item.permission.contains("NOTIFICATION", ignoreCase = true) -> Icons.Default.NotificationsActive
+                        item.permission.contains(
+                            "NOTIFICATION", ignoreCase = true
+                        ) -> Icons.Default.NotificationsActive
+
                         else -> Icons.Default.LibraryMusic
                     },
                     contentDescription = null,
-                    tint = if (isGranted) PermissionsNeonBlue else Color.White.copy(alpha = 0.7f),
+                    tint = if (isGranted) permissionsNeonBlue else Color.White.copy(alpha = 0.7f),
                     modifier = Modifier.size(22.dp)
                 )
             }
@@ -261,18 +260,16 @@ private fun PermissionCardItem(
             if (isGranted) {
                 Text(
                     text = stringResource(R.string.granted),
-                    color = PermissionsNeonBlue,
+                    color = permissionsNeonBlue,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.Bold
                 )
             } else {
                 Button(
-                    onClick = onRequestPermission,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = PermissionsNeonBlue,
-                        contentColor = Color(0xFF0F0B21)
-                    ),
-                    shape = RoundedCornerShape(10.dp)
+                    onClick = onRequestPermission, colors = ButtonDefaults.buttonColors(
+                        containerColor = permissionsNeonBlue,
+                        contentColor = Color(primaryBackgroundHex)
+                    ), shape = RoundedCornerShape(10.dp)
                 ) {
                     Text(
                         text = stringResource(R.string.grant),

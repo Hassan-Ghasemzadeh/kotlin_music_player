@@ -71,7 +71,7 @@ fun BottomPlayerBar(
                 width = 1.dp, color = Color(0x33A855F7), shape = RoundedCornerShape(16.dp)
             )
             .background(
-                color = Color(0xEE1D1435), shape = RoundedCornerShape(16.dp)
+                color = LocalColorPalette.current.surfaceCard, shape = RoundedCornerShape(16.dp)
             )
     ) {
         val layoutDirection = LocalLayoutDirection.current

@@ -40,9 +40,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.home.R
 
-val ScanNeonBlue = Color(0xFF91D8FB)
 
 /**
  * Modern glassmorphic Dialog for performing manual media storage scanning with real-time feedback.
@@ -53,6 +53,7 @@ fun ScanMediaDialog(
     onDismiss: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val palette = LocalColorPalette.current
 
     LaunchedEffect(Unit) {
         viewModel.startScan()
@@ -60,7 +61,7 @@ fun ScanMediaDialog(
 
     AlertDialog(
         onDismissRequest = { viewModel.dismiss(onDismiss) },
-        containerColor = Color(0xFF1B1238),
+        containerColor = palette.secondaryBackground,
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -73,18 +74,18 @@ fun ScanMediaDialog(
                         .background(
                             Brush.linearGradient(
                                 colors = listOf(
-                                    ScanNeonBlue.copy(alpha = 0.25f),
+                                    palette.accent.copy(alpha = 0.25f),
                                     Color.White.copy(alpha = 0.05f)
                                 )
                             )
                         )
-                        .border(1.dp, ScanNeonBlue.copy(alpha = 0.5f), CircleShape),
+                        .border(1.dp, palette.accent.copy(alpha = 0.5f), CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
                         imageVector = if (uiState.isCompleted) Icons.Default.CheckCircle else Icons.Default.FolderOpen,
                         contentDescription = null,
-                        tint = ScanNeonBlue,
+                        tint = palette.accent,
                         modifier = Modifier.size(20.dp)
                     )
                 }
@@ -126,7 +127,7 @@ fun ScanMediaDialog(
                         ) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(24.dp),
-                                color = ScanNeonBlue,
+                                color = palette.accent,
                                 strokeWidth = 2.5.dp
                             )
                             Text(
@@ -142,7 +143,7 @@ fun ScanMediaDialog(
                                 .fillMaxWidth()
                                 .height(6.dp)
                                 .clip(RoundedCornerShape(3.dp)),
-                            color = ScanNeonBlue,
+                            color = palette.accent,
                             trackColor = Color.White.copy(alpha = 0.1f)
                         )
 
@@ -161,7 +162,7 @@ fun ScanMediaDialog(
 
                         Text(
                             text = stringResource(R.string.found_tracks_so_far, uiState.scannedCount),
-                            color = ScanNeonBlue,
+                            color = palette.accent,
                             fontSize = 13.sp,
                             fontWeight = FontWeight.Medium
                         )
@@ -179,12 +180,12 @@ fun ScanMediaDialog(
                                 .background(
                                     Brush.linearGradient(
                                         colors = listOf(
-                                            ScanNeonBlue.copy(alpha = 0.15f),
+                                            palette.accent.copy(alpha = 0.15f),
                                             Color.White.copy(alpha = 0.03f)
                                         )
                                     )
                                 )
-                                .border(1.dp, ScanNeonBlue.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
+                                .border(1.dp, palette.accent.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
                                 .padding(16.dp)
                         ) {
                             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -214,7 +215,7 @@ fun ScanMediaDialog(
         confirmButton = {
             if (uiState.isCompleted) {
                 TextButton(onClick = { viewModel.onOkClick(onDismiss) }) {
-                    Text(stringResource(R.string.ok), color = ScanNeonBlue, fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                    Text(stringResource(R.string.ok), color = palette.accent, fontWeight = FontWeight.Bold, fontSize = 15.sp)
                 }
             } else {
                 TextButton(onClick = { viewModel.dismiss(onDismiss) }) {

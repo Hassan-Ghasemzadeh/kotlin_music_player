@@ -40,6 +40,7 @@ import androidx.core.net.toUri
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.home.R
 
 val AboutNeonBlue = Color(0xFF91D8FB)
@@ -56,10 +57,11 @@ fun AboutDialog(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val appInfo = uiState.appInfo
+    val palette = LocalColorPalette.current
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = Color(0xFF1B1238),
+        containerColor = palette.secondaryBackground,
         title = {
             Column(
                 modifier = Modifier.fillMaxWidth(),
@@ -73,12 +75,12 @@ fun AboutDialog(
                         .background(
                             Brush.linearGradient(
                                 colors = listOf(
-                                    AboutNeonBlue.copy(alpha = 0.4f),
-                                    Color(0xFF2C1454)
+                                    palette.accent.copy(alpha = 0.4f),
+                                    palette.surfaceCard
                                 )
                             )
                         )
-                        .border(2.dp, AboutNeonBlue, CircleShape),
+                        .border(2.dp, palette.accent, CircleShape),
                     contentAlignment = Alignment.Center
                 ) {
                     Image(
@@ -101,13 +103,13 @@ fun AboutDialog(
                 Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(12.dp))
-                        .background(AboutNeonBlue.copy(alpha = 0.15f))
-                        .border(1.dp, AboutNeonBlue.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
+                        .background(palette.accent.copy(alpha = 0.15f))
+                        .border(1.dp, palette.accent.copy(alpha = 0.4f), RoundedCornerShape(12.dp))
                         .padding(horizontal = 12.dp, vertical = 4.dp)
                 ) {
                     Text(
                         text = appInfo.versionName,
-                        color = AboutNeonBlue,
+                        color = palette.accent,
                         fontSize = 12.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -136,7 +138,7 @@ fun AboutDialog(
                         Icon(
                             imageVector = Icons.Default.Favorite,
                             contentDescription = null,
-                            tint = AboutNeonBlue,
+                            tint = palette.accent,
                             modifier = Modifier.size(20.dp)
                         )
                         Text(
@@ -175,7 +177,7 @@ fun AboutDialog(
                             Icon(
                                 imageVector = Icons.Default.Code,
                                 contentDescription = null,
-                                tint = AboutNeonBlue,
+                                tint = palette.accent,
                                 modifier = Modifier.size(18.dp)
                             )
                             Text(
@@ -203,7 +205,7 @@ fun AboutDialog(
             ) {
                 Text(
                     text = stringResource(R.string.close),
-                    color = AboutNeonBlue,
+                    color = palette.accent,
                     fontWeight = FontWeight.Bold,
                     fontSize = 15.sp
                 )

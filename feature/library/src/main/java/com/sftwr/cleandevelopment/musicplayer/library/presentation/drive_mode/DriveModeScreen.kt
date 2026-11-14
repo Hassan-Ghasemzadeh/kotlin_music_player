@@ -17,7 +17,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
-import java.util.Locale
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -37,7 +36,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -51,19 +49,13 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.LayoutDirection
@@ -95,7 +87,6 @@ import com.sftwr.cleandevelopment.musicplayer.home.R
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.drive_mode.viewmodel.DriveModeViewModel
-import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -125,13 +116,12 @@ fun DriveModeRoute(
         val controller = window?.let { WindowInsetsControllerCompat(it, it.decorView) }
         controller?.let {
             it.hide(WindowInsetsCompat.Type.systemBars())
-            it.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            it.systemBarsBehavior =
+                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
         onDispose {
             speechRecognizer?.destroy()
-            controller?.let {
-                it.show(WindowInsetsCompat.Type.systemBars())
-            }
+            controller?.show(WindowInsetsCompat.Type.systemBars())
         }
     }
 
@@ -141,7 +131,11 @@ fun DriveModeRoute(
         if (isGranted) {
             startVoiceRecognition(context, speechRecognizer, viewModel)
         } else {
-            Toast.makeText(context, "Microphone permission is required for voice commands", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                context,
+                "Microphone permission is required for voice commands",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
 
@@ -153,7 +147,11 @@ fun DriveModeRoute(
         onSkipPreviousClick = viewModel::skipPrevious,
         onFavoriteClick = viewModel::toggleFavorite,
         onVoiceAssistantClick = {
-            if (ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) {
+            if (ContextCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.RECORD_AUDIO
+                ) == PackageManager.PERMISSION_GRANTED
+            ) {
                 startVoiceRecognition(context, speechRecognizer, viewModel)
             } else {
                 permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
@@ -168,7 +166,11 @@ private fun startVoiceRecognition(
     viewModel: DriveModeViewModel
 ) {
     if (speechRecognizer == null) {
-        Toast.makeText(context, "Speech recognition not available on this device", Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            context,
+            "Speech recognition not available on this device",
+            Toast.LENGTH_SHORT
+        ).show()
         return
     }
 
@@ -194,12 +196,14 @@ private fun startVoiceRecognition(
             }
             Toast.makeText(context, listeningMsg, Toast.LENGTH_SHORT).show()
         }
+
         override fun onBeginningOfSpeech() {}
         override fun onRmsChanged(rmsdB: Float) {}
         override fun onBufferReceived(buffer: ByteArray?) {}
         override fun onEndOfSpeech() {
             viewModel.setListening(false)
         }
+
         override fun onError(error: Int) {
             viewModel.setListening(false)
             val errorMsg = when (error) {
@@ -209,12 +213,14 @@ private fun startVoiceRecognition(
                     AppLanguage.TURKISH -> "Anlaşılamadı, tekrar deneyin"
                     else -> "Didn't catch that, tap to try again"
                 }
+
                 SpeechRecognizer.ERROR_AUDIO -> "Audio recording error"
                 SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS -> "Insufficient permissions"
                 else -> "Recognition error ($error)"
             }
             Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
         }
+
         override fun onResults(results: Bundle?) {
             viewModel.setListening(false)
             val matches = results?.getStringArrayList(SpeechRecognizer.RESULTS_RECOGNITION)
@@ -242,13 +248,14 @@ private fun startVoiceRecognition(
                 }
             }
         }
+
         override fun onPartialResults(partialResults: Bundle?) {}
         override fun onEvent(eventType: Int, params: Bundle?) {}
     })
 
     try {
         speechRecognizer.startListening(intent)
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         viewModel.setListening(false)
         Toast.makeText(context, "Failed to start voice recognition", Toast.LENGTH_SHORT).show()
     }
@@ -285,7 +292,7 @@ fun DriveModeScreen(
     // Gesture control animation states
     val density = LocalDensity.current
     val screenWidthPx = with(density) { 320.dp.toPx() }
-    var dragOffset by remember { mutableStateOf(0f) }
+    var dragOffset by remember { mutableFloatStateOf(0f) }
     val animatedOffset = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
     val accent = LocalColorPalette.current.accent
@@ -350,7 +357,7 @@ fun DriveModeScreen(
                     Icon(
                         imageVector = if (uiState.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = "Favorite",
-                        tint = accent,
+                        tint = Color.White,
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -371,18 +378,24 @@ fun DriveModeScreen(
                         .graphicsLayer { translationX = animatedOffset.value }
                         .clip(RoundedCornerShape(24.dp))
                         .border(2.5.dp, accent, RoundedCornerShape(24.dp))
-                        .background(Color(0xFF1B1238))
+                        .background(LocalColorPalette.current.surfaceCard)
                         .pointerInput(Unit) {
                             detectHorizontalDragGestures(
                                 onDragEnd = {
                                     scope.launch {
                                         if (dragOffset < -80f) {
-                                            animatedOffset.animateTo(-screenWidthPx, animationSpec = tween(180))
+                                            animatedOffset.animateTo(
+                                                -screenWidthPx,
+                                                animationSpec = tween(180)
+                                            )
                                             onSkipNextClick()
                                             animatedOffset.snapTo(screenWidthPx)
                                             animatedOffset.animateTo(0f, animationSpec = tween(180))
                                         } else if (dragOffset > 80f) {
-                                            animatedOffset.animateTo(screenWidthPx, animationSpec = tween(180))
+                                            animatedOffset.animateTo(
+                                                screenWidthPx,
+                                                animationSpec = tween(180)
+                                            )
                                             onSkipPreviousClick()
                                             animatedOffset.snapTo(-screenWidthPx)
                                             animatedOffset.animateTo(0f, animationSpec = tween(180))
@@ -437,7 +450,9 @@ fun DriveModeScreen(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
                 )
 
                 Spacer(modifier = Modifier.height(6.dp))
@@ -450,7 +465,9 @@ fun DriveModeScreen(
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp)
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
                 )
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -500,7 +517,7 @@ fun DriveModeScreen(
                         modifier = Modifier
                             .size(76.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFF2C1454))
+                            .background(LocalColorPalette.current.surfaceCard)
                             .border(2.dp, Color.White.copy(alpha = 0.4f), CircleShape)
                             .clickable { onSkipPreviousClick() },
                         contentAlignment = Alignment.Center
@@ -521,8 +538,8 @@ fun DriveModeScreen(
                             .background(
                                 Brush.linearGradient(
                                     colors = listOf(
-                                        accent,
-                                        Color(0xFF4A90E2)
+                                        accent.copy(0.5f),
+                                        accent
                                     )
                                 )
                             )
@@ -532,8 +549,10 @@ fun DriveModeScreen(
                     ) {
                         Icon(
                             imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
-                            contentDescription = if (isPlaying) stringResource(R.string.pause) else stringResource(R.string.play),
-                            tint = Color(0xFF0F0B21),
+                            contentDescription = if (isPlaying) stringResource(R.string.pause) else stringResource(
+                                R.string.play
+                            ),
+                            tint = Color.White,
                             modifier = Modifier.size(56.dp)
                         )
                     }
@@ -543,7 +562,7 @@ fun DriveModeScreen(
                         modifier = Modifier
                             .size(76.dp)
                             .clip(CircleShape)
-                            .background(Color(0xFF2C1454))
+                            .background(LocalColorPalette.current.surfaceCard)
                             .border(2.dp, Color.White.copy(alpha = 0.4f), CircleShape)
                             .clickable { onSkipNextClick() },
                         contentAlignment = Alignment.Center

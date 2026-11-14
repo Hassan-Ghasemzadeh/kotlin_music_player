@@ -57,9 +57,9 @@ import androidx.compose.ui.util.lerp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.NeonBlue
 import com.sftwr.cleandevelopment.musicplayer.home.R
-import com.sftwr.cleandevelopment.musicplayer.library.core.util.neonBorder
 import com.sftwr.cleandevelopment.musicplayer.model.VisualizerStyle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -113,6 +113,7 @@ fun VisualizerSelectionScreen(
     modifier: Modifier = Modifier
 ) {
     val layoutDirection = LocalLayoutDirection.current
+    val accent = LocalColorPalette.current.accent
     val coroutineScope = rememberCoroutineScope()
     val pagerState = rememberPagerState(
         initialPage = initialIndex.coerceIn(0, (availableStyles.size - 1).coerceAtLeast(0)),
@@ -133,13 +134,7 @@ fun VisualizerSelectionScreen(
         }
     }
 
-    val darkGradient = Brush.verticalGradient(
-        colors = listOf(
-            Color(0xFF0F0B21),
-            Color(0xFF1B1238),
-            Color(0xFF2C1454)
-        )
-    )
+    val darkGradient = LocalColorPalette.current.gradientBrush
 
     CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
         Box(
@@ -227,7 +222,6 @@ fun VisualizerSelectionScreen(
                     )
 
                     val cardShape = RoundedCornerShape(28.dp)
-                    val glowingNeonCyan = Color(0xFF91D8FB)
 
                     Box(
                         modifier = Modifier
@@ -251,12 +245,7 @@ fun VisualizerSelectionScreen(
                                 .clip(cardShape)
                                 .background(
                                     if (isCentered) {
-                                        Brush.verticalGradient(
-                                            listOf(
-                                                Color(0xFF1E173E),
-                                                Color(0xFF120C28)
-                                            )
-                                        )
+                                        LocalColorPalette.current.gradientBrush
                                     } else {
                                         Brush.verticalGradient(
                                             listOf(
@@ -272,9 +261,9 @@ fun VisualizerSelectionScreen(
                                             width = 2.dp,
                                             brush = Brush.linearGradient(
                                                 listOf(
-                                                    glowingNeonCyan,
-                                                    Color(0xFF0072FF),
-                                                    glowingNeonCyan
+                                                    accent,
+                                                    accent.copy(alpha = 0.5f),
+                                                    accent
                                                 )
                                             ),
                                             shape = cardShape
@@ -354,7 +343,7 @@ fun VisualizerSelectionScreen(
                                 ) {
                                     Text(
                                         text = style.title,
-                                        color = if (isCentered) glowingNeonCyan else Color.White,
+                                        color = if (isCentered) accent else Color.White,
                                         fontSize = 20.sp,
                                         fontWeight = FontWeight.Bold,
                                         textAlign = TextAlign.Center
@@ -392,8 +381,8 @@ fun VisualizerSelectionScreen(
 
                 val applyButtonGradient = Brush.horizontalGradient(
                     colors = listOf(
-                        Color(0xFF00D2FF),
-                        Color(0xFF0055FF)
+                        accent.copy(0.5f),
+                        accent
                     )
                 )
 

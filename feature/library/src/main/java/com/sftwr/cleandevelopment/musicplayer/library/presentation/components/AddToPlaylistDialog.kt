@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.home.R
 
@@ -38,6 +39,7 @@ fun AddToPlaylistDialog(
     onToggleFavorite: () -> Unit,
     onDismissRequest: () -> Unit
 ) {
+    val palette = LocalColorPalette.current
     Dialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(usePlatformDefaultWidth = true)
@@ -61,15 +63,7 @@ fun AddToPlaylistDialog(
         ) {
             Box(
                 modifier = Modifier
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color(0xFF0F0B21),
-                                Color(0xFF181035),
-                                Color(0xFF2C1454)
-                            )
-                        )
-                    )
+                    .background(palette.gradientBrush)
                     .padding(24.dp)
             ) {
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -88,7 +82,7 @@ fun AddToPlaylistDialog(
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = songTitle,
-                                color = Color(0xFF91D8FB),
+                                color = palette.accent,
                                 fontSize = 13.sp,
                                 maxLines = 1,
                                 overflow = TextOverflow.Ellipsis
@@ -144,7 +138,7 @@ fun AddToPlaylistDialog(
                                         Icon(
                                             imageVector = Icons.AutoMirrored.Filled.QueueMusic,
                                             contentDescription = playlist.name,
-                                            tint = Color(0xFF91D8FB),
+                                            tint = palette.accent,
                                             modifier = Modifier.size(24.dp)
                                         )
                                         Spacer(modifier = Modifier.width(14.dp))

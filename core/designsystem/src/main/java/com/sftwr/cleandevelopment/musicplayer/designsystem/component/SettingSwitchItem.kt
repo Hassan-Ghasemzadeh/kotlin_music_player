@@ -36,6 +36,7 @@ fun SettingSwitchItem(
     onCheckedChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val accent = LocalColorPalette.current.accent
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -45,7 +46,7 @@ fun SettingSwitchItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = NeonBlue,
+            tint = accent,
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -71,7 +72,8 @@ fun SettingSwitchItem(
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
-                checkedTrackColor = NeonBlue,
+                checkedTrackColor = accent,
+                checkedBorderColor = accent,
                 uncheckedThumbColor = Color.Gray,
                 uncheckedTrackColor = Color.White.copy(alpha = 0.1f)
             )

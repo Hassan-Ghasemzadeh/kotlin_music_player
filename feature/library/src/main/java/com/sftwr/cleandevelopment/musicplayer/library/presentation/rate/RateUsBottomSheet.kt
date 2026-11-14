@@ -42,6 +42,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.home.R
 
 val RateNeonBlue = Color(0xFF91D8FB)
@@ -58,7 +59,7 @@ fun RateUsBottomSheet(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-
+    val accent = LocalColorPalette.current.accent
     LaunchedEffect(Unit) {
         viewModel.loadStores(context)
     }
@@ -66,7 +67,7 @@ fun RateUsBottomSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = Color(0xFF1B1238)
+        containerColor = LocalColorPalette.current.secondaryBackground
     ) {
         Column(
             modifier = Modifier
@@ -82,7 +83,7 @@ fun RateUsBottomSheet(
                     .background(
                         Brush.linearGradient(
                             colors = listOf(
-                                RateNeonBlue.copy(alpha = 0.35f),
+                               accent.copy(alpha = 0.35f),
                                 Color(0xFF2C1454)
                             )
                         )
@@ -93,7 +94,7 @@ fun RateUsBottomSheet(
                 Icon(
                     imageVector = Icons.Default.Star,
                     contentDescription = null,
-                    tint = RateNeonBlue,
+                    tint = accent,
                     modifier = Modifier.size(28.dp)
                 )
             }
@@ -141,14 +142,14 @@ fun RateUsBottomSheet(
                                 modifier = Modifier
                                     .size(40.dp)
                                     .clip(CircleShape)
-                                    .background(RateNeonBlue.copy(alpha = 0.2f))
-                                    .border(1.dp, RateNeonBlue.copy(alpha = 0.4f), CircleShape),
+                                    .background(accent.copy(alpha = 0.2f))
+                                    .border(1.dp, accent.copy(alpha = 0.4f), CircleShape),
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Store,
                                     contentDescription = null,
-                                    tint = RateNeonBlue,
+                                    tint = accent,
                                     modifier = Modifier.size(20.dp)
                                 )
                             }
@@ -163,7 +164,7 @@ fun RateUsBottomSheet(
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = stringResource(R.string.tap_to_rate, store.name),
-                                    color = RateNeonBlue,
+                                    color = accent,
                                     fontSize = 12.sp,
                                     fontWeight = FontWeight.Medium
                                 )

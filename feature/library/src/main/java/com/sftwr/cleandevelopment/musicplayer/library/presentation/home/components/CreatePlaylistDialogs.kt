@@ -32,6 +32,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.home.R
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 
@@ -46,6 +47,7 @@ fun CreatePlaylistNameDialog(
     onNextClick: () -> Unit,
     onDismissRequest: () -> Unit
 ) {
+    val palette = LocalColorPalette.current
     Dialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(usePlatformDefaultWidth = true)
@@ -69,15 +71,7 @@ fun CreatePlaylistNameDialog(
         ) {
             Box(
                 modifier = Modifier
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color(0xFF0F0B21),
-                                Color(0xFF181035),
-                                Color(0xFF2C1454)
-                            )
-                        )
-                    )
+                    .background(palette.gradientBrush)
                     .padding(24.dp)
             ) {
                 Column {
@@ -112,9 +106,9 @@ fun CreatePlaylistNameDialog(
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedTextColor = Color.White,
                             unfocusedTextColor = Color.White,
-                            focusedBorderColor = Color(0xFF91D8FB),
+                            focusedBorderColor = palette.accent,
                             unfocusedBorderColor = Color.White.copy(alpha = 0.2f),
-                            cursorColor = Color(0xFF91D8FB),
+                            cursorColor = palette.accent,
                             focusedContainerColor = Color.White.copy(alpha = 0.08f),
                             unfocusedContainerColor = Color.White.copy(alpha = 0.05f)
                         ),
@@ -153,8 +147,8 @@ fun CreatePlaylistNameDialog(
                         Button(
                             onClick = onNextClick,
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF91D8FB),
-                                contentColor = Color(0xFF0F0B21)
+                                containerColor = palette.accent,
+                                contentColor = palette.primaryBackground
                             ),
                             shape = RoundedCornerShape(12.dp)
                         ) {
@@ -185,6 +179,7 @@ fun TrackSelectionDialog(
     onSavePlaylistClick: () -> Unit,
     onDismissRequest: () -> Unit
 ) {
+    val palette = LocalColorPalette.current
     Dialog(
         onDismissRequest = onDismissRequest,
         properties = DialogProperties(
@@ -213,15 +208,7 @@ fun TrackSelectionDialog(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(
-                        Brush.verticalGradient(
-                            colors = listOf(
-                                Color(0xFF0F0B21),
-                                Color(0xFF181035),
-                                Color(0xFF2C1454)
-                            )
-                        )
-                    )
+                    .background(palette.gradientBrush)
                     .padding(20.dp)
             ) {
                 Column(modifier = Modifier.fillMaxSize()) {
@@ -241,7 +228,7 @@ fun TrackSelectionDialog(
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
                                 text = "$playlistName • ${selectedSongIds.size}",
-                                color = Color(0xFF91D8FB),
+                                color = palette.accent,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Medium
                             )
@@ -299,7 +286,7 @@ fun TrackSelectionDialog(
                                         color = Color.White,
                                         fontSize = 14.sp
                                     ),
-                                    cursorBrush = SolidColor(Color(0xFF91D8FB)),
+                                    cursorBrush = SolidColor(palette.accent),
                                     keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                                     decorationBox = { innerTextField ->
                                         Box(contentAlignment = Alignment.CenterStart) {
@@ -341,7 +328,7 @@ fun TrackSelectionDialog(
                         ) {
                             Text(
                                 text = if (isAllSelected) stringResource(R.string.deselect_all) else stringResource(R.string.select_all),
-                                color = Color(0xFF91D8FB),
+                                color = palette.accent,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.SemiBold
                             )
@@ -405,8 +392,8 @@ fun TrackSelectionDialog(
                         Button(
                             onClick = onSavePlaylistClick,
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF91D8FB),
-                                contentColor = Color(0xFF0F0B21)
+                                containerColor = palette.accent,
+                                contentColor = palette.primaryBackground
                             ),
                             shape = RoundedCornerShape(14.dp),
                             contentPadding = PaddingValues(horizontal = 24.dp, vertical = 12.dp)
@@ -433,14 +420,15 @@ private fun TrackSelectionItem(
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
+    val palette = LocalColorPalette.current
     Surface(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(14.dp),
-        color = if (isSelected) Color(0xFF91D8FB).copy(alpha = 0.15f) else Color.White.copy(alpha = 0.06f),
+        color = if (isSelected) palette.accent.copy(alpha = 0.15f) else Color.White.copy(alpha = 0.06f),
         border = androidx.compose.foundation.BorderStroke(
             1.dp,
-            if (isSelected) Color(0xFF91D8FB).copy(alpha = 0.6f) else Color.White.copy(alpha = 0.1f)
+            if (isSelected) palette.accent.copy(alpha = 0.6f) else Color.White.copy(alpha = 0.1f)
         )
     ) {
         Row(
@@ -454,11 +442,11 @@ private fun TrackSelectionItem(
                     .size(24.dp)
                     .clip(CircleShape)
                     .background(
-                        if (isSelected) Color(0xFF91D8FB) else Color.White.copy(alpha = 0.1f)
+                        if (isSelected) palette.accent else Color.White.copy(alpha = 0.1f)
                     )
                     .border(
                         1.5.dp,
-                        if (isSelected) Color(0xFF91D8FB) else Color.White.copy(alpha = 0.4f),
+                        if (isSelected) palette.accent else Color.White.copy(alpha = 0.4f),
                         CircleShape
                     ),
                 contentAlignment = Alignment.Center
@@ -467,7 +455,7 @@ private fun TrackSelectionItem(
                     Icon(
                         imageVector = Icons.Default.Check,
                         contentDescription = null,
-                        tint = Color(0xFF0F0B21),
+                        tint = palette.primaryBackground,
                         modifier = Modifier.size(16.dp)
                     )
                 }
@@ -485,7 +473,7 @@ private fun TrackSelectionItem(
                 Icon(
                     imageVector = Icons.Default.MusicNote,
                     contentDescription = null,
-                    tint = if (isSelected) Color(0xFF91D8FB) else Color.White.copy(alpha = 0.7f),
+                    tint = if (isSelected) palette.accent else Color.White.copy(alpha = 0.7f),
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -495,7 +483,7 @@ private fun TrackSelectionItem(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = song.title,
-                    color = if (isSelected) Color(0xFF91D8FB) else Color.White,
+                    color = if (isSelected) palette.accent else Color.White,
                     fontSize = 14.sp,
                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
                     maxLines = 1,

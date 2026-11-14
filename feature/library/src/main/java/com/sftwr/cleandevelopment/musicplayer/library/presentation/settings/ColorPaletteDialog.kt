@@ -56,7 +56,7 @@ fun ColorPaletteDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismissRequest,
-        containerColor = Color(0xFF1B1238),
+        containerColor = currentPalette.secondaryBackground,
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,

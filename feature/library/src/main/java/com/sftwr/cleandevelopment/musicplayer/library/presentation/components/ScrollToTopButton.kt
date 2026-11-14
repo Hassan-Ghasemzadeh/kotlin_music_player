@@ -24,6 +24,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -67,14 +68,14 @@ fun ScrollToTopButton(
                 .size(36.dp) // Compact size matching requirements
                 .shadow(elevation = 6.dp, shape = CircleShape)
                 .clip(CircleShape)
-                .background(Color(0xFF8BE9FD)) // Neon cyan accent color
+                .background(LocalColorPalette.current.accent) // Neon cyan accent color
                 .clickable(onClick = onClick),
             contentAlignment = Alignment.Center
         ) {
             Icon(
                 imageVector = Icons.Default.KeyboardArrowUp,
                 contentDescription = "Scroll to top",
-                tint = Color(0xFF0F0B21), // Dark contrast icon
+                tint = LocalColorPalette.current.primaryBackground, // Dark contrast icon
                 modifier = Modifier.size(22.dp)
             )
         }

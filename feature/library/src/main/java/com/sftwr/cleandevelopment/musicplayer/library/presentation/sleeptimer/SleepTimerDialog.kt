@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.home.R
 
 val SleepTimerNeonBlue = Color(0xFF91D8FB)
@@ -50,7 +51,9 @@ fun SleepTimerDialog(
     onDismiss: () -> Unit
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-
+    val primary = LocalColorPalette.current.primaryBackground
+    val accent = LocalColorPalette.current.accent
+    val secondary = LocalColorPalette.current.secondaryBackground
     if (uiState.showCustomTimePicker) {
         CustomTimePickerDialog(
             initialHours = uiState.customHours,
@@ -75,7 +78,7 @@ fun SleepTimerDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        containerColor = Color(0xFF1B1238),
+        containerColor = secondary,
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -84,7 +87,7 @@ fun SleepTimerDialog(
                 Icon(
                     imageVector = Icons.Default.Timer,
                     contentDescription = null,
-                    tint = SleepTimerNeonBlue,
+                    tint = accent,
                     modifier = Modifier.size(24.dp)
                 )
                 Text(
@@ -108,12 +111,12 @@ fun SleepTimerDialog(
                             .background(
                                 Brush.linearGradient(
                                     colors = listOf(
-                                        SleepTimerNeonBlue.copy(alpha = 0.2f),
+                                        accent.copy(alpha = 0.2f),
                                         Color.White.copy(alpha = 0.05f)
                                     )
                                 )
                             )
-                            .border(1.dp, SleepTimerNeonBlue.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
+                            .border(1.dp, accent.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
                             .padding(14.dp)
                     ) {
                         Row(
@@ -128,8 +131,11 @@ fun SleepTimerDialog(
                                     fontSize = 12.sp
                                 )
                                 Text(
-                                    text = stringResource(R.string.stops_playback_in, uiState.remainingTimeFormatted),
-                                    color = SleepTimerNeonBlue,
+                                    text = stringResource(
+                                        R.string.stops_playback_in,
+                                        uiState.remainingTimeFormatted
+                                    ),
+                                    color = accent,
                                     fontWeight = FontWeight.Bold,
                                     fontSize = 15.sp
                                 )
@@ -158,7 +164,8 @@ fun SleepTimerDialog(
                 Spacer(modifier = Modifier.height(4.dp))
 
                 options.forEach { preset ->
-                    val isSelected = uiState.selectedPreset == preset && (preset != TimerPreset.OFF || !uiState.isActive)
+                    val isSelected =
+                        uiState.selectedPreset == preset && (preset != TimerPreset.OFF || !uiState.isActive)
                     val label = when (preset) {
                         TimerPreset.OFF -> stringResource(R.string.timer_preset_off)
                         TimerPreset.MIN_30 -> stringResource(R.string.timer_preset_30m)
@@ -169,7 +176,10 @@ fun SleepTimerDialog(
                             if (uiState.selectedPreset == TimerPreset.CUSTOM && uiState.durationMinutes > 0) {
                                 val h = uiState.durationMinutes / 60
                                 val m = uiState.durationMinutes % 60
-                                stringResource(R.string.custom_time_format, "${if (h > 0) "${h}h " else ""}${m}m")
+                                stringResource(
+                                    R.string.custom_time_format,
+                                    "${if (h > 0) "${h}h " else ""}${m}m"
+                                )
                             } else {
                                 stringResource(R.string.timer_preset_custom)
                             }
@@ -201,13 +211,13 @@ fun SleepTimerDialog(
                                     selected = isSelected,
                                     onClick = null,
                                     colors = RadioButtonDefaults.colors(
-                                        selectedColor = SleepTimerNeonBlue,
+                                        selectedColor = accent,
                                         unselectedColor = Color.White.copy(alpha = 0.5f)
                                     )
                                 )
                                 Text(
                                     text = label,
-                                    color = if (isSelected) SleepTimerNeonBlue else Color.White,
+                                    color = if (isSelected) accent else Color.White,
                                     fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                                     fontSize = 15.sp
                                 )
@@ -221,14 +231,14 @@ fun SleepTimerDialog(
                                     Icon(
                                         imageVector = Icons.Default.Edit,
                                         contentDescription = stringResource(R.string.edit_tags),
-                                        tint = SleepTimerNeonBlue
+                                        tint = accent
                                     )
                                 }
                             } else if (isSelected) {
                                 Icon(
                                     imageVector = Icons.Default.Check,
                                     contentDescription = null,
-                                    tint = SleepTimerNeonBlue
+                                    tint = accent
                                 )
                             }
                         }
@@ -238,7 +248,11 @@ fun SleepTimerDialog(
         },
         confirmButton = {
             TextButton(onClick = onDismiss) {
-                Text(stringResource(R.string.close), color = SleepTimerNeonBlue, fontWeight = FontWeight.Bold)
+                Text(
+                    stringResource(R.string.close),
+                    color = accent,
+                    fontWeight = FontWeight.Bold
+                )
             }
         }
     )

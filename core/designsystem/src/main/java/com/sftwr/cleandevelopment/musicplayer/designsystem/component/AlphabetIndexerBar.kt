@@ -16,10 +16,13 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 
 /**
  * A customizable Alphabet Indexer Bar component that allows users to quickly
@@ -31,7 +34,7 @@ fun AlphabetIndexerBar(
     letters: List<String>,
     onLetterSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
-    neonColor: Color = Color(0xFF00D2FF),
+    neonColor: Color = LocalColorPalette.current.accent,
     glassColor: Color = Color.White.copy(alpha = 0.05f)
 ) {
     // State tracking the currently active letter during touch interaction
@@ -42,7 +45,7 @@ fun AlphabetIndexerBar(
 
     // Total measured height of the indexer bar container
     var totalHeight by remember { mutableStateOf(0f) }
-
+    val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
     /**
      * Helper function to map vertical touch coordinates (Y position) to
      * the corresponding alphabet letter index safely.
@@ -62,13 +65,13 @@ fun AlphabetIndexerBar(
         }
     }
 
-    val isRtl = androidx.compose.ui.platform.LocalLayoutDirection.current == androidx.compose.ui.unit.LayoutDirection.Rtl
     val bubbleXOffset = if (isRtl) 60.dp else (-60).dp
 
     Box(
         modifier = modifier
             .fillMaxHeight()
             .width(32.dp)
+            .zIndex(1f)
             .padding(vertical = 6.dp),
         contentAlignment = Alignment.CenterEnd
     ) {

@@ -35,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.AlphabetIndexerBar
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.AddToPlaylistDialog
@@ -78,6 +79,8 @@ fun GenreDetailScreen(
     val coroutineScope = rememberCoroutineScope()
     val alphabet = remember { ('A'..'Z').map { it.toString() } }
 
+    val accent = LocalColorPalette.current.accent
+    val primary = LocalColorPalette.current.primaryBackground
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = Color.Transparent,
@@ -98,7 +101,7 @@ fun GenreDetailScreen(
                                 }
                             }
                         },
-                        containerColor = Color(0xFF91D8FB),
+                        containerColor = accent,
                         contentColor = Color.Black,
                         shape = CircleShape,
                         modifier = Modifier
@@ -118,13 +121,7 @@ fun GenreDetailScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF0F0B21),
-                            Color(0xFF181035),
-                            Color(0xFF2C1454)
-                        )
-                    )
+                    LocalColorPalette.current.gradientBrush
                 )
                 .padding(innerPadding)
         ) {
@@ -165,7 +162,7 @@ fun GenreDetailScreen(
                             Icon(
                                 imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                                 contentDescription = if (isFavorite) "Remove from Favorites" else "Add to Favorites",
-                                tint = if (isFavorite) Color(0xFFFF5252) else Color.White
+                                tint = if (isFavorite) accent else Color.White
                             )
                         }
                         IconButton(onClick = onSearchClick) {
@@ -203,7 +200,7 @@ fun GenreDetailScreen(
                                     .background(Color.White.copy(alpha = 0.08f))
                                     .border(
                                         1.dp,
-                                        Color(0xFF91D8FB).copy(alpha = 0.4f),
+                                        accent.copy(alpha = 0.4f),
                                         RoundedCornerShape(16.dp)
                                     ),
                                 contentAlignment = Alignment.Center
@@ -211,7 +208,7 @@ fun GenreDetailScreen(
                                 Icon(
                                     imageVector = Icons.Default.MusicVideo,
                                     contentDescription = genreName,
-                                    tint = Color(0xFF91D8FB),
+                                    tint = accent,
                                     modifier = Modifier.size(36.dp)
                                 )
                             }
@@ -229,7 +226,7 @@ fun GenreDetailScreen(
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = if (songs.size == 1) "1 Track" else "${songs.size} Tracks",
-                                    color = Color(0xFF91D8FB).copy(alpha = 0.9f),
+                                    color = accent.copy(alpha = 0.9f),
                                     fontSize = 13.sp
                                 )
                             }
@@ -239,8 +236,8 @@ fun GenreDetailScreen(
                             Button(
                                 onClick = onPlayAllClick,
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF91D8FB),
-                                    contentColor = Color(0xFF0F0B21)
+                                    containerColor = accent,
+                                    contentColor = primary
                                 ),
                                 shape = RoundedCornerShape(14.dp),
                                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
@@ -271,7 +268,7 @@ fun GenreDetailScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                CircularProgressIndicator(color = Color(0xFF91D8FB))
+                                CircularProgressIndicator(color = accent)
                             }
                         }
 

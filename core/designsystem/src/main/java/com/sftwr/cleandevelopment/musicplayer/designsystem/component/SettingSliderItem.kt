@@ -45,6 +45,7 @@ fun SettingSliderItem(
     valueTextFormatter: (Float) -> String
 ) {
     var sliderValue by remember(value) { mutableStateOf(value) }
+    val accent = LocalColorPalette.current.accent
 
     Column(
         modifier = modifier
@@ -58,7 +59,7 @@ fun SettingSliderItem(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = NeonBlue,
+                tint = accent,
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.width(16.dp))
@@ -71,7 +72,7 @@ fun SettingSliderItem(
             )
             Text(
                 text = valueTextFormatter(sliderValue),
-                color = NeonBlue,
+                color = accent,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -89,8 +90,8 @@ fun SettingSliderItem(
             valueRange = valueRange,
             steps = steps,
             colors = SliderDefaults.colors(
-                thumbColor = Color.White,
-                activeTrackColor = NeonBlue,
+                thumbColor = accent,
+                activeTrackColor = accent,
                 inactiveTrackColor = Color.White.copy(alpha = 0.2f),
                 activeTickColor = Color.White.copy(alpha = 0.5f),
                 inactiveTickColor = Color.Transparent
