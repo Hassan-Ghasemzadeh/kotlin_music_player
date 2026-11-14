@@ -82,7 +82,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
 import com.sftwr.cleandevelopment.musicplayer.data.util.FolderFilterHelper
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
-import com.sftwr.cleandevelopment.musicplayer.designsystem.component.NeonBlue
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingSliderItem
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingSwitchItem
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
@@ -110,13 +110,7 @@ fun EqualizerPreset.getStringRes(): Int {
     }
 }
 
-val DarkBackgroundGradient = Brush.verticalGradient(
-    colors = listOf(
-        Color(0xFF0F0B21),
-        Color(0xFF1B1238),
-        Color(0xFF2C1454)
-    )
-)
+
 
 /**
  * Modern glassmorphic Settings Screen providing categorization across Appearance,
@@ -170,11 +164,13 @@ fun SettingsScreen(
     modifier: Modifier = Modifier
 ) {
     val settings = uiState.settings
+    val accent = LocalColorPalette.current.accent
+    val gradientBrush = LocalColorPalette.current.gradientBrush
 
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(DarkBackgroundGradient)
+            .background(gradientBrush)
     ) {
         Column(
             modifier = Modifier
@@ -216,7 +212,7 @@ fun SettingsScreen(
                     Spacer(modifier = Modifier.weight(1f))
                     CircularProgressIndicator(
                         modifier = Modifier.size(24.dp),
-                        color = NeonBlue,
+                        color = accent,
                         strokeWidth = 2.dp
                     )
                 }
@@ -366,12 +362,7 @@ fun SettingsScreen(
                                             .clip(shape)
                                             .background(
                                                 if (isSelected) {
-                                                    Brush.linearGradient(
-                                                        listOf(
-                                                            Color(0xFF0F0B21),
-                                                            Color(0xFF2C1454)
-                                                        )
-                                                    )
+                                                    gradientBrush
                                                 } else {
                                                     Brush.linearGradient(
                                                         listOf(
@@ -383,7 +374,7 @@ fun SettingsScreen(
                                             )
                                             .border(
                                                 width = if (isSelected) 1.5.dp else 1.dp,
-                                                color = if (isSelected) NeonBlue else Color.White.copy(alpha = 0.15f),
+                                                color = if (isSelected) accent else Color.White.copy(alpha = 0.15f),
                                                 shape = shape
                                             )
                                             .clickable { onEqualizerPresetSelected(preset) }
@@ -394,7 +385,7 @@ fun SettingsScreen(
                                             text = presetLabel,
                                             style = MaterialTheme.typography.bodyMedium.copy(
                                                 fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                                color = if (isSelected) NeonBlue else Color.White.copy(alpha = 0.8f)
+                                                color = if (isSelected) accent else Color.White.copy(alpha = 0.8f)
                                             )
                                         )
                                     }
@@ -621,6 +612,7 @@ fun SettingsCategorySection(
     icon: ImageVector,
     content: @Composable ColumnScope.() -> Unit
 ) {
+    val accent = LocalColorPalette.current.accent
     Column(
         modifier = Modifier.fillMaxWidth()
     ) {
@@ -631,13 +623,13 @@ fun SettingsCategorySection(
             Icon(
                 imageVector = icon,
                 contentDescription = null,
-                tint = NeonBlue,
+                tint = accent,
                 modifier = Modifier.size(20.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
                 text = title,
-                color = NeonBlue,
+                color = accent,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -663,6 +655,7 @@ fun SettingsRowItem(
     icon: ImageVector,
     onClick: () -> Unit
 ) {
+    val accent = LocalColorPalette.current.accent
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -673,7 +666,7 @@ fun SettingsRowItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = if (icon == Icons.Default.Album || icon == Icons.Default.FolderOff || icon == Icons.Default.AudioFile) NeonBlue else Color.White.copy(alpha = 0.8f),
+            tint = if (icon == Icons.Default.Album || icon == Icons.Default.FolderOff || icon == Icons.Default.AudioFile) accent else Color.White.copy(alpha = 0.8f),
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -703,6 +696,7 @@ fun SettingsSwitchRowItem(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit
 ) {
+    val accent = LocalColorPalette.current.accent
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -713,7 +707,7 @@ fun SettingsSwitchRowItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = if (icon == Icons.Default.Album || icon == Icons.Default.FolderOff || icon == Icons.Default.AudioFile) NeonBlue else Color.White.copy(alpha = 0.8f),
+            tint = if (icon == Icons.Default.Album || icon == Icons.Default.FolderOff || icon == Icons.Default.AudioFile) accent else Color.White.copy(alpha = 0.8f),
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -737,7 +731,7 @@ fun SettingsSwitchRowItem(
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Color.White,
-                checkedTrackColor = NeonBlue,
+                checkedTrackColor = accent,
                 uncheckedThumbColor = Color.Gray,
                 uncheckedTrackColor = Color.White.copy(alpha = 0.1f)
             )
@@ -755,6 +749,7 @@ fun SettingsSliderRowItem(
     steps: Int = 0,
     onValueChange: (Float) -> Unit
 ) {
+    val accent = LocalColorPalette.current.accent
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -780,7 +775,7 @@ fun SettingsSliderRowItem(
             )
             Text(
                 text = valueText,
-                color = NeonBlue,
+                color = accent,
                 fontSize = 14.sp,
                 fontWeight = FontWeight.Bold
             )
@@ -791,8 +786,8 @@ fun SettingsSliderRowItem(
             valueRange = valueRange,
             steps = steps,
             colors = SliderDefaults.colors(
-                thumbColor = NeonBlue,
-                activeTrackColor = NeonBlue,
+                thumbColor = accent,
+                activeTrackColor = accent,
                 inactiveTrackColor = Color.White.copy(alpha = 0.2f)
             ),
             modifier = Modifier.padding(top = 4.dp)
@@ -808,6 +803,7 @@ fun SettingsChipSelectorRow(
     selectedOption: String,
     onOptionSelected: (String) -> Unit
 ) {
+    val accent = LocalColorPalette.current.accent
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -834,12 +830,7 @@ fun SettingsChipSelectorRow(
                         .clip(shape)
                         .background(
                             if (isSelected) {
-                                Brush.linearGradient(
-                                    listOf(
-                                        Color(0xFF0F0B21),
-                                        Color(0xFF2C1454)
-                                    )
-                                )
+                                LocalColorPalette.current.gradientBrush
                             } else {
                                 Brush.linearGradient(
                                     listOf(
@@ -851,7 +842,7 @@ fun SettingsChipSelectorRow(
                         )
                         .border(
                             width = if (isSelected) 1.5.dp else 1.dp,
-                            color = if (isSelected) NeonBlue else Color.White.copy(alpha = 0.15f),
+                            color = if (isSelected) accent else Color.White.copy(alpha = 0.15f),
                             shape = shape
                         )
                         .clickable { onOptionSelected(option) }
@@ -862,7 +853,7 @@ fun SettingsChipSelectorRow(
                         text = option,
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            color = if (isSelected) NeonBlue else Color.White.copy(alpha = 0.8f)
+                            color = if (isSelected) accent else Color.White.copy(alpha = 0.8f)
                         )
                     )
                 }
@@ -879,6 +870,7 @@ fun SettingsActionRowItem(
     actionText: String,
     onClick: () -> Unit
 ) {
+    val accent = LocalColorPalette.current.accent
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -888,7 +880,7 @@ fun SettingsActionRowItem(
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = NeonBlue,
+            tint = accent,
             modifier = Modifier.size(24.dp)
         )
         Spacer(modifier = Modifier.width(16.dp))
@@ -911,16 +903,11 @@ fun SettingsActionRowItem(
             modifier = Modifier
                 .clip(RoundedCornerShape(14.dp))
                 .background(
-                    Brush.linearGradient(
-                        colors = listOf(
-                            Color(0xFF0F0B21),
-                            Color(0xFF2C1454)
-                        )
-                    )
+                    LocalColorPalette.current.gradientBrush
                 )
                 .border(
                     width = 1.5.dp,
-                    color = NeonBlue,
+                    color = accent,
                     shape = RoundedCornerShape(14.dp)
                 )
                 .clickable(onClick = onClick)
@@ -929,7 +916,7 @@ fun SettingsActionRowItem(
         ) {
             Text(
                 text = actionText,
-                color = NeonBlue,
+                color = accent,
                 fontWeight = FontWeight.Bold,
                 fontSize = 13.sp
             )
@@ -953,12 +940,13 @@ fun LanguageSelectionDialog(
     onLanguageSelected: (AppLanguage) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val accent = LocalColorPalette.current.accent
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Color(0xFF1B1238),
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.Language, contentDescription = null, tint = NeonBlue)
+                Icon(Icons.Default.Language, contentDescription = null, tint = accent)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = stringResource(R.string.select_language),
@@ -983,7 +971,7 @@ fun LanguageSelectionDialog(
                         RadioButton(
                             selected = isSelected,
                             onClick = { onLanguageSelected(language) },
-                            colors = RadioButtonDefaults.colors(selectedColor = NeonBlue)
+                            colors = RadioButtonDefaults.colors(selectedColor = accent)
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Column {
@@ -1007,7 +995,7 @@ fun LanguageSelectionDialog(
             TextButton(onClick = onDismiss) {
                 Text(
                     text = stringResource(R.string.close),
-                    color = NeonBlue,
+                    color = accent,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -1022,12 +1010,13 @@ fun ExcludedFoldersDialog(
     onRemoveFolder: (String) -> Unit,
     onDismiss: () -> Unit
 ) {
+    val accent = LocalColorPalette.current.accent
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = Color(0xFF1B1238),
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.FolderOff, contentDescription = null, tint = NeonBlue)
+                Icon(Icons.Default.FolderOff, contentDescription = null, tint = accent)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = stringResource(R.string.excluded_folders),
@@ -1044,7 +1033,7 @@ fun ExcludedFoldersDialog(
                 Button(
                     onClick = onBrowseFolderClick,
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = NeonBlue),
+                    colors = ButtonDefaults.buttonColors(containerColor = accent),
                     shape = RoundedCornerShape(16.dp)
                 ) {
                     Icon(
@@ -1136,7 +1125,7 @@ fun ExcludedFoldersDialog(
             TextButton(onClick = onDismiss) {
                 Text(
                     text = stringResource(R.string.close),
-                    color = NeonBlue,
+                    color = accent,
                     fontWeight = FontWeight.Bold
                 )
             }
@@ -1149,6 +1138,7 @@ fun VisualizerSelectorDialog(
     onDismiss: () -> Unit,
     onSelectType: (CircularVisualizerType) -> Unit
 ) {
+    val accent = LocalColorPalette.current.accent
     val audioVisualizerManager = remember { AudioVisualizerManager() }
 
     AlertDialog(
@@ -1156,7 +1146,7 @@ fun VisualizerSelectorDialog(
         containerColor = Color(0xFF1B1238),
         title = {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Icon(Icons.Default.GraphicEq, contentDescription = null, tint = NeonBlue)
+                Icon(Icons.Default.GraphicEq, contentDescription = null, tint = accent)
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = stringResource(R.string.visualizer_style),
@@ -1185,7 +1175,7 @@ fun VisualizerSelectorDialog(
             TextButton(onClick = onDismiss) {
                 Text(
                     text = stringResource(R.string.close),
-                    color = NeonBlue,
+                    color = accent,
                     fontWeight = FontWeight.Bold
                 )
             }

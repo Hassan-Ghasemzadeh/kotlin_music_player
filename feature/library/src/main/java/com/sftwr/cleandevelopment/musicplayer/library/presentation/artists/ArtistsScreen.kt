@@ -26,6 +26,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalGlassmorphicEnabled
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Artist
 import com.sftwr.cleandevelopment.musicplayer.home.R
@@ -45,6 +46,8 @@ fun ArtistsScreen(
     val bottomPadding = rememberPlayerAwareBottomPadding()
     val gridState = rememberLazyGridState()
     val coroutineScope = rememberCoroutineScope()
+    val accent = LocalColorPalette.current.accent
+    val gradientBrush = LocalColorPalette.current.gradientBrush
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -53,15 +56,7 @@ fun ArtistsScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF0F0B21),
-                            Color(0xFF181035),
-                            Color(0xFF2C1454)
-                        )
-                    )
-                )
+                .background(gradientBrush)
                 .padding(innerPadding)
         ) {
             Column(
@@ -109,7 +104,7 @@ fun ArtistsScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                CircularProgressIndicator(color = Color(0xFF91D8FB))
+                                CircularProgressIndicator(color = accent)
                             }
                         }
                         artists.isEmpty() -> {
@@ -165,9 +160,10 @@ fun ArtistItemCard(
     modifier: Modifier = Modifier
 ) {
     val isGlassmorphic = LocalGlassmorphicEnabled.current
-    val backgroundColor = if (isGlassmorphic) Color.White.copy(alpha = 0.06f) else Color(0xFF1B1238)
+    val palette = LocalColorPalette.current
+    val backgroundColor = if (isGlassmorphic) Color.White.copy(alpha = 0.06f) else palette.secondaryBackground
     val borderColor = if (isGlassmorphic) Color.White.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.05f)
-    val imageBackground = if (isGlassmorphic) Color.White.copy(alpha = 0.08f) else Color(0xFF2C1454)
+    val imageBackground = if (isGlassmorphic) Color.White.copy(alpha = 0.08f) else palette.surfaceCard
 
     Column(
         modifier = modifier
@@ -189,7 +185,7 @@ fun ArtistItemCard(
             Icon(
                 imageVector = Icons.Default.Person,
                 contentDescription = null,
-                tint = Color(0xFF91D8FB).copy(alpha = 0.6f),
+                tint = palette.accent.copy(alpha = 0.6f),
                 modifier = Modifier.size(48.dp)
             )
         }

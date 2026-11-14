@@ -92,21 +92,13 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
 import com.sftwr.cleandevelopment.musicplayer.home.R
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.drive_mode.viewmodel.DriveModeViewModel
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-
-val NeonBlueAccent = Color(0xFF91D8FB)
-val DriveModeGradient = Brush.verticalGradient(
-    colors = listOf(
-        Color(0xFF0F0B21),
-        Color(0xFF1B1238),
-        Color(0xFF2C1454)
-    )
-)
 
 /**
  * Stateful entry point route for Drive Mode.
@@ -296,11 +288,13 @@ fun DriveModeScreen(
     var dragOffset by remember { mutableStateOf(0f) }
     val animatedOffset = remember { Animatable(0f) }
     val scope = rememberCoroutineScope()
+    val accent = LocalColorPalette.current.accent
+    val gradientBrush = LocalColorPalette.current.gradientBrush
 
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(DriveModeGradient)
+            .background(gradientBrush)
             .statusBarsPadding()
             .navigationBarsPadding()
             .padding(16.dp)
@@ -337,7 +331,7 @@ fun DriveModeScreen(
                     Icon(
                         imageVector = Icons.Default.DirectionsCar,
                         contentDescription = null,
-                        tint = NeonBlueAccent,
+                        tint = accent,
                         modifier = Modifier.size(28.dp)
                     )
                     Text(
@@ -356,7 +350,7 @@ fun DriveModeScreen(
                     Icon(
                         imageVector = if (uiState.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = "Favorite",
-                        tint = NeonBlueAccent,
+                        tint = accent,
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -376,7 +370,7 @@ fun DriveModeScreen(
                         .size(280.dp)
                         .graphicsLayer { translationX = animatedOffset.value }
                         .clip(RoundedCornerShape(24.dp))
-                        .border(2.5.dp, NeonBlueAccent, RoundedCornerShape(24.dp))
+                        .border(2.5.dp, accent, RoundedCornerShape(24.dp))
                         .background(Color(0xFF1B1238))
                         .pointerInput(Unit) {
                             detectHorizontalDragGestures(
@@ -425,7 +419,7 @@ fun DriveModeScreen(
                             Icon(
                                 imageVector = Icons.Default.MusicNote,
                                 contentDescription = null,
-                                tint = NeonBlueAccent.copy(alpha = 0.8f),
+                                tint = accent.copy(alpha = 0.8f),
                                 modifier = Modifier.size(96.dp)
                             )
                         }
@@ -452,7 +446,7 @@ fun DriveModeScreen(
                     text = song?.artist ?: stringResource(R.string.unknown_artist),
                     fontSize = 20.sp,
                     fontWeight = FontWeight.SemiBold,
-                    color = NeonBlueAccent,
+                    color = accent,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     textAlign = TextAlign.Center,
@@ -487,7 +481,7 @@ fun DriveModeScreen(
                             .background(Color.Transparent)
                             .border(
                                 1.5.dp,
-                                if (isListening) NeonBlueAccent else Color.White.copy(alpha = 0.5f),
+                                if (isListening) accent else Color.White.copy(alpha = 0.5f),
                                 CircleShape
                             )
                             .clickable { onVoiceAssistantClick() },
@@ -496,7 +490,7 @@ fun DriveModeScreen(
                         Icon(
                             imageVector = Icons.Default.Mic,
                             contentDescription = stringResource(R.string.voice_assistant),
-                            tint = if (isListening) NeonBlueAccent else Color.White,
+                            tint = if (isListening) accent else Color.White,
                             modifier = Modifier.size(32.dp)
                         )
                     }
@@ -527,7 +521,7 @@ fun DriveModeScreen(
                             .background(
                                 Brush.linearGradient(
                                     colors = listOf(
-                                        NeonBlueAccent,
+                                        accent,
                                         Color(0xFF4A90E2)
                                     )
                                 )

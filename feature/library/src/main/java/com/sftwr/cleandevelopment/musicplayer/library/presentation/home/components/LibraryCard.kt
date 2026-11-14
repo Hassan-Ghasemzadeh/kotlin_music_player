@@ -19,6 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.neonBorder
 
 
@@ -46,7 +47,7 @@ fun LibraryCard(
             Icon(
                 imageVector = icon,
                 contentDescription = title,
-                tint = Color(0xFF00CFFF),
+                tint = LocalColorPalette.current.accent,
                 modifier = Modifier.size(36.dp)
             )
             Spacer(modifier = Modifier.height(12.dp))

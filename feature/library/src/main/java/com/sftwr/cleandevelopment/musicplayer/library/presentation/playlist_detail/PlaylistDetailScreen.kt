@@ -64,6 +64,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.AlphabetIndexerBar
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.PlaylistType
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
@@ -112,6 +113,8 @@ fun PlaylistDetailScreen(
     val listState = rememberLazyListState()
     val alphabet = remember { ('A'..'Z').map { it.toString() } }
     val coroutineScope = rememberCoroutineScope()
+    val accent = LocalColorPalette.current.accent
+    val gradientBrush = LocalColorPalette.current.gradientBrush
 
     val playlistIcon: ImageVector = when (playlistType) {
         PlaylistType.RECENTLY_ADDED -> Icons.Default.LibraryAdd
@@ -142,7 +145,7 @@ fun PlaylistDetailScreen(
                                 }
                             }
                         },
-                        containerColor = Color(0xFF91D8FB),
+                        containerColor = accent,
                         contentColor = Color.Black,
                         shape = CircleShape,
                         modifier = Modifier
@@ -161,15 +164,7 @@ fun PlaylistDetailScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF0F0B21),
-                            Color(0xFF181035),
-                            Color(0xFF2C1454)
-                        )
-                    )
-                )
+                .background(gradientBrush)
                 .padding(innerPadding)
         ) {
             Column(
@@ -242,10 +237,10 @@ fun PlaylistDetailScreen(
                                 modifier = Modifier
                                     .size(56.dp)
                                     .clip(RoundedCornerShape(16.dp))
-                                    .background(Color(0xFF91D8FB).copy(alpha = 0.2f))
+                                    .background(accent.copy(alpha = 0.2f))
                                     .border(
                                         1.dp,
-                                        Color(0xFF91D8FB).copy(alpha = 0.4f),
+                                        accent.copy(alpha = 0.4f),
                                         RoundedCornerShape(16.dp)
                                     ),
                                 contentAlignment = Alignment.Center
@@ -253,7 +248,7 @@ fun PlaylistDetailScreen(
                                 Icon(
                                     imageVector = playlistIcon,
                                     contentDescription = playlistTitle,
-                                    tint = Color(0xFF91D8FB),
+                                    tint = accent,
                                     modifier = Modifier.size(28.dp)
                                 )
                             }
@@ -280,7 +275,7 @@ fun PlaylistDetailScreen(
                             Button(
                                 onClick = onPlayAllClick,
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF91D8FB),
+                                    containerColor = accent,
                                     contentColor = Color(0xFF0F0B21)
                                 ),
                                 shape = RoundedCornerShape(14.dp),
@@ -312,7 +307,7 @@ fun PlaylistDetailScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                CircularProgressIndicator(color = Color(0xFF91D8FB))
+                                CircularProgressIndicator(color = accent)
                             }
                         }
 

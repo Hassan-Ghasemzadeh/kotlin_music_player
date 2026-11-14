@@ -57,6 +57,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.AlphabetIndexerBar
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalGlassmorphicEnabled
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalAlbumArtworkEnabled
@@ -138,6 +139,8 @@ fun TracksScreen(
     var expandedSongId by remember { mutableStateOf<String?>(null) }
 
     val alphabet = remember { ('A'..'Z').map { it.toString() } }
+    val accent = LocalColorPalette.current.accent
+    val gradientBrush = LocalColorPalette.current.gradientBrush
 
     // Scaffold container with custom dark vertical gradient background matching theme guidelines
     Scaffold(
@@ -163,7 +166,7 @@ fun TracksScreen(
                                 }
                             }
                         },
-                        containerColor = Color(0xFF91D8FB),
+                        containerColor = accent,
                         contentColor = Color.Black,
                         shape = CircleShape,
                         modifier = Modifier
@@ -182,13 +185,7 @@ fun TracksScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF0F0B21), Color(0xFF181035), Color(0xFF2C1454)
-                        )
-                    )
-                )
+                .background(gradientBrush)
                 .padding(innerPadding)
         ) {
             Column(
@@ -240,7 +237,7 @@ fun TracksScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 CircularProgressIndicator(
-                                    color = Color(0xFF91D8FB)
+                                    color = accent
                                 )
                             }
                         }
@@ -423,9 +420,10 @@ fun TrackItem(
 ) {
     val ctx = LocalContext.current
     val isGlassmorphic = LocalGlassmorphicEnabled.current
-    val borderColor = if (isPlaying) Color(0xFF91D8FB) else if (isGlassmorphic) Color.White.copy(alpha = 0.12f) else Color.White.copy(alpha = 0.05f)
+    val accent = LocalColorPalette.current.accent
+    val borderColor = if (isPlaying) accent else if (isGlassmorphic) Color.White.copy(alpha = 0.12f) else Color.White.copy(alpha = 0.05f)
     val backgroundColor = when {
-        isPlaying -> Color(0xFF91D8FB).copy(alpha = 0.15f)
+        isPlaying -> accent.copy(alpha = 0.15f)
         isGlassmorphic -> Color.White.copy(alpha = 0.07f)
         else -> Color(0xFF1B1238)
     }
@@ -489,7 +487,7 @@ fun TrackItem(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = song.title,
-                        color = if (isPlaying) Color(0xFF91D8FB) else Color.White,
+                        color = if (isPlaying) accent else Color.White,
                         fontSize = 15.sp,
                         fontWeight = if (isPlaying) FontWeight.Bold else FontWeight.Normal,
                         maxLines = 1,
@@ -514,7 +512,7 @@ fun TrackItem(
                     AnimatedVisualizer(
                         modifier = Modifier.size(24.dp, 14.dp),
                         barCount = 3,
-                        barColor = Color(0xFF91D8FB)
+                        barColor = accent
                     )
                 } else {
                     Text(

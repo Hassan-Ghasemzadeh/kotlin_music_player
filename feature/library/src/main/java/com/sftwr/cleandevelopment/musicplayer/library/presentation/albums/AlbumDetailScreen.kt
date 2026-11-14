@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.AlphabetIndexerBar
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalAlbumArtworkEnabled
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
@@ -83,6 +84,8 @@ fun AlbumDetailScreen(
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     val alphabet = remember { ('A'..'Z').map { it.toString() } }
+    val accent = LocalColorPalette.current.accent
+    val gradientBrush = LocalColorPalette.current.gradientBrush
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -104,7 +107,7 @@ fun AlbumDetailScreen(
                                 }
                             }
                         },
-                        containerColor = Color(0xFF91D8FB),
+                        containerColor = accent,
                         contentColor = Color.Black,
                         shape = CircleShape,
                         modifier = Modifier
@@ -123,15 +126,7 @@ fun AlbumDetailScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(
-                    Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF0F0B21),
-                            Color(0xFF181035),
-                            Color(0xFF2C1454)
-                        )
-                    )
-                )
+                .background(gradientBrush)
                 .padding(innerPadding)
         ) {
             Column(
@@ -209,7 +204,7 @@ fun AlbumDetailScreen(
                                     .background(Color.White.copy(alpha = 0.08f))
                                     .border(
                                         1.dp,
-                                        Color(0xFF91D8FB).copy(alpha = 0.4f),
+                                        accent.copy(alpha = 0.4f),
                                         RoundedCornerShape(16.dp)
                                     ),
                                 contentAlignment = Alignment.Center
@@ -254,7 +249,7 @@ fun AlbumDetailScreen(
                                 Spacer(modifier = Modifier.height(2.dp))
                                 Text(
                                     text = "${songs.size} Tracks",
-                                    color = Color(0xFF91D8FB).copy(alpha = 0.9f),
+                                    color = accent.copy(alpha = 0.9f),
                                     fontSize = 12.sp
                                 )
                             }
@@ -264,7 +259,7 @@ fun AlbumDetailScreen(
                             Button(
                                 onClick = onPlayAllClick,
                                 colors = ButtonDefaults.buttonColors(
-                                    containerColor = Color(0xFF91D8FB),
+                                    containerColor = accent,
                                     contentColor = Color(0xFF0F0B21)
                                 ),
                                 shape = RoundedCornerShape(14.dp),
@@ -296,7 +291,7 @@ fun AlbumDetailScreen(
                                 modifier = Modifier.fillMaxSize(),
                                 contentAlignment = Alignment.Center
                             ) {
-                                CircularProgressIndicator(color = Color(0xFF91D8FB))
+                                CircularProgressIndicator(color = accent)
                             }
                         }
 

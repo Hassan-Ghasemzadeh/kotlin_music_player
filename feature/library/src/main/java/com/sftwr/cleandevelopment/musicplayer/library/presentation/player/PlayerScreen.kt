@@ -87,6 +87,7 @@ import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.toMillis
 import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.AudioVisualizerManager
@@ -126,6 +127,9 @@ fun PlayerScreen(
     val volume by viewModel.volume.collectAsStateWithLifecycle()
     val playbackPitch by viewModel.playbackPitch.collectAsStateWithLifecycle()
     val playbackSpeed by viewModel.playbackSpeed.collectAsStateWithLifecycle()
+
+    val accent = LocalColorPalette.current.accent
+    val gradientBrush = LocalColorPalette.current.gradientBrush
 
     var showEqualizerSheet by remember { mutableStateOf(false) }
     var showSleepTimerDialog by remember { mutableStateOf(false) }
@@ -268,16 +272,10 @@ fun PlayerScreen(
         }
     }
 
-    val backgroundGradient = Brush.verticalGradient(
-        colors = listOf(
-            Color(0xFF0F0B21), Color(0xFF181035), Color(0xFF2C1454)
-        )
-    )
-
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(backgroundGradient)
+            .background(gradientBrush)
             .statusBarsPadding()
             .navigationBarsPadding()
             .padding(16.dp)
@@ -314,7 +312,7 @@ fun PlayerScreen(
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.QueueMusic,
                             contentDescription = "Playing Queue",
-                            tint = Color(0xFF91D8FB),
+                            tint = accent,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -322,7 +320,7 @@ fun PlayerScreen(
                         Icon(
                             imageVector = Icons.Default.Equalizer,
                             contentDescription = "Equalizer",
-                            tint = Color(0xFF91D8FB),
+                            tint = accent,
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -364,7 +362,7 @@ fun PlayerScreen(
                     Icon(
                         imageVector = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
                         contentDescription = if (isFavorite) "Remove from Favorites" else "Add to Favorites",
-                        tint = Color(0xFF91D8FB),
+                        tint = accent,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -373,7 +371,7 @@ fun PlayerScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.PlaylistAdd,
                         contentDescription = "Add to Playlist",
-                        tint = Color(0xFF91D8FB),
+                        tint = accent,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -382,7 +380,7 @@ fun PlayerScreen(
                     Icon(
                         imageVector = Icons.Default.Timer,
                         contentDescription = "Sleep Timer",
-                        tint = Color(0xFF91D8FB),
+                        tint = accent,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -391,7 +389,7 @@ fun PlayerScreen(
                     Icon(
                         imageVector = Icons.Default.Tune,
                         contentDescription = "Audio Controls",
-                        tint = Color(0xFF91D8FB),
+                        tint = accent,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -400,7 +398,7 @@ fun PlayerScreen(
                     Icon(
                         imageVector = Icons.Default.Share,
                         contentDescription = "Share",
-                        tint = Color(0xFF91D8FB),
+                        tint = accent,
                         modifier = Modifier.size(24.dp)
                     )
                 }
@@ -506,7 +504,7 @@ fun PlayerScreen(
                             Icon(
                                 imageVector = Icons.Default.Shuffle,
                                 contentDescription = "Shuffle",
-                                tint = if (isShuffleEnabled) Color(0xFF00D2FF) else Color.White.copy(
+                                tint = if (isShuffleEnabled) accent else Color.White.copy(
                                     alpha = 0.6f
                                 )
                             )
@@ -557,7 +555,7 @@ fun PlayerScreen(
                                 contentDescription = "Repeat",
                                 tint = when (repeatMode) {
                                     RepeatMode.OFF -> Color.White.copy(alpha = 0.6f)
-                                    else -> Color(0xFF00D2FF)
+                                    else -> accent
                                 }
                             )
                         }
@@ -616,13 +614,7 @@ fun PlayerScreen(
                             .fillMaxWidth()
                             .fillMaxHeight(0.7f)
                             .background(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(
-                                        Color(0xFF0F0B21),
-                                        Color(0xFF181035),
-                                        Color(0xFF2C1454)
-                                    )
-                                )
+                                brush = gradientBrush
                             )
                             .padding(16.dp)
                     ) {
@@ -688,7 +680,7 @@ fun PlayerScreen(
                                                     Icon(
                                                         imageVector = Icons.Default.PlayArrow,
                                                         contentDescription = "Playing",
-                                                        tint = Color(0xFF91D8FB),
+                                                        tint = accent,
                                                         modifier = Modifier.size(24.dp)
                                                     )
                                                 } else {
@@ -711,7 +703,7 @@ fun PlayerScreen(
                                                     text = song.title,
                                                     style = MaterialTheme.typography.bodyLarge.copy(
                                                         fontWeight = if (isCurrentSong) FontWeight.Bold else FontWeight.Medium,
-                                                        color = if (isCurrentSong) Color(0xFF91D8FB) else Color.White
+                                                        color = if (isCurrentSong) accent else Color.White
                                                     ),
                                                     maxLines = 1
                                                 )
@@ -758,9 +750,7 @@ fun PlayerScreen(
                         modifier = Modifier
                             .fillMaxWidth()
                             .background(
-                                brush = Brush.verticalGradient(
-                                    colors = listOf(Color(0xFF0F0B21), Color(0xFF181035), Color(0xFF2C1454))
-                                )
+                                brush = gradientBrush
                             )
                             .padding(24.dp)
                     ) {
@@ -788,7 +778,7 @@ fun PlayerScreen(
                                     )
                                     Text(
                                         text = "${(volume * 100).toInt()}%",
-                                        style = MaterialTheme.typography.bodyMedium.copy(color = Color(0xFF91D8FB), fontWeight = FontWeight.Bold)
+                                        style = MaterialTheme.typography.bodyMedium.copy(color = accent, fontWeight = FontWeight.Bold)
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -797,8 +787,8 @@ fun PlayerScreen(
                                     onValueChange = { viewModel.setVolume(it) },
                                     valueRange = 0f..1f,
                                     colors = SliderDefaults.colors(
-                                        thumbColor = Color(0xFF91D8FB),
-                                        activeTrackColor = Color(0xFF91D8FB),
+                                        thumbColor = accent,
+                                        activeTrackColor = accent,
                                         inactiveTrackColor = Color(0x3391D8FB)
                                     )
                                 )
@@ -816,7 +806,7 @@ fun PlayerScreen(
                                     )
                                     Text(
                                         text = String.format(java.util.Locale.US, "%.2fx", playbackPitch),
-                                        style = MaterialTheme.typography.bodyMedium.copy(color = Color(0xFF91D8FB), fontWeight = FontWeight.Bold)
+                                        style = MaterialTheme.typography.bodyMedium.copy(color = accent, fontWeight = FontWeight.Bold)
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -825,8 +815,8 @@ fun PlayerScreen(
                                     onValueChange = { viewModel.setPlaybackPitch(it) },
                                     valueRange = 0.5f..2.0f,
                                     colors = SliderDefaults.colors(
-                                        thumbColor = Color(0xFF91D8FB),
-                                        activeTrackColor = Color(0xFF91D8FB),
+                                        thumbColor = accent,
+                                        activeTrackColor = accent,
                                         inactiveTrackColor = Color(0x3391D8FB)
                                     )
                                 )
@@ -844,7 +834,7 @@ fun PlayerScreen(
                                     )
                                     Text(
                                         text = String.format(java.util.Locale.US, "%.2fx", playbackSpeed),
-                                        style = MaterialTheme.typography.bodyMedium.copy(color = Color(0xFF91D8FB), fontWeight = FontWeight.Bold)
+                                        style = MaterialTheme.typography.bodyMedium.copy(color = accent, fontWeight = FontWeight.Bold)
                                     )
                                 }
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -853,8 +843,8 @@ fun PlayerScreen(
                                     onValueChange = { viewModel.setPlaybackSpeed(it) },
                                     valueRange = 0.5f..2.0f,
                                     colors = SliderDefaults.colors(
-                                        thumbColor = Color(0xFF91D8FB),
-                                        activeTrackColor = Color(0xFF91D8FB),
+                                        thumbColor = accent,
+                                        activeTrackColor = accent,
                                         inactiveTrackColor = Color(0x3391D8FB)
                                     )
                                 )
