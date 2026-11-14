@@ -45,6 +45,10 @@ fun SettingsRoute(
     val isAlbumArtworkEnabled by viewModel.isAlbumArtworkEnabled.collectAsStateWithLifecycle()
     val crossfadeDuration by viewModel.crossfadeDuration.collectAsStateWithLifecycle()
     val replayGainMode by viewModel.replayGainMode.collectAsStateWithLifecycle()
+    val isLockscreenControlsEnabled by viewModel.isLockscreenControlsEnabled.collectAsStateWithLifecycle()
+    val isScreenOffPlaybackEnabled by viewModel.isScreenOffPlaybackEnabled.collectAsStateWithLifecycle()
+    val isHeadsetControlsEnabled by viewModel.isHeadsetControlsEnabled.collectAsStateWithLifecycle()
+    val isAllowExternalDevicePlaybackEnabled by viewModel.isAllowExternalDevicePlaybackEnabled.collectAsStateWithLifecycle()
 
     SettingsScreen(
         uiState = uiState,
@@ -53,6 +57,10 @@ fun SettingsRoute(
         isAlbumArtworkEnabled = isAlbumArtworkEnabled,
         crossfadeDuration = crossfadeDuration,
         replayGainMode = replayGainMode,
+        isLockscreenControlsEnabled = isLockscreenControlsEnabled,
+        isScreenOffPlaybackEnabled = isScreenOffPlaybackEnabled,
+        isHeadsetControlsEnabled = isHeadsetControlsEnabled,
+        isAllowExternalDevicePlaybackEnabled = isAllowExternalDevicePlaybackEnabled,
         onBackClick = onBackClick,
         onLanguageClick = { viewModel.showLanguageDialog(true) },
         onLanguageSelected = viewModel::onLanguageSelected,
