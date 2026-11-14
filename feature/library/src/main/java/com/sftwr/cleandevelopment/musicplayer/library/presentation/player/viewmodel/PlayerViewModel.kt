@@ -50,6 +50,16 @@ class PlayerViewModel @Inject constructor(
     // Expose underlying ExoPlayer instance for audio session management
     val exoPlayer = playerManager.exoPlayer
 
+    val queue: StateFlow<List<SongUiModel>> = playerManager.queue
+
+    fun playQueueItem(index: Int) {
+        playerManager.playQueueItem(index)
+    }
+
+    fun removeFromQueue(index: Int) {
+        playerManager.removeFromQueue(index)
+    }
+
     val swipeArtworkToSkip: StateFlow<Boolean> = getSettingsUseCase()
         .map { it.swipeArtworkToSkipEnabled }
         .stateIn(
