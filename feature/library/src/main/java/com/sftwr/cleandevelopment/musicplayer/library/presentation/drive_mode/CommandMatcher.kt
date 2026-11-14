@@ -9,7 +9,7 @@ enum class PlayerCommand {
 
 /**
  * Utility responsible for multilingual keyword matching, normalization,
- * and command parsing for Drive Mode voice recognition.
+ * and command parsing for Drive Mode voice recognition with cross-language fallback.
  */
 object CommandMatcher {
 
@@ -46,11 +46,25 @@ object CommandMatcher {
             .replace(Regex("[^\\p{L}\\p{N}\\s]"), "") // Remove punctuation/diacritics
             .trim()
 
-        val defaultEnglish = emptyList<String>()
-        val pKeywords = playKeywords[language] ?: playKeywords[AppLanguage.ENGLISH] ?: defaultEnglish
-        val paKeywords = pauseKeywords[language] ?: pauseKeywords[AppLanguage.ENGLISH] ?: defaultEnglish
-        val nKeywords = nextKeywords[language] ?: nextKeywords[AppLanguage.ENGLISH] ?: defaultEnglish
-        val prevKeywords = previousKeywords[language] ?: previousKeywords[AppLanguage.ENGLISH] ?: defaultEnglish
+        // 1. Try matching with selected language first
+        val primaryCmd = matchInternal(normalized, language)
+        if (primaryCmd != PlayerCommand.UNKNOWN) return primaryCmd
+
+        // 2. Cross-language fallback: check all other supported languages
+        for (lang in AppLanguage.entries) {
+            if (lang != language) {
+                val fallbackCmd = matchInternal(normalized, lang)
+                if (fallbackCmd != PlayerCommand.UNKNOWN) return fallbackCmd
+            }
+        }
+        return PlayerCommand.UNKNOWN
+    }
+
+    private fun matchInternal(normalized: String, language: AppLanguage): PlayerCommand {
+        val pKeywords = playKeywords[language] ?: emptyList()
+        val paKeywords = pauseKeywords[language] ?: emptyList()
+        val nKeywords = nextKeywords[language] ?: emptyList()
+        val prevKeywords = previousKeywords[language] ?: emptyList()
 
         return when {
             pKeywords.any { normalized.contains(it) } -> PlayerCommand.PLAY
@@ -62,11 +76,12 @@ object CommandMatcher {
     }
 
     fun getBcp47LocaleTag(language: AppLanguage): String {
-        return when (language) {
+        val tag = when (language) {
             AppLanguage.PERSIAN -> "fa-IR"
             AppLanguage.GERMAN -> "de-DE"
             AppLanguage.TURKISH -> "tr-TR"
             AppLanguage.ENGLISH -> "en-US"
         }
+        return tag.ifEmpty { Locale.getDefault().toLanguageTag() }
     }
 }
