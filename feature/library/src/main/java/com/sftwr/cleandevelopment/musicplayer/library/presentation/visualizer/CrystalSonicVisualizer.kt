@@ -33,18 +33,13 @@ import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-/**
- * Jetpack Compose wrapper for the OpenGL-based CrystalSonic visualizer.
- * Uses a uniform outer ring dimension (420.dp) and central album art disc (340.dp)
- * to ensure exact visual alignment across all visualizer styles.
- */
 @Composable
 fun CrystalSonicVisualizer(
     fftData: FloatArray,
     albumArtUrl: String?,
     isPlaying: Boolean,
     modifier: Modifier = Modifier,
-    size: Dp = 420.dp,
+    size: Dp = 460.dp,
     discSize: Dp = Dp.Unspecified,
 ) {
     val context = LocalContext.current
@@ -79,13 +74,13 @@ fun CrystalSonicVisualizer(
         }
     }
 
-    val actualDiscSize = if (discSize != Dp.Unspecified) discSize else size * (340f / 420f)
+    val actualDiscSize = if (discSize != Dp.Unspecified) discSize else size * (340f / 460f)
 
     Box(
         modifier = modifier.size(size),
         contentAlignment = Alignment.Center,
     ) {
-        // Layer 1: OpenGL Audio-Reactive DNA Waveform Ring & Particles Overlay
+        // Layer 1: OpenGL Audio-Reactive Visualizer Overlay
         AndroidView(
             factory = { glSurfaceView },
             modifier = Modifier.size(size),
@@ -97,7 +92,7 @@ fun CrystalSonicVisualizer(
             }
         }
 
-        // Layer 2: Central Circular Album Art Disc (340dp proportionally scaled)
+        // Layer 2: Central Circular Album Art Disc
         Box(
             modifier = Modifier
                 .size(actualDiscSize)
