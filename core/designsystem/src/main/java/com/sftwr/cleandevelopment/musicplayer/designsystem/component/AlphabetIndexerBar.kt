@@ -4,12 +4,30 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.gestures.detectDragGestures
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.border
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.drag
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.absoluteOffset
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,9 +43,11 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.zIndex
 
 /**
- * A customizable Alphabet Indexer Bar component that allows users to quickly
- * navigate through lists by dragging across letters with smooth touch gesture handling.
- * Optimized with 10.sp font size and expanded vertical height space to prevent overlapping.
+ * A production-ready, customizable Alphabet Indexer Bar component that enables users
+ * to fast-scroll through sorted lists via touch down or vertical drag gestures.
+ *
+ * Dynamically supports LTR and RTL layout directions with edge offsets to ensure
+ * the bar sits perfectly centered in the margin between the screen border and list cards.
  */
 @Composable
 fun AlphabetIndexerBar(
@@ -35,99 +55,90 @@ fun AlphabetIndexerBar(
     onLetterSelected: (String) -> Unit,
     modifier: Modifier = Modifier,
     neonColor: Color = LocalColorPalette.current.accent,
-    glassColor: Color = Color.White.copy(alpha = 0.05f)
+    glassColor: Color = Color.White.copy(alpha = 0.08f)
 ) {
-    // State tracking the currently active letter during touch interaction
+    // Detect active layout direction
+    val layoutDirection = LocalLayoutDirection.current
+    val isRtl = layoutDirection == LayoutDirection.Rtl
+
+    // Remember updated state references to prevent pointer input cancellation on recomposition
+    val currentLetters by rememberUpdatedState(letters)
+    val currentOnLetterSelected by rememberUpdatedState(onLetterSelected)
+
+    // Touch interaction states
     var selectedLetter by remember { mutableStateOf<String?>(null) }
-
-    // State tracking whether the user is actively dragging along the bar
     var isDragging by remember { mutableStateOf(false) }
-
-    // Total measured height of the indexer bar container
-    var totalHeight by remember { mutableStateOf(0f) }
-    val isRtl = LocalLayoutDirection.current == LayoutDirection.Rtl
+    var totalHeight by remember { mutableFloatStateOf(0f) }
 
     /**
-     * Helper function to map vertical touch coordinates (Y position) to
-     * the corresponding alphabet letter index safely.
+     * Safely maps vertical touch position (posY) to the corresponding letter in the list.
      */
     fun updateSelectedLetter(posY: Float) {
-        if (totalHeight > 0f && letters.isNotEmpty()) {
+        if (totalHeight > 0f && currentLetters.isNotEmpty()) {
             val clampedY = posY.coerceIn(0f, totalHeight)
-            val index =
-                ((clampedY / totalHeight) * letters.size).toInt().coerceIn(0, letters.size - 1)
+            val fraction = (clampedY / totalHeight).coerceIn(0f, 0.999f)
+            val index = (fraction * currentLetters.size).toInt().coerceIn(0, currentLetters.size - 1)
 
-            val letter = letters[index]
+            val letter = currentLetters[index]
             if (selectedLetter != letter) {
                 selectedLetter = letter
-                onLetterSelected(letter)
+                currentOnLetterSelected(letter)
             }
         }
     }
 
-    val bubbleXOffset = if (isRtl) 60.dp else (-60).dp
+    // Offset to position the bar perfectly centered in the margin between the screen edge and track cards
+    // In RTL (bar on left screen edge): -9.dp absoluteOffset places bar right in the visual center
+    // In LTR (bar on right screen edge): +9.dp absoluteOffset places bar right in the visual center
+    val barEdgeOffset = if (isRtl) (-9).dp else 9.dp
+
+    // Absolute bubble horizontal offset relative to the fixed container:
+    // In RTL (bar on left screen edge): bubble aligns CenterEnd and absoluteOffsets +36.dp (physical RIGHT over song cards)
+    // In LTR (bar on right screen edge): bubble aligns CenterStart and absoluteOffsets -52.dp (physical LEFT over song cards)
+    val bubbleAlignment = if (isRtl) Alignment.CenterEnd else Alignment.CenterStart
+    val bubbleXOffset = if (isRtl) 36.dp else (-52).dp
 
     Box(
         modifier = modifier
             .fillMaxHeight()
-            .width(32.dp)
-            .zIndex(1f)
-            .padding(vertical = 6.dp),
-        contentAlignment = Alignment.CenterEnd
+            .absoluteOffset(x = barEdgeOffset)
+            .width(26.dp)
+            .padding(vertical = 4.dp)
+            .zIndex(10f),
+        contentAlignment = Alignment.Center
     ) {
-        // Floating bubble indicator showing the currently selected letter popup
-        AnimatedVisibility(
-            visible = isDragging && selectedLetter != null,
-            enter = fadeIn(),
-            exit = fadeOut(),
-            modifier = Modifier
-                .align(Alignment.CenterStart)
-                .offset(x = bubbleXOffset)
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(50.dp)
-                    .clip(CircleShape)
-                    .background(neonColor.copy(alpha = 0.85f)), contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = selectedLetter ?: "",
-                    color = Color.Black,
-                    fontSize = 22.sp,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-        }
-
-        // Main indexer container with drag gesture detection
+        // 1. Fast Scroller Interactive Track Container (Fixed width 22.dp)
         Box(
             modifier = Modifier
                 .fillMaxHeight()
                 .width(22.dp)
-                .clip(RoundedCornerShape(12.dp))
+                .clip(RoundedCornerShape(11.dp))
                 .background(glassColor)
                 .onGloballyPositioned { coordinates ->
                     totalHeight = coordinates.size.height.toFloat()
                 }
-                .pointerInput(letters, totalHeight) {
-                    detectDragGestures(onDragStart = { offset ->
+                .pointerInput(Unit) {
+                    awaitEachGesture {
+                        val down = awaitFirstDown(requireUnconsumed = false)
                         isDragging = true
-                        updateSelectedLetter(offset.y)
-                    }, onDrag = { change, _ ->
-                        change.consume()
-                        updateSelectedLetter(change.position.y)
-                    }, onDragEnd = {
+                        updateSelectedLetter(down.position.y)
+
+                        drag(down.id) { change ->
+                            change.consume()
+                            updateSelectedLetter(change.position.y)
+                        }
+
                         isDragging = false
                         selectedLetter = null
-                    }, onDragCancel = {
-                        isDragging = false
-                        selectedLetter = null
-                    })
-                }, contentAlignment = Alignment.Center
+                    }
+                },
+            contentAlignment = Alignment.Center
         ) {
-            // Column displaying all indexer letters vertically distributed
+            // Inner Column rendering letters with equal weight distribution
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(vertical = 4.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
@@ -141,8 +152,8 @@ fun AlphabetIndexerBar(
                     ) {
                         Text(
                             text = letter,
-                            color = if (isSelected) neonColor else Color.White.copy(alpha = 0.6f),
-                            fontSize = 10.sp, // Restored 10.sp font size as requested
+                            color = if (isSelected) neonColor else Color.White.copy(alpha = 0.7f),
+                            fontSize = if (letters.size > 25) 9.sp else 10.sp,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
                             textAlign = TextAlign.Center,
                             maxLines = 1,
@@ -150,6 +161,34 @@ fun AlphabetIndexerBar(
                         )
                     }
                 }
+            }
+        }
+
+        // 2. Floating Letter Selection Popup Indicator (Positioned independently with absoluteOffset)
+        AnimatedVisibility(
+            visible = isDragging && selectedLetter != null,
+            enter = fadeIn(),
+            exit = fadeOut(),
+            modifier = Modifier
+                .align(bubbleAlignment)
+                .absoluteOffset(x = bubbleXOffset)
+                .zIndex(20f)
+        ) {
+            Box(
+                modifier = Modifier
+                    .requiredSize(50.dp)
+                    .clip(CircleShape)
+                    .background(neonColor.copy(alpha = 0.95f))
+                    .border(1.5.dp, Color.White.copy(alpha = 0.85f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = selectedLetter ?: "",
+                    color = Color.Black,
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    textAlign = TextAlign.Center
+                )
             }
         }
     }
