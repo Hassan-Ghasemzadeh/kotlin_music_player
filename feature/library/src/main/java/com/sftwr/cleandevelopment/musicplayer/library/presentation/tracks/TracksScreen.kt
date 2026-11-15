@@ -284,7 +284,7 @@ fun TracksScreen(
                                     state = listState,
                                     modifier = Modifier
                                         .fillMaxSize()
-                                        .padding(end = 32.dp),
+                                        .padding(end = 28.dp),
                                     verticalArrangement = Arrangement.spacedBy(10.dp),
                                     contentPadding = PaddingValues(bottom = bottomPadding)
                                 ) {
