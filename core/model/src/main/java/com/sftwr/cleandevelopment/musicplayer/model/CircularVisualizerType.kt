@@ -21,7 +21,8 @@ enum class CircularVisualizerType(val key: String, val title: String) {
     NEON_PLASMA_STORM("neon_plasma_storm", "NEON PLASMA STORM"),
     NEON_SUPERNOVA_BURST("neon_supernova_burst", "NEON SUPERNOVA BURST"),
     NEON_CYBER_MATRIX_GRID("neon_cyber_matrix_grid", "NEON CYBER MATRIX GRID"),
-    NEON_GRAVITATIONAL_RING("neon_gravitational_ring", "NEON GRAVITATIONAL RING");
+    NEON_GRAVITATIONAL_RING("neon_gravitational_ring", "NEON GRAVITATIONAL RING"),
+    CRYSTAL_SONIC("crystal_sonic", "CRYSTAL SONIC");
 
     companion object {
         fun fromKey(key: String): CircularVisualizerType {
