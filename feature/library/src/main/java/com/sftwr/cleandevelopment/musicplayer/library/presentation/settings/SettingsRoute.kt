@@ -19,6 +19,7 @@ fun SettingsRoute(
     onBackClick: () -> Unit,
     onNavigateToPermissions: () -> Unit,
     onNavigateToVisualizerSelection: () -> Unit,
+    onNavigateToThemePicker: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
@@ -67,7 +68,7 @@ fun SettingsRoute(
         onLanguageClick = { viewModel.showLanguageDialog(true) },
         onLanguageSelected = viewModel::onLanguageSelected,
         onLanguageDialogDismiss = { viewModel.showLanguageDialog(false) },
-        onColorPaletteClick = { viewModel.showColorPaletteDialog(true) },
+        onColorPaletteClick = onNavigateToThemePicker,
         onColorPaletteSelected = viewModel::onColorPaletteSelected,
         onColorPaletteDialogDismiss = { viewModel.showColorPaletteDialog(false) },
         onGlassmorphicToggle = viewModel::onGlassmorphicToggle,

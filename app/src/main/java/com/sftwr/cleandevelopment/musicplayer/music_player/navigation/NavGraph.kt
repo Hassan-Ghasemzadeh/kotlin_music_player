@@ -16,6 +16,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.drive_mode.dr
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.edit.editTagScreenGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.permissions.permissionsGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.settings.settingsGraph
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.settings.themePickerGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.visualizer.visualizerSelectionGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.favorites.favoritesGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.folders.folderDetailGraph
@@ -333,6 +334,16 @@ fun AppNavGraph(
             },
             onNavigateToVisualizerSelection = {
                 navController.navigate(Screen.VisualizerSelection)
+            },
+            onNavigateToThemePicker = {
+                navController.navigate(Screen.ThemePicker)
+            }
+        )
+
+        // Theme picker feature navigation graph
+        themePickerGraph(
+            onBackClick = {
+                navController.popBackStack()
             }
         )
 
