@@ -224,4 +224,20 @@
     <string name="playing_queue">Playing Queue</string>
     <string name="audio_controls">Audio Controls</string>
     <string name="playback_volume">Volume</string>
+
+    <!-- Playlist Backup & Restore -->
+    <string name="playlist_backup_restore">Playlist Backup &amp; Restore</string>
+    <string name="playlist_backup_restore_desc">Export or restore your custom playlists</string>
+    <string name="playlist_backup_dialog_title">Playlist Backup &amp; Restore</string>
+    <string name="export_playlists">Create Backup (Export)</string>
+    <string name="export_playlists_desc">Select custom playlists to export to JSON</string>
+    <string name="restore_playlists">Restore from File (Import)</string>
+    <string name="restore_playlists_desc">Import custom playlists from backup JSON file</string>
+    <string name="create_backup">Create Backup</string>
+    <string name="restore_from_file">Restore from File</string>
+    <string name="backup_success">Playlists backed up successfully!</string>
+    <string name="restore_success">Playlists restored successfully!</string>
+    <string name="backup_error">Failed to export playlists: %1$s</string>
+    <string name="restore_error">Failed to import playlists: %1$s</string>
+    <string name="no_custom_playlists_backup">No custom playlists available for backup.</string>
 </resources>

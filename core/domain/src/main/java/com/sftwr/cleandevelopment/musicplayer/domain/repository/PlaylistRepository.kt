@@ -1,7 +1,9 @@
 package com.sftwr.cleandevelopment.musicplayer.domain.repository
 
+import android.net.Uri
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Artist
+import com.sftwr.cleandevelopment.musicplayer.domain.model.CustomPlaylistBackupInfo
 import com.sftwr.cleandevelopment.musicplayer.domain.model.GenreItem
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.PlaylistType
@@ -82,4 +84,19 @@ interface PlaylistRepository {
      * Records a playback event for a song to update play count and last played timestamp.
      */
     suspend fun recordSongPlayed(songId: Long)
+
+    /**
+     * Emits a reactive list of custom playlists for backup selection.
+     */
+    fun getCustomPlaylistsForBackup(): Flow<List<CustomPlaylistBackupInfo>>
+
+    /**
+     * Exports selected custom playlists and their tracks to a JSON file via Uri.
+     */
+    suspend fun exportCustomPlaylists(playlistIds: List<Long>, uri: Uri)
+
+    /**
+     * Imports custom playlists and tracks from a JSON file via Uri into the Room database.
+     */
+    suspend fun importCustomPlaylists(uri: Uri)
 }

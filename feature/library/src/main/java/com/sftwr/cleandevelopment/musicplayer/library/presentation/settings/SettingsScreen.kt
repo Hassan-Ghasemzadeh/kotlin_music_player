@@ -27,6 +27,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.AudioFile
+import androidx.compose.material.icons.filled.Backup
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Equalizer
 import androidx.compose.material.icons.filled.FolderOff
@@ -159,6 +160,8 @@ fun SettingsScreen(
     onAllowExternalDeviceToggle: (Boolean) -> Unit,
     onShakeToSkipToggle: (Boolean) -> Unit,
     onSwipeArtworkToSkipToggle: (Boolean) -> Unit,
+    onPlaylistBackupClick: () -> Unit,
+    onPlaylistBackupDialogDismiss: () -> Unit,
     onNavigateToPermissions: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -475,6 +478,16 @@ fun SettingsScreen(
                             actionText = stringResource(R.string.rescan_media),
                             onClick = onRescanMediaClick
                         )
+
+                        SettingsDivider()
+
+                        // Playlist Backup & Restore
+                        SettingsRowItem(
+                            title = stringResource(R.string.playlist_backup_restore),
+                            subtitle = stringResource(R.string.playlist_backup_restore_desc),
+                            icon = Icons.Default.Backup,
+                            onClick = onPlaylistBackupClick
+                        )
                     }
                 }
 
@@ -606,6 +619,13 @@ fun SettingsScreen(
         VisualizerSelectorDialog(
             onDismiss = onVisualizerDialogDismiss,
             onSelectType = onCircularVisualizerSelected
+        )
+    }
+
+    // Playlist Backup & Restore Dialog
+    if (uiState.showPlaylistBackupDialog) {
+        PlaylistBackupRestoreDialog(
+            onDismiss = onPlaylistBackupDialogDismiss
         )
     }
 }

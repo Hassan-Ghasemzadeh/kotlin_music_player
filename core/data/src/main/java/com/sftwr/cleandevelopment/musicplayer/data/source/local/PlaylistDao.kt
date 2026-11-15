@@ -22,6 +22,20 @@ interface PlaylistDao {
     """)
     fun getCustomPlaylistsWithCountFlow(): Flow<List<CustomPlaylistWithCount>>
 
+    @Query("SELECT * FROM playlists WHERE id IN (:playlistIds)")
+    suspend fun getPlaylistsByIds(playlistIds: List<Long>): List<PlaylistEntity>
+
+    @Query("""
+        SELECT s.* FROM songs_cache s
+        INNER JOIN playlist_song_cross_ref ref ON s.id = ref.songId
+        WHERE ref.playlistId = :playlistId
+        ORDER BY ref.addedAt ASC
+    """)
+    suspend fun getPlaylistSongsOnce(playlistId: Long): List<SongEntity>
+
+    @Query("SELECT * FROM playlists ORDER BY createdAt DESC")
+    suspend fun getAllCustomPlaylistsOnce(): List<PlaylistEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertPlaylist(playlist: PlaylistEntity): Long
 

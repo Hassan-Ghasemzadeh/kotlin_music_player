@@ -14,5 +14,6 @@ data class SettingsUiState(
     val showMinDurationDialog: Boolean = false,
     val showVisualizerDialog: Boolean = false,
     val showScanMediaDialog: Boolean = false,
+    val showPlaylistBackupDialog: Boolean = false,
     val userMessage: String? = null
 )

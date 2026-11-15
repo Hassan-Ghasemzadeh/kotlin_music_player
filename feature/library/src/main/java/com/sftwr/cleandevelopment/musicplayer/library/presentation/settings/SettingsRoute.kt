@@ -94,6 +94,8 @@ fun SettingsRoute(
         onAllowExternalDeviceToggle = viewModel::onAllowExternalDevicePlayback,
         onShakeToSkipToggle = viewModel::onShakeToSkipToggle,
         onSwipeArtworkToSkipToggle = viewModel::onSwipeArtworkToSkipToggle,
+        onPlaylistBackupClick = { viewModel.showPlaylistBackupDialog(true) },
+        onPlaylistBackupDialogDismiss = { viewModel.showPlaylistBackupDialog(false) },
         onNavigateToPermissions = onNavigateToPermissions,
         modifier = modifier
     )

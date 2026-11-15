@@ -224,4 +224,20 @@
     <string name="playing_queue">Wiedergabewarteschlange</string>
     <string name="audio_controls">Audio-Steuerung</string>
     <string name="playback_volume">Lautstärke</string>
+
+    <!-- Playlist Backup & Restore -->
+    <string name="playlist_backup_restore">Playlist-Backup &amp; Wiederherstellung</string>
+    <string name="playlist_backup_restore_desc">Benutzerdefinierte Playlists exportieren oder wiederherstellen</string>
+    <string name="playlist_backup_dialog_title">Playlist-Backup &amp; Wiederherstellung</string>
+    <string name="export_playlists">Backup erstellen (Export)</string>
+    <string name="export_playlists_desc">Benutzerdefinierte Playlists als JSON exportieren</string>
+    <string name="restore_playlists">Aus Datei wiederherstellen (Import)</string>
+    <string name="restore_playlists_desc">Benutzerdefinierte Playlists aus JSON-Datei importieren</string>
+    <string name="create_backup">Backup erstellen</string>
+    <string name="restore_from_file">Aus Datei wiederherstellen</string>
+    <string name="backup_success">Playlists erfolgreich gesichert!</string>
+    <string name="restore_success">Playlists erfolgreich wiederhergestellt!</string>
+    <string name="backup_error">Fehler beim Exportieren der Playlists: %1$s</string>
+    <string name="restore_error">Fehler beim Importieren der Playlists: %1$s</string>
+    <string name="no_custom_playlists_backup">Keine benutzerdefinierten Playlists zum Sichern vorhanden.</string>
 </resources>

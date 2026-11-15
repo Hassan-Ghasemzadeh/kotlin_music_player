@@ -224,4 +224,20 @@
     <string name="playing_queue">صف پخش</string>
     <string name="audio_controls">کنترل‌های صوتی</string>
     <string name="playback_volume">حجم صدا</string>
+
+    <!-- Playlist Backup & Restore -->
+    <string name="playlist_backup_restore">پشتیبان‌گیری و بازیابی لیست‌های پخش</string>
+    <string name="playlist_backup_restore_desc">صادرات یا بازیابی لیست‌های پخش سفارشی</string>
+    <string name="playlist_backup_dialog_title">پشتیبان‌گیری و بازیابی لیست‌های پخش</string>
+    <string name="export_playlists">ایجاد پشتیبان (صادرات)</string>
+    <string name="export_playlists_desc">انتخاب لیست‌های پخش سفارشی برای خروجی JSON</string>
+    <string name="restore_playlists">بازیابی از فایل (واردات)</string>
+    <string name="restore_playlists_desc">وارد کردن لیست‌های پخش از فایل پشتیبان JSON</string>
+    <string name="create_backup">ایجاد پشتیبان</string>
+    <string name="restore_from_file">بازیابی از فایل</string>
+    <string name="backup_success">پشتیبان‌گیری لیست‌های پخش با موفقیت انجام شد!</string>
+    <string name="restore_success">لیست‌های پخش با موفقیت بازیابی شدند!</string>
+    <string name="backup_error">خطا در صادرات لیست‌های پخش: %1$s</string>
+    <string name="restore_error">خطا در وارد کردن لیست‌های پخش: %1$s</string>
+    <string name="no_custom_playlists_backup">هیچ لیست پخش سفارشی برای پشتیبان‌گیری موجود نیست.</string>
 </resources>

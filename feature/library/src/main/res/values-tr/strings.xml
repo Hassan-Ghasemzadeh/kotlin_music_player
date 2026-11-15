@@ -224,4 +224,20 @@
     <string name="playing_queue">Oynatma Sırası</string>
     <string name="audio_controls">Ses Kontrolleri</string>
     <string name="playback_volume">Ses Seviyesi</string>
+
+    <!-- Playlist Backup & Restore -->
+    <string name="playlist_backup_restore">Oynatma Listesi Yedekleme ve Geri Yükleme</string>
+    <string name="playlist_backup_restore_desc">Özel oynatma listelerinizi dışa aktarın veya geri yükleyin</string>
+    <string name="playlist_backup_dialog_title">Oynatma Listesi Yedekleme ve Geri Yükleme</string>
+    <string name="export_playlists">Yedek Oluştur (Dışa Aktar)</string>
+    <string name="export_playlists_desc">JSON dosyasına aktarılacak özel listeleri seçin</string>
+    <string name="restore_playlists">Dosyadan Geri Yükle (İçe Aktar)</string>
+    <string name="restore_playlists_desc">Yedek JSON dosyasından özel listeleri içe aktarın</string>
+    <string name="create_backup">Yedek Oluştur</string>
+    <string name="restore_from_file">Dosyadan Geri Yükle</string>
+    <string name="backup_success">Oynatma listeleri başarıyla yedeplendi!</string>
+    <string name="restore_success">Oynatma listeleri başarıyla geri yüklendi!</string>
+    <string name="backup_error">Oynatma listeleri dışa aktarılamadı: %1$s</string>
+    <string name="restore_error">Oynatma listeleri içe aktarılamadı: %1$s</string>
+    <string name="no_custom_playlists_backup">Yedeklenecek özel oynatma listesi yok.</string>
 </resources>

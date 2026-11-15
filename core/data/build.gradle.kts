@@ -1,7 +1,7 @@
 plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.ksp)
-
+    alias(libs.plugins.kotlin.serialization)
 }
 
 android {
@@ -26,6 +26,7 @@ android {
 dependencies {
     implementation(project(":core:model"))
     implementation(project(":core:domain"))
+    implementation(libs.kotlinx.serialization.json)
 // Room Database
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)

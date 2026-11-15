@@ -172,6 +172,10 @@ class SettingsViewModel @Inject constructor(
         _uiState.update { it.copy(showVisualizerDialog = show) }
     }
 
+    fun showPlaylistBackupDialog(show: Boolean) {
+        _uiState.update { it.copy(showPlaylistBackupDialog = show) }
+    }
+
     fun onCircularVisualizerSelected(type: CircularVisualizerType) {
         viewModelScope.launch {
             updateAudioSettingsUseCase.setCircularVisualizerType(type.name)
