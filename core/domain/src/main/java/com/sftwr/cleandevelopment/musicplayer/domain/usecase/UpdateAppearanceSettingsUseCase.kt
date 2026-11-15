@@ -1,5 +1,6 @@
 package com.sftwr.cleandevelopment.musicplayer.domain.usecase
 
+import com.sftwr.cleandevelopment.musicplayer.domain.model.ColorPalette
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.SettingsRepository
 import javax.inject.Inject
 
@@ -19,5 +20,9 @@ class UpdateAppearanceSettingsUseCase @Inject constructor(
 
     suspend fun setShowAlbumArt(enabled: Boolean) {
         settingsRepository.updateAlbumArtworkEnabled(enabled)
+    }
+
+    suspend fun setColorPalette(palette: ColorPalette) {
+        settingsRepository.updateColorPalette(palette)
     }
 }
