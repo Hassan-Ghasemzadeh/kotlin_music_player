@@ -109,6 +109,7 @@ fun AppRootContent(
                 !currentRoute.contains("Player") &&
                 !currentRoute.contains("DriveMode") &&
                 !currentRoute.contains("Settings") &&
+                !currentRoute.contains("ThemePicker") &&
                 !currentRoute.contains("Visualizer") &&
                 !currentRoute.contains("Permissions")
 
