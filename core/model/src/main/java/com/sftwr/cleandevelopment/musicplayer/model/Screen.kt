@@ -77,6 +77,9 @@ sealed interface Screen {
     data object Settings : Screen
 
     @Serializable
+    data object ThemePicker : Screen
+
+    @Serializable
     data object VisualizerSelection : Screen
 
     @Serializable
