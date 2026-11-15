@@ -341,8 +341,8 @@ fun PlayerScreen(
                     fftData = fftData,
                     albumArtUrl = songState?.uri,
                     isPlaying = isPlaying,
-                    size = 310.dp,
-                    discRatio = 0.80f
+                    size = 390.dp,
+                    discRatio = 0.82f
                 )
             }
 
