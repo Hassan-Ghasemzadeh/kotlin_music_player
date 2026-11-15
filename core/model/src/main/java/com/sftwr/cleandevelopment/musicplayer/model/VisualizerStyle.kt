@@ -9,13 +9,13 @@ enum class VisualizerStyle(
     val description: String,
     val type: CircularVisualizerType
 ) {
-    DYNAMIC_SCALE(
-        id = "dynamic_scale",
-        title = "Dynamic Scale",
+    NEON_FREQUENCY_BARS(
+        id = "neon_frequency_bars",
+        title = "Neon Frequency Bars",
         description = "Rhythmic frequency bars expanding dynamically to the beat",
-        type = CircularVisualizerType.NEON_FREQUENCY_BARS
+        type = CircularVisualizerType.NEON_FREQUENCY_BARS,
     ),
-    CIRCULAR_WAVE(
+    NEON_ORBITAL_WAVE(
         id = "circular_wave",
         title = "Circular Wave",
         description = "Dual orbital wave reflections matching audio frequencies",
@@ -99,12 +99,6 @@ enum class VisualizerStyle(
         description = "Plasma storm with dancing electrical audio sparks",
         type = CircularVisualizerType.NEON_PLASMA_STORM
     ),
-    SUPERNOVA_BURST(
-        id = "supernova_burst",
-        title = "Supernova Burst",
-        description = "Stellar supernova expanding and contracting with bass",
-        type = CircularVisualizerType.NEON_SUPERNOVA_BURST
-    ),
     CYBER_MATRIX_GRID(
         id = "cyber_matrix_grid",
         title = "Cyber Matrix Grid",
@@ -122,6 +116,18 @@ enum class VisualizerStyle(
         title = "Crystal Sonic",
         description = "3D Crystal Sonic visualizer with audio-reactive DNA ring and particles",
         type = CircularVisualizerType.CRYSTAL_SONIC
+    ),
+    DYNAMIC_SCALE(
+        id = "dynamic_scale",
+        title = "Dynamic Scale",
+        description = "Rhythmic frequency bars expanding dynamically to the beat",
+        type = CircularVisualizerType.DYNAMIC_SCALE
+    ),
+    EXPLOSIVE_PARTICLES(
+        id = "explosive_particles",
+        title = "Explosive Particles",
+        description = "Explosive particle burst emission surrounding central album art",
+        type = CircularVisualizerType.EXPLOSIVE_PARTICLES
     );
 
     companion object {

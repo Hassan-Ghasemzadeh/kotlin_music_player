@@ -450,7 +450,7 @@ fun PlaylistDetailScreen(
                             color = Color.White.copy(alpha = 0.8f)
                         )
                     },
-                    containerColor = Color(0xFF181035),
+                    containerColor = LocalColorPalette.current.surfaceCard,
                     confirmButton = {
                         TextButton(
                             onClick = {

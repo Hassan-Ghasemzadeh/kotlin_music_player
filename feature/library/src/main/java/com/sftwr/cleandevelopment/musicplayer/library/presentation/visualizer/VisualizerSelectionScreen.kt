@@ -26,12 +26,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -41,7 +39,6 @@ import androidx.compose.runtime.produceState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -56,7 +53,6 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.ui.util.lerp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.NeonBlue
 import com.sftwr.cleandevelopment.musicplayer.home.R
@@ -64,7 +60,9 @@ import com.sftwr.cleandevelopment.musicplayer.model.VisualizerStyle
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.math.abs
+import kotlin.math.cos
 import kotlin.math.sin
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Full-screen Visualizer Selection Screen featuring a card-carousel (HorizontalPager with scaling
@@ -120,8 +118,8 @@ fun VisualizerSelectionScreen(
         pageCount = { availableStyles.size }
     )
 
-    // Generate live synthetic FFT frequencies for active visualizer preview animation
-    val animatedFft by produceState<FloatArray>(
+    // Generate standard live synthetic FFT frequencies for general visualizers
+    val animatedFft by produceState(
         initialValue = FloatArray(32) { 0.2f }
     ) {
         var step = 0f
@@ -130,7 +128,28 @@ fun VisualizerSelectionScreen(
             value = FloatArray(32) { index ->
                 (0.15f + 0.45f * abs(sin(step + index * 0.4f))).coerceIn(0.1f, 0.95f)
             }
-            delay(50)
+            delay(50.milliseconds)
+        }
+    }
+
+// Generate high-energy, asynchronous bass-driven FFT frequencies for Bar/Particles visualizers
+    val barAnimatedFft by produceState(
+        initialValue = FloatArray(64) { 0.3f }
+    ) {
+        var phase = 0f
+        while (true) {
+            phase += 0.2f
+            value = FloatArray(64) { index ->
+                val indexOffset = index * 0.35f
+                val secondaryOffset = index * 0.85f
+
+                val bassPulse = abs(sin(phase * 1.2f + indexOffset)) * 0.5f
+                val wave = abs(cos(phase * 1.8f - secondaryOffset)) * 0.4f
+                val microJitter = (index % 5) * 0.03f
+
+                (bassPulse + wave + microJitter).coerceIn(0.12f, 0.98f)
+            }
+            delay(35.milliseconds)
         }
     }
 
@@ -321,19 +340,21 @@ fun VisualizerSelectionScreen(
                                     }
                                 }
 
-                                // Live Visualizer Preview Container
+                                // Live Visualizer Preview Container with dynamic FFT mapping based on type
                                 Box(
                                     modifier = Modifier
-                                        .size(210.dp)
-                                        .padding(8.dp),
+                                        .size(190.dp),
                                     contentAlignment = Alignment.Center
                                 ) {
+                                    val activeFft = if (style.type.isBarType) barAnimatedFft else animatedFft
+
                                     NeonCircularVisualizer(
                                         type = style.type,
-                                        fftData = animatedFft,
+                                        fftData = activeFft,
                                         albumArtUrl = null,
                                         isPlaying = isCentered,
-                                        size = 200.dp
+                                        size = 180.dp,
+                                        discRatio = 340f / 420f
                                     )
                                 }
 
