@@ -46,8 +46,8 @@ import androidx.compose.ui.zIndex
  * A production-ready, customizable Alphabet Indexer Bar component that enables users
  * to fast-scroll through sorted lists via touch down or vertical drag gestures.
  *
- * Dynamically supports LTR and RTL layout directions with edge offsets to ensure
- * the bar sits perfectly centered in the margin between the screen border and list cards.
+ * Dynamically supports LTR and RTL layout directions with symmetric edge offsets to ensure
+ * the selection bubble maintains an identical gap from the track column in both language directions.
  */
 @Composable
 fun AlphabetIndexerBar(
@@ -88,15 +88,13 @@ fun AlphabetIndexerBar(
     }
 
     // Offset to position the bar perfectly centered in the margin between the screen edge and track cards
-    // In RTL (bar on left screen edge): -9.dp absoluteOffset places bar right in the visual center
-    // In LTR (bar on right screen edge): +9.dp absoluteOffset places bar right in the visual center
     val barEdgeOffset = if (isRtl) (-9).dp else 9.dp
 
-    // Absolute bubble horizontal offset relative to the fixed container:
-    // In RTL (bar on left screen edge): bubble aligns CenterEnd and absoluteOffsets +36.dp (physical RIGHT over song cards)
-    // In LTR (bar on right screen edge): bubble aligns CenterStart and absoluteOffsets -52.dp (physical LEFT over song cards)
+    // Symmetric bubble horizontal offset relative to the fixed container:
+    // In RTL (bar on left screen edge): +52.dp matches LTR spacing exactly
+    // In LTR (bar on right screen edge): -52.dp matches RTL spacing exactly
     val bubbleAlignment = if (isRtl) Alignment.CenterEnd else Alignment.CenterStart
-    val bubbleXOffset = if (isRtl) 36.dp else (-52).dp
+    val bubbleXOffset = if (isRtl) 52.dp else (-52).dp
 
     Box(
         modifier = modifier
