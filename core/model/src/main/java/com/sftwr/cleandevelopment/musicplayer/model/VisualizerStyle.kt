@@ -116,6 +116,12 @@ enum class VisualizerStyle(
         title = "Gravitational Ring",
         description = "Curved gravitational ring resembling space lensing",
         type = CircularVisualizerType.NEON_GRAVITATIONAL_RING
+    ),
+    CRYSTAL_SONIC(
+        id = "crystal_sonic",
+        title = "Crystal Sonic",
+        description = "3D Crystal Sonic visualizer with audio-reactive DNA ring and particles",
+        type = CircularVisualizerType.CRYSTAL_SONIC
     );
 
     companion object {
