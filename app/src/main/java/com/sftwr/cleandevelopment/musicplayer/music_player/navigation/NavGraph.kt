@@ -291,6 +291,9 @@ fun AppNavGraph(
                 onBackClick = {
                     navController.popBackStack()
                 },
+                onNavigateToVisualizerSelection = {
+                    navController.navigate(Screen.VisualizerSelection)
+                }
             )
         }
 

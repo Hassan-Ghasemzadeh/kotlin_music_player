@@ -93,6 +93,12 @@ class PlayerViewModel @Inject constructor(
         }
     }
 
+    fun setCircularVisualizerType(typeKey: String) {
+        viewModelScope.launch {
+            updateAudioSettingsUseCase.setCircularVisualizerType(typeKey)
+        }
+    }
+
     fun playQueueItem(index: Int) {
         playerManager.playQueueItem(index)
     }

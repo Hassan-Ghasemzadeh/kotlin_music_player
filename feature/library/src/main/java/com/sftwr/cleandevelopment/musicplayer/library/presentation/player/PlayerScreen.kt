@@ -43,6 +43,7 @@ import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
 import androidx.compose.material.icons.filled.Timer
+import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Tune
 import androidx.compose.material3.BottomSheetDefaults
 import androidx.compose.material3.Card
@@ -62,7 +63,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -72,7 +72,6 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
@@ -90,8 +89,7 @@ import kotlinx.coroutines.launch
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.toMillis
-import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.AudioVisualizerManager
-import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.CircularVisualizerType
+
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.AddToPlaylistDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.equalizer.EqualizerBottomSheet
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.viewmodel.PlayerViewModel
@@ -99,6 +97,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.viewmo
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.sleeptimer.SleepTimerDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.visualizer.NeonCircularVisualizer
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.AudioVisualizerManager
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlin.time.Duration.Companion.milliseconds
@@ -113,6 +112,7 @@ import kotlin.time.Duration.Companion.milliseconds
 fun PlayerScreen(
     viewModel: PlayerViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
+    onNavigateToVisualizerSelection: () -> Unit = {}
 ) {
     // Collecting player state flows reactively from the ViewModel with lifecycle awareness
     val isPlaying by viewModel.isPlaying.collectAsStateWithLifecycle()
@@ -151,9 +151,7 @@ fun PlayerScreen(
                 WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
         onDispose {
-            controller?.let {
-                it.show(WindowInsetsCompat.Type.systemBars())
-            }
+            controller?.show(WindowInsetsCompat.Type.systemBars())
         }
     }
     val visualizerManager = remember { AudioVisualizerManager() }
@@ -211,14 +209,14 @@ fun PlayerScreen(
     val swipeArtworkToSkip by viewModel.swipeArtworkToSkip.collectAsState()
     val density = LocalDensity.current
     val screenWidthPx = with(density) { 350.dp.toPx() }
-    var dragOffset by remember { mutableStateOf(0f) }
+    var dragOffset by remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
     val animatedOffset = remember { androidx.compose.animation.core.Animatable(0f) }
     val scope = rememberCoroutineScope()
 
     val artworkModifier = if (swipeArtworkToSkip) {
         Modifier
             .graphicsLayer { translationX = animatedOffset.value }
-            .pointerInput(swipeArtworkToSkip) {
+            .pointerInput(true) {
                 detectHorizontalDragGestures(
                     onDragEnd = {
                         scope.launch {
@@ -381,6 +379,15 @@ fun PlayerScreen(
                     Icon(
                         imageVector = Icons.Default.Timer,
                         contentDescription = "Sleep Timer",
+                        tint = accent,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                IconButton(onClick = onNavigateToVisualizerSelection) {
+                    Icon(
+                        imageVector = Icons.Default.GraphicEq,
+                        contentDescription = "Visualizer Style",
                         tint = accent,
                         modifier = Modifier.size(24.dp)
                     )
