@@ -117,7 +117,6 @@ fun DriveModeRoute(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val queue by viewModel.queue.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val activity = context as? android.app.Activity
 
     val speechRecognizer = remember {
         if (SpeechRecognizer.isRecognitionAvailable(context)) {
@@ -128,16 +127,8 @@ fun DriveModeRoute(
     }
 
     DisposableEffect(Unit) {
-        val window = activity?.window
-        val controller = window?.let { WindowInsetsControllerCompat(it, it.decorView) }
-        controller?.let {
-            it.hide(WindowInsetsCompat.Type.systemBars())
-            it.systemBarsBehavior =
-                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        }
         onDispose {
             speechRecognizer?.destroy()
-            controller?.show(WindowInsetsCompat.Type.systemBars())
         }
     }
 
