@@ -78,6 +78,7 @@ fun HomeScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
+                .statusBarsPadding()
                 .padding(16.dp)
         ) {
             // Top App Bar with Menu, Title, and Search icons
