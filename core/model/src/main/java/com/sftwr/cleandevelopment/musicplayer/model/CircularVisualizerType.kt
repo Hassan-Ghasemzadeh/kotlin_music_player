@@ -20,7 +20,8 @@ enum class CircularVisualizerType(val key: String, val title: String,val isBarTy
     CRYSTAL_SONIC("crystal_sonic", "CRYSTAL SONIC"),
     DYNAMIC_SCALE("dynamic_scale", "DYNAMIC SCALE"),
     EXPLOSIVE_PARTICLES("explosive_particles", "EXPLOSIVE PARTICLES"),
-    PSYCHEDELIC_WAVES("psychedelic_waves", "PSYCHEDELIC WAVES");
+    PSYCHEDELIC_WAVES("psychedelic_waves", "PSYCHEDELIC WAVES"),
+    FANTASY_PLANET("fantasy_planet", "FANTASY PLANET");
 
     companion object {
         fun fromKey(key: String): CircularVisualizerType {
