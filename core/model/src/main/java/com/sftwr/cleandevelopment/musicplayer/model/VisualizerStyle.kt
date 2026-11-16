@@ -110,6 +110,12 @@ enum class VisualizerStyle(
         title = "Psychedelic Waves",
         description = "Organic flowing wave rings radiating outward in neon gradient colors",
         type = CircularVisualizerType.PSYCHEDELIC_WAVES
+    ),
+    FANTASY_PLANET(
+        id = "fantasy_planet",
+        title = "Fantasy Planet",
+        description = "Cosmic planet with audio-reactive starfield particles, orbit rings, and glowing orbiting satellites",
+        type = CircularVisualizerType.FANTASY_PLANET
     );
 
     companion object {
