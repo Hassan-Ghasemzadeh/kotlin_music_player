@@ -68,6 +68,7 @@ class PlaylistDetailViewModel @Inject constructor(
                 albumId = song.albumId,
                 albumArtUri = song.albumArtUri,
                 isFavorite = song.isFavorite,
+                durationInMs = song.duration,
             )
         }
         PlaylistDetailUiState(
