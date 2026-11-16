@@ -262,4 +262,5 @@
     <string name="effect_magic_sound_desc">Dinamik çok bantlı psikoakustik uzamsal iyileştirme</string>
     <string name="effect_live_treble">Canlı tiz</string>
     <string name="effect_live_treble_desc">Net vokal berraklığı ve parıldayan yüksek frekans ışıltısı</string>
+    <string name="now_playing">Şimdi Çalınıyor</string>
 </resources>
