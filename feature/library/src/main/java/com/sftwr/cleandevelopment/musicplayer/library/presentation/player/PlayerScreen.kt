@@ -8,8 +8,6 @@ import com.sftwr.cleandevelopment.musicplayer.home.R
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.DisposableEffect
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -145,19 +143,6 @@ fun PlayerScreen(
     val artistName = songState?.artist ?: stringResource(R.string.unknown_artist)
 
     val context = LocalContext.current
-    val activity = context as? android.app.Activity
-    DisposableEffect(Unit) {
-        val window = activity?.window
-        val controller = window?.let { WindowInsetsControllerCompat(it, it.decorView) }
-        controller?.let {
-            it.hide(WindowInsetsCompat.Type.systemBars())
-            it.systemBarsBehavior =
-                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-        }
-        onDispose {
-            controller?.show(WindowInsetsCompat.Type.systemBars())
-        }
-    }
     val visualizerManager = remember { AudioVisualizerManager() }
 
     LaunchedEffect(key1 = true) {
