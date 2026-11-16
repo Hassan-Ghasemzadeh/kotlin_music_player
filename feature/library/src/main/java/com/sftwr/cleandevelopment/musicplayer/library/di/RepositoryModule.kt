@@ -55,6 +55,24 @@ abstract class RepositoryModule {
     ): EqualizerRepository
 
     /**
+     * Binds the implementation of SoundEffectRepository to its interface.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindSoundEffectRepository(
+        soundEffectRepositoryImpl: com.sftwr.cleandevelopment.musicplayer.data.repository.SoundEffectRepositoryImpl,
+    ): com.sftwr.cleandevelopment.musicplayer.domain.repository.SoundEffectRepository
+
+    /**
+     * Binds the implementation of VisualizerRepository to its interface.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindVisualizerRepository(
+        visualizerRepositoryImpl: com.sftwr.cleandevelopment.musicplayer.data.repository.VisualizerRepositoryImpl,
+    ): com.sftwr.cleandevelopment.musicplayer.domain.repository.VisualizerRepository
+
+    /**
      * Binds the implementation of SleepTimerRepository to its interface.
      */
     @Binds
