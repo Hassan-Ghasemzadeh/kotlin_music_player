@@ -19,7 +19,8 @@ enum class CircularVisualizerType(val key: String, val title: String,val isBarTy
     NEON_GRAVITATIONAL_RING("neon_gravitational_ring", "NEON GRAVITATIONAL RING"),
     CRYSTAL_SONIC("crystal_sonic", "CRYSTAL SONIC"),
     DYNAMIC_SCALE("dynamic_scale", "DYNAMIC SCALE"),
-    EXPLOSIVE_PARTICLES("explosive_particles", "EXPLOSIVE PARTICLES");
+    EXPLOSIVE_PARTICLES("explosive_particles", "EXPLOSIVE PARTICLES"),
+    PSYCHEDELIC_WAVES("psychedelic_waves", "PSYCHEDELIC WAVES");
 
     companion object {
         fun fromKey(key: String): CircularVisualizerType {
