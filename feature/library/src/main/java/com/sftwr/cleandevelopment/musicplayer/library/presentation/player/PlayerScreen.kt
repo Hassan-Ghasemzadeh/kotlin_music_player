@@ -113,6 +113,7 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun PlayerScreen(
     viewModel: PlayerViewModel = hiltViewModel(),
+    sheetProgress: Float = 1f,
     onBackClick: () -> Unit,
     onNavigateToVisualizerSelection: () -> Unit = {},
     onNavigateToSoundEffect: () -> Unit = {}
@@ -290,7 +291,10 @@ fun PlayerScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 8.dp)
+                    .graphicsLayer {
+                        alpha = ((sheetProgress - 0.2f) / 0.8f).coerceIn(0f, 1f)
+                    },
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(onClick = onBackClick) {
@@ -336,6 +340,12 @@ fun PlayerScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
+                    .graphicsLayer {
+                        val scale = 0.6f + 0.4f * sheetProgress
+                        scaleX = scale
+                        scaleY = scale
+                        alpha = ((sheetProgress - 0.05f) / 0.95f).coerceIn(0f, 1f)
+                    }
                     .then(artworkModifier),
                 contentAlignment = Alignment.Center
             ) {
@@ -355,7 +365,10 @@ fun PlayerScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 32.dp),
+                    .padding(horizontal = 32.dp)
+                    .graphicsLayer {
+                        alpha = ((sheetProgress - 0.35f) / 0.65f).coerceIn(0f, 1f)
+                    },
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -429,7 +442,11 @@ fun PlayerScreen(
             // Active track information (Title & Artist name labels)
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer {
+                        alpha = ((sheetProgress - 0.15f) / 0.85f).coerceIn(0f, 1f)
+                    }
             ) {
                 Text(
                     text = songTitle,
@@ -458,7 +475,13 @@ fun PlayerScreen(
 
             // Playback progress timeline slider and duration indicator labels
             CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
-                Column(modifier = Modifier.fillMaxWidth()) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .graphicsLayer {
+                            alpha = ((sheetProgress - 0.2f) / 0.8f).coerceIn(0f, 1f)
+                        }
+                ) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
