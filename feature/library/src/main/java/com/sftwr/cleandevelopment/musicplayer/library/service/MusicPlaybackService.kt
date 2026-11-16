@@ -11,6 +11,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.core.app.NotificationCompat
 import androidx.media3.common.util.BitmapLoader
@@ -112,11 +113,14 @@ class MusicPlaybackService : MediaSessionService() {
                     val state = intent.getIntExtra(android.bluetooth.BluetoothA2dp.EXTRA_STATE, android.bluetooth.BluetoothA2dp.STATE_DISCONNECTED)
                     if (state == android.bluetooth.BluetoothA2dp.STATE_CONNECTED) {
                         if (!allowExternalDevicePlayback) {
+                            Log.d("MusicPlaybackService", "External device (Bluetooth A2DP) connected, but external device playback is DISABLED. Access DENIED (pausing playback).")
                             mediaSession?.player?.let { p ->
                                 if (p.isPlaying) {
                                     p.pause()
                                 }
                             }
+                        } else {
+                            Log.d("MusicPlaybackService", "External device (Bluetooth A2DP) connected. External device playback is ENABLED. Access GRANTED.")
                         }
                     }
                 }
@@ -263,6 +267,19 @@ class MusicPlaybackService : MediaSessionService() {
                 return true
             }
             return super.onMediaButtonEvent(session, controllerInfo, intent)
+        }
+
+        override fun onConnect(
+            session: MediaSession,
+            controller: MediaSession.ControllerInfo
+        ): MediaSession.ConnectionResult {
+            val isLocal = controller.packageName == packageName || controller.uid == android.os.Process.myUid()
+            if (!isLocal && !allowExternalDevicePlayback) {
+                Log.d("MusicPlaybackService", "External device connection attempt from package [${controller.packageName}] DENIED because allowExternalDevicePlayback is disabled.")
+            } else {
+                Log.d("MusicPlaybackService", "External device connection attempt from package [${controller.packageName}] GRANTED (allowExternalDevicePlayback = $allowExternalDevicePlayback, isLocal = $isLocal).")
+            }
+            return super.onConnect(session, controller)
         }
 
         override fun onAddMediaItems(
