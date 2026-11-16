@@ -240,4 +240,26 @@
     <string name="backup_error">Fehler beim Exportieren der Playlists: %1$s</string>
     <string name="restore_error">Fehler beim Importieren der Playlists: %1$s</string>
     <string name="no_custom_playlists_backup">Keine benutzerdefinierten Playlists zum Sichern vorhanden.</string>
+
+    <!-- Sound Effects Feature -->
+    <string name="sound_effects">Klangeffekte</string>
+    <string name="audio_effects_engine">Audioeffekte-Engine</string>
+    <string name="active_and_processing">Aktiv &amp; Verarbeitung</string>
+    <string name="disabled">Deaktiviert</string>
+    <string name="enhancement_intensity">Verstärkungsintensität</string>
+    <string name="available_sound_effects">Verfügbare Klangeffekte</string>
+    <string name="active">AKTIV</string>
+    <string name="use">NUTZEN</string>
+    <string name="effect_electronic_tube">Elektronenröhre</string>
+    <string name="effect_electronic_tube_desc">Warme Vintage-Röhrensättigung und harmonische Wärme</string>
+    <string name="effect_three_d_rotate">3D-Rotation</string>
+    <string name="effect_three_d_rotate_desc">Immersive räumliche binaurale 3D-Audiorotation</string>
+    <string name="effect_tone_low">Tiefklang</string>
+    <string name="effect_tone_low_desc">Tiefe, satte Sub-Bass-Resonanz und gewichtete Tiefenbetonung</string>
+    <string name="effect_surround_sound">Surround-Sound</string>
+    <string name="effect_surround_sound_desc">Erweiterte Klangbühne mit virtueller Mehrkanal-Akustik</string>
+    <string name="effect_magic_sound">Magischer Klang</string>
+    <string name="effect_magic_sound_desc">Dynamische Multiband-psychoakustische Raumverbesserung</string>
+    <string name="effect_live_treble">Live-Höhen</string>
+    <string name="effect_live_treble_desc">Klare Gesangswiedergabe und funkelnder Hochfrequenzglanz</string>
 </resources>
