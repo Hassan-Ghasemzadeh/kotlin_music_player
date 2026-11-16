@@ -262,4 +262,5 @@
     <string name="effect_magic_sound_desc">Dynamische Multiband-psychoakustische Raumverbesserung</string>
     <string name="effect_live_treble">Live-Höhen</string>
     <string name="effect_live_treble_desc">Klare Gesangswiedergabe und funkelnder Hochfrequenzglanz</string>
+    <string name="now_playing">Aktuelle Wiedergabe</string>
 </resources>
