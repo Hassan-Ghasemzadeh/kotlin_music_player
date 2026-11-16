@@ -1,29 +1,26 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.drive_mode.viewmodel
 
-import android.content.ActivityNotFoundException
 import android.content.Context
-import android.content.Intent
-import android.speech.RecognizerIntent
-import android.widget.Toast
-import java.util.Locale
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppSettings
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetSettingsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.ToggleFavoriteUseCase
+import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import com.sftwr.cleandevelopment.musicplayer.library.domain.usecase.GetCurrentSongUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.domain.usecase.GetIsPlayingUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.domain.usecase.SkipNextUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.domain.usecase.SkipPreviousUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.domain.usecase.TogglePlayPauseUseCase
-import com.sftwr.cleandevelopment.musicplayer.library.presentation.drive_mode.DriveModeUiState
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.drive_mode.CommandMatcher
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.drive_mode.DriveModeUiState
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.drive_mode.PlayerCommand
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -31,10 +28,11 @@ import javax.inject.Inject
 
 /**
  * ViewModel managing the Drive Mode full-screen distraction-free interface.
- * Implements clean architecture by delegating playback operations to domain Use Cases.
+ * Implements clean architecture by delegating playback operations to domain Use Cases and PlayerManager.
  */
 @HiltViewModel
 class DriveModeViewModel @Inject constructor(
+    private val playerManager: PlayerManager,
     private val togglePlayPauseUseCase: TogglePlayPauseUseCase,
     private val skipNextUseCase: SkipNextUseCase,
     private val skipPreviousUseCase: SkipPreviousUseCase,
@@ -46,6 +44,7 @@ class DriveModeViewModel @Inject constructor(
 
     val currentSong = getCurrentSongUseCase()
     val isPlaying = getIsPlayingUseCase()
+    val queue: StateFlow<List<SongUiModel>> = playerManager.queue
 
     private val settingsState: StateFlow<AppSettings> = getSettingsUseCase().stateIn(
         scope = viewModelScope,
@@ -90,6 +89,14 @@ class DriveModeViewModel @Inject constructor(
             val songId = song.id.toLongOrNull() ?: return@launch
             toggleFavoriteUseCase(songId, !song.isFavorite)
         }
+    }
+
+    fun playQueueItem(index: Int) {
+        playerManager.playQueueItem(index)
+    }
+
+    fun removeFromQueue(index: Int) {
+        playerManager.removeFromQueue(index)
     }
 
     val currentLanguage: AppLanguage
