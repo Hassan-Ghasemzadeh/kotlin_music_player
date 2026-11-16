@@ -240,4 +240,26 @@
     <string name="backup_error">Failed to export playlists: %1$s</string>
     <string name="restore_error">Failed to import playlists: %1$s</string>
     <string name="no_custom_playlists_backup">No custom playlists available for backup.</string>
+
+    <!-- Sound Effects Feature -->
+    <string name="sound_effects">Sound Effects</string>
+    <string name="audio_effects_engine">Audio Effects Engine</string>
+    <string name="active_and_processing">Active &amp; Processing</string>
+    <string name="disabled">Disabled</string>
+    <string name="enhancement_intensity">Enhancement Intensity</string>
+    <string name="available_sound_effects">Available Sound Effects</string>
+    <string name="active">ACTIVE</string>
+    <string name="use">USE</string>
+    <string name="effect_electronic_tube">Electronic tube</string>
+    <string name="effect_electronic_tube_desc">Warm vintage vacuum tube saturation and harmonic warmth</string>
+    <string name="effect_three_d_rotate">3D rotate</string>
+    <string name="effect_three_d_rotate_desc">Immersive spatial binaural 3D audio rotation</string>
+    <string name="effect_tone_low">Tone low</string>
+    <string name="effect_tone_low_desc">Deep rich sub-bass resonance and weighted low-end emphasis</string>
+    <string name="effect_surround_sound">Surround sound</string>
+    <string name="effect_surround_sound_desc">Expanded soundstage virtual multi-channel acoustics</string>
+    <string name="effect_magic_sound">Magic sound</string>
+    <string name="effect_magic_sound_desc">Dynamic multi-band psychoacoustic spatial enhancement</string>
+    <string name="effect_live_treble">Live treble</string>
+    <string name="effect_live_treble_desc">Crisp vocal clarity and sparkling high-frequency sheen</string>
 </resources>
