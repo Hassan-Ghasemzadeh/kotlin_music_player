@@ -111,7 +111,8 @@ fun AppRootContent(
                 !currentRoute.contains("Settings") &&
                 !currentRoute.contains("ThemePicker") &&
                 !currentRoute.contains("Visualizer") &&
-                !currentRoute.contains("Permissions")
+                !currentRoute.contains("Permissions") &&
+                !currentRoute.contains("SoundEffect")
 
         val artUri by produceState<Bitmap?>(initialValue = null, key1 = currentSong?.uri) {
             val songUri = currentSong?.uri
