@@ -4,7 +4,6 @@ import android.content.Context
 import androidx.annotation.OptIn
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.media3.common.PlaybackParameters
 import androidx.media3.common.util.UnstableApi
 import com.sftwr.cleandevelopment.musicplayer.data.util.LocaleHelper
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
@@ -204,18 +203,20 @@ class SettingsViewModel @Inject constructor(
     }
 
     fun onPlaybackSpeedChange(speed: Float) {
+        val safeSpeed = if (speed.isNaN() || speed <= 0f) 1.0f else speed.coerceIn(0.25f, 4.0f)
         viewModelScope.launch {
-            updateAudioSettingsUseCase.setPlaybackSpeed(speed)
+            updateAudioSettingsUseCase.setPlaybackSpeed(safeSpeed)
             val currentPitch = uiState.value.settings.playbackPitch
-            playerManager.exoPlayer.playbackParameters = PlaybackParameters(speed, currentPitch)
+            playerManager.setSpeedAndPitch(safeSpeed, currentPitch)
         }
     }
 
     fun onPlaybackPitchChange(pitch: Float) {
+        val safePitch = if (pitch.isNaN() || pitch <= 0f) 1.0f else pitch.coerceIn(0.25f, 4.0f)
         viewModelScope.launch {
-            updateAudioSettingsUseCase.setPlaybackPitch(pitch)
+            updateAudioSettingsUseCase.setPlaybackPitch(safePitch)
             val currentSpeed = uiState.value.settings.playbackSpeed
-            playerManager.exoPlayer.playbackParameters = PlaybackParameters(currentSpeed, pitch)
+            playerManager.setSpeedAndPitch(currentSpeed, safePitch)
         }
     }
 
