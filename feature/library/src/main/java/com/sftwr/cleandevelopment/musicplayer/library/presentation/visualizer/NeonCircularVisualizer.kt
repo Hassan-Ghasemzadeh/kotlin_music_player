@@ -145,6 +145,17 @@ fun NeonCircularVisualizer(
                 )
             }
 
+            CircularVisualizerType.FANTASY_PLANET -> {
+                FantasyPlanetVisualizer(
+                    fftData = fftData,
+                    albumArtUrl = albumArtUrl,
+                    isPlaying = isPlaying,
+                    size = size,
+                    discSize = innerDiscSize,
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
+
             else -> {
                 // Canvas drawing area rendering dynamic visualizer effects around the inner album disc
                 Canvas(modifier = Modifier.fillMaxSize()) {
