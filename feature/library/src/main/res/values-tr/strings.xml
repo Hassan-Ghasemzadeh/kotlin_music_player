@@ -240,4 +240,26 @@
     <string name="backup_error">Oynatma listeleri dışa aktarılamadı: %1$s</string>
     <string name="restore_error">Oynatma listeleri içe aktarılamadı: %1$s</string>
     <string name="no_custom_playlists_backup">Yedeklenecek özel oynatma listesi yok.</string>
+
+    <!-- Sound Effects Feature -->
+    <string name="sound_effects">Ses Efektleri</string>
+    <string name="audio_effects_engine">Ses Efektleri Motoru</string>
+    <string name="active_and_processing">Aktif ve İşleniyor</string>
+    <string name="disabled">Devre Dışı</string>
+    <string name="enhancement_intensity">İyileştirme Yoğunluğu</string>
+    <string name="available_sound_effects">Mevcut Ses Efektleri</string>
+    <string name="active">AKTİF</string>
+    <string name="use">KULLAN</string>
+    <string name="effect_electronic_tube">Elektronik tüp</string>
+    <string name="effect_electronic_tube_desc">Sıcak vintage lamba doygunluğu ve harmonik sıcaklık</string>
+    <string name="effect_three_d_rotate">3D döndürme</string>
+    <string name="effect_three_d_rotate_desc">Sürükleyici mekansal binaural 3D ses rotasyonu</string>
+    <string name="effect_tone_low">Düşük ton</string>
+    <string name="effect_tone_low_desc">Derin zengin alt bas rezonansı ve ağırlıklı alt frekans vurgusu</string>
+    <string name="effect_surround_sound">Çevreleyen ses</string>
+    <string name="effect_surround_sound_desc">Genişletilmiş ses sahnesi sanal çok kanallı akustiği</string>
+    <string name="effect_magic_sound">Sihirli ses</string>
+    <string name="effect_magic_sound_desc">Dinamik çok bantlı psikoakustik uzamsal iyileştirme</string>
+    <string name="effect_live_treble">Canlı tiz</string>
+    <string name="effect_live_treble_desc">Net vokal berraklığı ve parıldayan yüksek frekans ışıltısı</string>
 </resources>
