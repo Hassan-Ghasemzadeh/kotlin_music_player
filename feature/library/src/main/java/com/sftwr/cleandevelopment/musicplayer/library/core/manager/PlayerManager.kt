@@ -740,13 +740,24 @@ class PlayerManager @Inject constructor(
         }
     }
 
-    fun setPlaybackParameters(speed: Float, pitch: Float) {
+    fun setSpeedAndPitch(speed: Float, pitch: Float) {
+        val safeSpeed = if (speed.isNaN() || speed <= 0f) 1.0f else speed.coerceIn(0.25f, 4.0f)
+        val safePitch = if (pitch.isNaN() || pitch <= 0f) 1.0f else pitch.coerceIn(0.25f, 4.0f)
         runOnMainThread {
-            exoPlayer.playbackParameters = PlaybackParameters(speed, pitch)
-            if (isCrossfading) {
-                nextPlayer.playbackParameters = PlaybackParameters(speed, pitch)
+            runCatching {
+                exoPlayer.playbackParameters = PlaybackParameters(safeSpeed, safePitch)
+                if (isCrossfading) {
+                    nextPlayer.playbackParameters = PlaybackParameters(safeSpeed, safePitch)
+                }
+                android.util.Log.d("PlayerManager", "Successfully updated playback parameters: speed=$safeSpeed, pitch=$safePitch")
+            }.onFailure { e ->
+                android.util.Log.e("PlayerManager", "Failed to update playback parameters: speed=$safeSpeed, pitch=$safePitch", e)
             }
         }
+    }
+
+    fun setPlaybackParameters(speed: Float, pitch: Float) {
+        setSpeedAndPitch(speed, pitch)
     }
 
     private fun startPlaybackService() {
