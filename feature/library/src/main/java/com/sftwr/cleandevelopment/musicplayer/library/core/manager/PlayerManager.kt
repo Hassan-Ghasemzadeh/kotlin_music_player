@@ -663,9 +663,48 @@ class PlayerManager @Inject constructor(
     suspend fun deleteSong(songId: Long): DeleteResult {
         val result = deleteSongUseCase(songId)
         if (result is DeleteResult.Success) {
-            val currentPlayingId = currentSong.value?.id
-            if (currentPlayingId == songId.toString()) {
-                stopPlayback()
+            val targetIdStr = songId.toString()
+
+            // 1. Clear artwork and edit memory caches
+            artworkCache.remove(targetIdStr)
+            editedSongsCache.remove(targetIdStr)
+
+            // 2. Remove from active queue and all songs list
+            val updatedQueue = activeQueue.filter { it.id.toLongOrNull() != songId && it.id != targetIdStr }
+            activeQueue = updatedQueue
+            _queue.value = updatedQueue
+
+            _allSongs.value = _allSongs.value.filter { it.id.toLongOrNull() != songId && it.id != targetIdStr }
+
+            // 3. Handle player state, active queue edge cases, and ExoPlayer items on main thread
+            runOnMainThread {
+                val current = _currentSong.value
+                val isCurrentSongDeleted = current?.id?.toLongOrNull() == songId || current?.id == targetIdStr
+
+                // Find index of deleted song in ExoPlayer media items by mediaId
+                val count = exoPlayer.mediaItemCount
+                var deletedIndex = -1
+                for (i in 0 until count) {
+                    val mediaItem = exoPlayer.getMediaItemAt(i)
+                    if (mediaItem.mediaId == targetIdStr) {
+                        deletedIndex = i
+                        break
+                    }
+                }
+
+                if (isCurrentSongDeleted) {
+                    if (updatedQueue.isNotEmpty()) {
+                        playNext()
+                    } else {
+                        playerScope.launch {
+                            stopPlayback()
+                        }
+                    }
+                } else if (deletedIndex != -1) {
+                    try {
+                        exoPlayer.removeMediaItem(deletedIndex)
+                    } catch (_: Exception) {}
+                }
             }
         }
         return result

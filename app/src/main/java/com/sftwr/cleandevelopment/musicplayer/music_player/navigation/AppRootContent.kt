@@ -157,7 +157,11 @@ fun AppRootContent(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(settings.colorPalette.surfaceCard)
+                .background(settings.colorPalette.gradientBrush)
+                .clickable(
+                    enabled = isDrawerOpen,
+                    onClick = { isDrawerOpen = false }
+                )
         ) {
             // 1. Drawer Content rendered underneath
             SlantedNavigationDrawerContent(
@@ -173,6 +177,15 @@ fun AppRootContent(
                 onRateUsClick = { showRateUsBottomSheet = true },
                 onCloseDrawer = { isDrawerOpen = false }
             )
+
+            // Optional subtle scrim overlay over background area when drawer is open
+            if (drawerProgress > 0.01f) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = drawerProgress * 0.25f))
+                )
+            }
 
             // 2. Main Content Card on top
             Box(
