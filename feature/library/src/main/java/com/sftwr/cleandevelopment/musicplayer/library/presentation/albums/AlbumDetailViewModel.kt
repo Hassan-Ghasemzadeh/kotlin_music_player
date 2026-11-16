@@ -58,7 +58,8 @@ class AlbumDetailViewModel @Inject constructor(
                 genre = song.genre,
                 albumId = song.albumId,
                 albumArtUri = song.albumArtUri,
-                isFavorite = song.isFavorite
+                isFavorite = song.isFavorite,
+                durationInMs = song.duration
             )
         }
         val dynamicAlbumTitle = songUiModels.firstOrNull()?.album?.ifBlank { savedAlbumTitle } ?: savedAlbumTitle
