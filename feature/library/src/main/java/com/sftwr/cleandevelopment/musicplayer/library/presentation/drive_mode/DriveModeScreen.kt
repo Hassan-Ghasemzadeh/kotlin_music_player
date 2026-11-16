@@ -13,10 +13,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.core.Animatable
-import androidx.compose.runtime.DisposableEffect
-import androidx.core.content.ContextCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
@@ -29,6 +25,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -36,10 +33,15 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.QueueMusic
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.DirectionsCar
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -49,16 +51,23 @@ import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.SkipNext
 import androidx.compose.material.icons.filled.SkipPrevious
+import androidx.compose.material3.BottomSheetDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -73,20 +82,26 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
 import com.sftwr.cleandevelopment.musicplayer.home.R
-import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.drive_mode.viewmodel.DriveModeViewModel
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -100,6 +115,7 @@ fun DriveModeRoute(
     onBackClick: () -> Unit,
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val queue by viewModel.queue.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val activity = context as? android.app.Activity
 
@@ -141,6 +157,7 @@ fun DriveModeRoute(
 
     DriveModeScreen(
         uiState = uiState,
+        queue = queue,
         onBackClick = onBackClick,
         onPlayPauseClick = viewModel::togglePlayPause,
         onSkipNextClick = viewModel::skipNext,
@@ -156,7 +173,9 @@ fun DriveModeRoute(
             } else {
                 permissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
             }
-        }
+        },
+        onPlayQueueItem = viewModel::playQueueItem,
+        onRemoveFromQueue = viewModel::removeFromQueue
     )
 }
 
@@ -265,19 +284,25 @@ private fun startVoiceRecognition(
  * Stateless Composable rendering an immersive full-screen Drive Mode interface
  * optimized with massive touch targets, gesture controls, and high-contrast typography.
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DriveModeScreen(
     uiState: DriveModeUiState,
+    queue: List<SongUiModel> = emptyList(),
     onBackClick: () -> Unit,
     onPlayPauseClick: () -> Unit,
     onSkipNextClick: () -> Unit,
     onSkipPreviousClick: () -> Unit,
     onFavoriteClick: () -> Unit,
     onVoiceAssistantClick: () -> Unit,
+    onPlayQueueItem: (Int) -> Unit = {},
+    onRemoveFromQueue: (Int) -> Unit = {}
 ) {
     val context = LocalContext.current
     val song = uiState.currentSong
     val isPlaying = uiState.isPlaying
+
+    var showQueueSheet by remember { mutableStateOf(false) }
 
     // Extract album artwork bitmap off the main thread
     val artBitmap by produceState<Bitmap?>(initialValue = null, key1 = song?.uri) {
@@ -311,7 +336,7 @@ fun DriveModeScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceBetween
         ) {
-            // 1. Header Bar with Exit/Back Button, Title, and Favorite Action
+            // 1. Header Bar with Exit/Back Button, Title, Playing Queue & Favorite Actions
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -319,47 +344,65 @@ fun DriveModeScreen(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                IconButton(
-                    onClick = onBackClick,
-                    modifier = Modifier.size(56.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = stringResource(R.string.back),
-                        tint = Color.White,
-                        modifier = Modifier.size(32.dp)
-                    )
-                }
-
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.Start
                 ) {
+                    IconButton(
+                        onClick = onBackClick,
+                        modifier = Modifier.size(56.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back),
+                            tint = Color.White,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(4.dp))
+
                     Icon(
                         imageVector = Icons.Default.DirectionsCar,
                         contentDescription = null,
                         tint = accent,
-                        modifier = Modifier.size(28.dp)
+                        modifier = Modifier.size(26.dp)
                     )
+                    Spacer(modifier = Modifier.width(8.dp))
                     Text(
                         text = stringResource(R.string.drive_mode),
-                        fontSize = 22.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
-                        color = Color.White,
-                        textAlign = TextAlign.Center
+                        color = Color.White
                     )
                 }
 
-                IconButton(
-                    onClick = onFavoriteClick,
-                    modifier = Modifier.size(56.dp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        imageVector = if (uiState.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
-                        contentDescription = "Favorite",
-                        tint = Color.White,
-                        modifier = Modifier.size(30.dp)
-                    )
+                    IconButton(
+                        onClick = onFavoriteClick,
+                        modifier = Modifier.size(56.dp)
+                    ) {
+                        Icon(
+                            imageVector = if (uiState.isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder,
+                            contentDescription = "Favorite",
+                            tint = accent,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
+
+                    IconButton(
+                        onClick = { showQueueSheet = true },
+                        modifier = Modifier.size(56.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.QueueMusic,
+                            contentDescription = stringResource(R.string.playing_queue),
+                            tint = accent,
+                            modifier = Modifier.size(30.dp)
+                        )
+                    }
                 }
             }
 
@@ -573,6 +616,145 @@ fun DriveModeScreen(
                             tint = Color.White,
                             modifier = Modifier.size(44.dp)
                         )
+                    }
+                }
+            }
+        }
+
+        // Playing Queue Modal Bottom Sheet
+        if (showQueueSheet) {
+            ModalBottomSheet(
+                onDismissRequest = { showQueueSheet = false },
+                sheetState = rememberModalBottomSheetState(),
+                containerColor = Color.Transparent,
+                dragHandle = { BottomSheetDefaults.DragHandle(color = Color.White.copy(alpha = 0.4f)) }
+            ) {
+                CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .fillMaxHeight(0.75f)
+                            .background(brush = gradientBrush)
+                            .padding(16.dp)
+                    ) {
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(bottom = 12.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = stringResource(R.string.playing_queue),
+                                    style = MaterialTheme.typography.titleLarge.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White
+                                    )
+                                )
+                                Text(
+                                    text = "${queue.size} tracks",
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        color = Color.White.copy(alpha = 0.7f)
+                                    )
+                                )
+                            }
+
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .weight(1f),
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                itemsIndexed(queue) { index, item ->
+                                    val isCurrentSong = item.id == song?.id
+                                    Card(
+                                        onClick = {
+                                            onPlayQueueItem(index)
+                                        },
+                                        colors = CardDefaults.cardColors(
+                                            containerColor = if (isCurrentSong) accent.copy(alpha = 0.3f) else Color(
+                                                0x11FFFFFF
+                                            )
+                                        ),
+                                        shape = MaterialTheme.shapes.medium,
+                                        modifier = Modifier.fillMaxWidth()
+                                    ) {
+                                        Row(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .padding(14.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(48.dp)
+                                                    .background(
+                                                        color = if (isCurrentSong) accent.copy(alpha = 0.3f) else Color(
+                                                            0x22FFFFFF
+                                                        ),
+                                                        shape = MaterialTheme.shapes.small
+                                                    ),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                if (isCurrentSong && isPlaying) {
+                                                    Icon(
+                                                        imageVector = Icons.Default.PlayArrow,
+                                                        contentDescription = "Playing",
+                                                        tint = accent,
+                                                        modifier = Modifier.size(24.dp)
+                                                    )
+                                                } else {
+                                                    Text(
+                                                        text = "${index + 1}",
+                                                        style = MaterialTheme.typography.bodyMedium.copy(
+                                                            color = Color.White.copy(alpha = 0.7f),
+                                                            fontWeight = FontWeight.Bold
+                                                        )
+                                                    )
+                                                }
+                                            }
+
+                                            Spacer(modifier = Modifier.width(12.dp))
+
+                                            Column(
+                                                modifier = Modifier.weight(1f)
+                                            ) {
+                                                Text(
+                                                    text = item.title,
+                                                    style = MaterialTheme.typography.bodyLarge.copy(
+                                                        fontWeight = if (isCurrentSong) FontWeight.Bold else FontWeight.Medium,
+                                                        color = if (isCurrentSong) accent else Color.White
+                                                    ),
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                                Spacer(modifier = Modifier.height(2.dp))
+                                                Text(
+                                                    text = item.artist,
+                                                    style = MaterialTheme.typography.bodySmall.copy(
+                                                        color = Color.White.copy(alpha = 0.6f)
+                                                    ),
+                                                    maxLines = 1,
+                                                    overflow = TextOverflow.Ellipsis
+                                                )
+                                            }
+
+                                            IconButton(
+                                                onClick = { onRemoveFromQueue(index) }
+                                            ) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Close,
+                                                    contentDescription = "Remove from Queue",
+                                                    tint = Color.White.copy(alpha = 0.6f),
+                                                    modifier = Modifier.size(22.dp)
+                                                )
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
