@@ -147,6 +147,7 @@ fun TracksScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = Color.Transparent,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
             val bottomPadding = rememberPlayerAwareBottomPadding()
             val adjustedBottomPadding = (bottomPadding - 60.dp).coerceAtLeast(8.dp)
@@ -192,6 +193,7 @@ fun TracksScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .statusBarsPadding()
                     .padding(16.dp)
             ) {
                 // Top App Bar header section for Tracks screen
