@@ -18,6 +18,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.permissions.p
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.settings.settingsGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.settings.themePickerGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.visualizer.visualizerSelectionGraph
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.soundeffect.soundEffectScreen
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.favorites.favoritesGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.folders.folderDetailGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.folders.foldersGraph
@@ -293,6 +294,9 @@ fun AppNavGraph(
                 },
                 onNavigateToVisualizerSelection = {
                     navController.navigate(Screen.VisualizerSelection)
+                },
+                onNavigateToSoundEffect = {
+                    navController.navigate(Screen.SoundEffect)
                 }
             )
         }
@@ -340,6 +344,16 @@ fun AppNavGraph(
             },
             onNavigateToThemePicker = {
                 navController.navigate(Screen.ThemePicker)
+            },
+            onNavigateToSoundEffect = {
+                navController.navigate(Screen.SoundEffect)
+            }
+        )
+
+        // Sound effect feature navigation graph
+        soundEffectScreen(
+            onBackClick = {
+                navController.popBackStack()
             }
         )
 
