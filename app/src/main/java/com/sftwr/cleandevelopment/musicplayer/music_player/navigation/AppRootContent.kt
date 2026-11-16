@@ -40,6 +40,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.compose.runtime.rememberCoroutineScope
 import com.sftwr.cleandevelopment.musicplayer.data.util.LocaleHelper
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.BottomPlayerBar
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalAlbumArtworkEnabled
@@ -47,15 +48,19 @@ import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorP
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalGlassmorphicEnabled
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingsDialog
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SlantedNavigationDrawerContent
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.sheet.rememberPlayerSheetState
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.about.AboutDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.equalizer.EqualizerBottomSheet
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.PlayerScreen
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.sheet.PlayerSheetLayout
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.rate.RateUsBottomSheet
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.scan.ScanMediaDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.sleeptimer.SleepTimerDialog
 import com.sftwr.cleandevelopment.musicplayer.model.Screen
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
 
@@ -122,6 +127,9 @@ fun AppRootContent(
                 }
             } else null
         }
+
+        val playerSheetState = rememberPlayerSheetState()
+        val coroutineScope = rememberCoroutineScope()
 
         var isDrawerOpen by remember { mutableStateOf(false) }
         var selectedDrawerItem by remember { mutableStateOf("Equalizer") }
@@ -194,47 +202,54 @@ fun AppRootContent(
                     ),
                 contentAlignment = Alignment.TopCenter
             ) {
-                AppNavGraph(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .statusBarsPadding(),
-                    navController = navController,
-                    playerManager = playerManager,
-                    onOpenDrawer = {
-                        isDrawerOpen = !isDrawerOpen
-                    }
-                )
-
-                if (showBottomBar && currentSong != null) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomCenter)
-                            .fillMaxWidth()
-                    ) {
-                        BottomPlayerBar(
-                            hasNext = playerManager.hasNext,
-                            hasPrevious = playerManager.hasPrevious,
-                            songTitle = currentSong!!.title,
-                            artistName = currentSong!!.artist,
-                            artUri = artUri,
-                            isPlaying = isPlaying,
-                            onPlayPauseClick = { playerManager.togglePlayPause() },
-                            onPlayerClick = {
-                                navController.navigate(Screen.Player)
-                            },
-                            onNextClick = {
-                                playerManager.playNext()
-                            },
-                            onPreviousClick = {
-                                playerManager.playPrevious()
-                            },
+                PlayerSheetLayout(
+                    sheetState = playerSheetState,
+                    hasTrack = currentSong != null && showBottomBar,
+                    songTitle = currentSong?.title.orEmpty(),
+                    artistName = currentSong?.artist.orEmpty(),
+                    isPlaying = isPlaying,
+                    hasNext = playerManager.hasNext,
+                    hasPrevious = playerManager.hasPrevious,
+                    artUri = artUri,
+                    onPlayPauseClick = { playerManager.togglePlayPause() },
+                    onNextClick = { playerManager.playNext() },
+                    onPreviousClick = { playerManager.playPrevious() },
+                    modifier = Modifier.fillMaxSize(),
+                    content = {
+                        AppNavGraph(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .navigationBarsPadding()
-                                .padding(bottom = 5.dp)
+                                .fillMaxSize()
+                                .statusBarsPadding(),
+                            navController = navController,
+                            playerManager = playerManager,
+                            onOpenDrawer = {
+                                isDrawerOpen = !isDrawerOpen
+                            },
+                            onExpandPlayer = {
+                                coroutineScope.launch { playerSheetState.expand() }
+                            }
+                        )
+                    },
+                    fullPlayerContent = { sheetProgress, onCollapse ->
+                        PlayerScreen(
+                            sheetProgress = sheetProgress,
+                            onBackClick = {
+                                coroutineScope.launch {
+                                    onCollapse()
+                                    if (currentRoute?.contains("Player") == true) {
+                                        navController.popBackStack()
+                                    }
+                                }
+                            },
+                            onNavigateToVisualizerSelection = {
+                                navController.navigate(Screen.VisualizerSelection)
+                            },
+                            onNavigateToSoundEffect = {
+                                navController.navigate(Screen.SoundEffect)
+                            }
                         )
                     }
-                }
+                )
             }
         }
 
