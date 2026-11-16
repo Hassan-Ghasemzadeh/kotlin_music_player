@@ -78,18 +78,20 @@ class PlayerViewModel @Inject constructor(
     }
 
     fun setPlaybackPitch(pitch: Float) {
+        val safePitch = if (pitch.isNaN() || pitch <= 0f) 1.0f else pitch.coerceIn(0.25f, 4.0f)
         viewModelScope.launch {
-            updateAudioSettingsUseCase.setPlaybackPitch(pitch)
+            updateAudioSettingsUseCase.setPlaybackPitch(safePitch)
             val speed = playbackSpeed.value
-            playerManager.setPlaybackParameters(speed, pitch)
+            playerManager.setSpeedAndPitch(speed, safePitch)
         }
     }
 
     fun setPlaybackSpeed(speed: Float) {
+        val safeSpeed = if (speed.isNaN() || speed <= 0f) 1.0f else speed.coerceIn(0.25f, 4.0f)
         viewModelScope.launch {
-            updateAudioSettingsUseCase.setPlaybackSpeed(speed)
+            updateAudioSettingsUseCase.setPlaybackSpeed(safeSpeed)
             val pitch = playbackPitch.value
-            playerManager.setPlaybackParameters(speed, pitch)
+            playerManager.setSpeedAndPitch(safeSpeed, pitch)
         }
     }
 
