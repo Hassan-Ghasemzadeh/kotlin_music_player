@@ -11,14 +11,16 @@ fun NavGraphBuilder.settingsGraph(
     onBackClick: () -> Unit,
     onNavigateToPermissions: () -> Unit,
     onNavigateToVisualizerSelection: () -> Unit,
-    onNavigateToThemePicker: () -> Unit
+    onNavigateToThemePicker: () -> Unit,
+    onNavigateToSoundEffect: () -> Unit
 ) {
     composable<Screen.Settings> {
         SettingsRoute(
             onBackClick = onBackClick,
             onNavigateToPermissions = onNavigateToPermissions,
             onNavigateToVisualizerSelection = onNavigateToVisualizerSelection,
-            onNavigateToThemePicker = onNavigateToThemePicker
+            onNavigateToThemePicker = onNavigateToThemePicker,
+            onNavigateToSoundEffect = onNavigateToSoundEffect
         )
     }
 }
