@@ -262,4 +262,5 @@
     <string name="effect_magic_sound_desc">بهبود فضایی سایکوآکوستیک چندباند پویا</string>
     <string name="effect_live_treble">تریبل زنده</string>
     <string name="effect_live_treble_desc">شفافیت بالای صدا و درخشش فرکانس‌های بالا</string>
+    <string name="now_playing">در حال پخش</string>
 </resources>
