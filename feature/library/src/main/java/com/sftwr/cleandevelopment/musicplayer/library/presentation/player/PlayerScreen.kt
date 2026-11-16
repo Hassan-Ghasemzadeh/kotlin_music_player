@@ -88,7 +88,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
-import com.sftwr.cleandevelopment.musicplayer.library.core.util.toMillis
 
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.AddToPlaylistDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.equalizer.EqualizerBottomSheet
@@ -471,12 +470,14 @@ fun PlayerScreen(
                     }
 
                     // Custom modern slim playback progress slider
+                    val durationMs = songState?.durationInMs?.toFloat() ?: 0f
+                    val maxDuration = if (durationMs > 0f) durationMs else 1f
                     Slider(
-                        value = currentPosition.toFloat(),
+                        value = currentPosition.toFloat().coerceIn(0f, maxDuration),
                         onValueChange = {
                             viewModel.seekTo(it.toLong())
                         },
-                        valueRange = 0f..(if (totalDuration.toMillis() > 0f) totalDuration.toMillis() else 1f),
+                        valueRange = 0f..maxDuration,
                         thumb = {
                             Box(
                                 modifier = Modifier
