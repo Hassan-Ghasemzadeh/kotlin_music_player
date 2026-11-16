@@ -157,15 +157,21 @@ fun GenresScreen(
                         }
                     }
 
-                    ScrollToTopButton(
-                        isScrolling = gridState.isScrollInProgress,
-                        onClick = {
-                            coroutineScope.launch {
-                                gridState.animateScrollToItem(0)
+                    Box(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(bottom = 80.dp),
+                        contentAlignment = Alignment.BottomCenter
+                    ) {
+                        ScrollToTopButton(
+                            isScrolling = gridState.isScrollInProgress,
+                            onClick = {
+                                coroutineScope.launch {
+                                    gridState.animateScrollToItem(0)
+                                }
                             }
-                        },
-                        modifier = Modifier.align(Alignment.BottomEnd)
-                    )
+                        )
+                    }
                 }
             }
         }
