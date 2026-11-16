@@ -63,7 +63,8 @@ class ArtistDetailViewModel @Inject constructor(
                 genre = song.genre,
                 albumId = song.albumId,
                 albumArtUri = song.albumArtUri,
-                isFavorite = song.isFavorite
+                isFavorite = song.isFavorite,
+                durationInMs = song.duration
             )
         }
         val dynamicArtistName = songUiModels.firstOrNull()?.artist?.ifBlank { savedArtistName } ?: savedArtistName
