@@ -252,6 +252,7 @@ class PlayerManager @Inject constructor(
                         albumId = song.albumId,
                         albumArtUri = song.albumArtUri,
                         isFavorite = song.isFavorite,
+                        durationInMs = song.duration,
                     )
                 }
                 setSongs(songUiModels)
