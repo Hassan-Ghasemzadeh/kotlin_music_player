@@ -31,6 +31,8 @@ import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Equalizer
+import androidx.compose.material.icons.filled.Public
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -95,6 +97,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.viewmo
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.viewmodel.RepeatMode
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.sleeptimer.SleepTimerDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.visualizer.NeonCircularVisualizer
+import com.sftwr.cleandevelopment.musicplayer.model.VisualizerStyle
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.AudioVisualizerManager
 import kotlinx.coroutines.delay
@@ -111,7 +114,8 @@ import kotlin.time.Duration.Companion.milliseconds
 fun PlayerScreen(
     viewModel: PlayerViewModel = hiltViewModel(),
     onBackClick: () -> Unit,
-    onNavigateToVisualizerSelection: () -> Unit = {}
+    onNavigateToVisualizerSelection: () -> Unit = {},
+    onNavigateToSoundEffect: () -> Unit = {}
 ) {
     // Collecting player state flows reactively from the ViewModel with lifecycle awareness
     val isPlaying by viewModel.isPlaying.collectAsStateWithLifecycle()
@@ -302,7 +306,7 @@ fun PlayerScreen(
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.9f)
                     ),
-                    textAlign = TextAlign.Center,
+                    textAlign = TextAlign.Start,
                     modifier = Modifier.weight(1f)
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -369,6 +373,15 @@ fun PlayerScreen(
                     Icon(
                         imageVector = Icons.AutoMirrored.Filled.PlaylistAdd,
                         contentDescription = "Add to Playlist",
+                        tint = accent,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+
+                IconButton(onClick = onNavigateToSoundEffect) {
+                    Icon(
+                        imageVector = Icons.Default.AutoAwesome,
+                        contentDescription = stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.sound_effects),
                         tint = accent,
                         modifier = Modifier.size(24.dp)
                     )
