@@ -1,17 +1,19 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.drive_mode
 
+import android.net.Uri
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Album
-import com.sftwr.cleandevelopment.musicplayer.domain.model.Artist
-import com.sftwr.cleandevelopment.musicplayer.domain.model.GenreItem
-import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
-import com.sftwr.cleandevelopment.musicplayer.domain.model.PlaylistType
-import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
-import com.sftwr.cleandevelopment.musicplayer.domain.repository.PlaylistRepository
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppSettings
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Artist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.ColorPalette
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerPreset
+import com.sftwr.cleandevelopment.musicplayer.domain.model.GenreItem
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
+import com.sftwr.cleandevelopment.musicplayer.domain.model.CustomPlaylistBackupInfo
+import com.sftwr.cleandevelopment.musicplayer.domain.model.PlaylistType
 import com.sftwr.cleandevelopment.musicplayer.domain.model.ReplayGainMode
+import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.PlaylistRepository
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.SettingsRepository
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetSettingsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.ToggleFavoriteUseCase
@@ -58,6 +60,9 @@ class DriveModeViewModelTest {
         override fun getFavoriteAlbums(): Flow<List<Album>> = error("Not implemented")
         override fun getFavoriteArtists(): Flow<List<Artist>> = error("Not implemented")
         override fun getFavoriteGenres(): Flow<List<GenreItem>> = error("Not implemented")
+        override fun getCustomPlaylistsForBackup(): Flow<List<CustomPlaylistBackupInfo>> = error("Not implemented")
+        override suspend fun exportCustomPlaylists(playlistIds: List<Long>, uri: Uri) {}
+        override suspend fun importCustomPlaylists(uri: Uri) {}
         override suspend fun createCustomPlaylist(name: String, songIds: List<Long>): Long = 0
         override suspend fun deleteCustomPlaylist(playlistId: Long) {}
         override suspend fun addSongToPlaylist(playlistId: Long, songId: Long) {}
@@ -128,6 +133,7 @@ class DriveModeViewModelTest {
         fakePlayerController.isPlaying.value = true
 
         val viewModel = DriveModeViewModel(
+            playerManager = fakePlayerController,
             togglePlayPauseUseCase = togglePlayPauseUseCase,
             skipNextUseCase = skipNextUseCase,
             skipPreviousUseCase = skipPreviousUseCase,
@@ -149,6 +155,7 @@ class DriveModeViewModelTest {
     @Test
     fun transportControls_delegateToUseCasesCorrectly() = runTest {
         val viewModel = DriveModeViewModel(
+            playerManager = fakePlayerController,
             togglePlayPauseUseCase = togglePlayPauseUseCase,
             skipNextUseCase = skipNextUseCase,
             skipPreviousUseCase = skipPreviousUseCase,
@@ -184,6 +191,7 @@ class DriveModeViewModelTest {
         fakePlayerController.currentSong.value = song
 
         val viewModel = DriveModeViewModel(
+            playerManager = fakePlayerController,
             togglePlayPauseUseCase = togglePlayPauseUseCase,
             skipNextUseCase = skipNextUseCase,
             skipPreviousUseCase = skipPreviousUseCase,

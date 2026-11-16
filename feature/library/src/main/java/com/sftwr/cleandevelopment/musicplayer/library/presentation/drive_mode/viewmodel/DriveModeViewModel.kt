@@ -7,7 +7,7 @@ import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppSettings
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetSettingsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.ToggleFavoriteUseCase
-import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
+import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerController
 import com.sftwr.cleandevelopment.musicplayer.library.domain.usecase.GetCurrentSongUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.domain.usecase.GetIsPlayingUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.domain.usecase.SkipNextUseCase
@@ -28,11 +28,11 @@ import javax.inject.Inject
 
 /**
  * ViewModel managing the Drive Mode full-screen distraction-free interface.
- * Implements clean architecture by delegating playback operations to domain Use Cases and PlayerManager.
+ * Implements clean architecture by delegating playback operations to domain Use Cases and PlayerController interface.
  */
 @HiltViewModel
 class DriveModeViewModel @Inject constructor(
-    private val playerManager: PlayerManager,
+    private val playerManager: PlayerController,
     private val togglePlayPauseUseCase: TogglePlayPauseUseCase,
     private val skipNextUseCase: SkipNextUseCase,
     private val skipPreviousUseCase: SkipPreviousUseCase,
