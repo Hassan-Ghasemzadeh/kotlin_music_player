@@ -65,6 +65,7 @@ class PlaylistsViewModel @Inject constructor(
                 genre = song.genre,
                 albumId = song.albumId,
                 albumArtUri = song.albumArtUri,
+                durationInMs = song.duration,
             )
         }
         val filteredSongs = if (dialog.searchQuery.isBlank()) {
