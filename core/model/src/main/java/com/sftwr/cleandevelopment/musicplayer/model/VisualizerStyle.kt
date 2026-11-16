@@ -104,6 +104,12 @@ enum class VisualizerStyle(
         title = "Explosive Particles",
         description = "Explosive particle burst emission surrounding central album art",
         type = CircularVisualizerType.EXPLOSIVE_PARTICLES
+    ),
+    PSYCHEDELIC_WAVES(
+        id = "psychedelic_waves",
+        title = "Psychedelic Waves",
+        description = "Organic flowing wave rings radiating outward in neon gradient colors",
+        type = CircularVisualizerType.PSYCHEDELIC_WAVES
     );
 
     companion object {
