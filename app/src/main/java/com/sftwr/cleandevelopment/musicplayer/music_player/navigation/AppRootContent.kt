@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
@@ -40,7 +39,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.compose.runtime.rememberCoroutineScope
 import com.sftwr.cleandevelopment.musicplayer.data.util.LocaleHelper
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.BottomPlayerBar
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalAlbumArtworkEnabled
@@ -48,26 +46,22 @@ import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorP
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalGlassmorphicEnabled
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SettingsDialog
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.SlantedNavigationDrawerContent
-import com.sftwr.cleandevelopment.musicplayer.designsystem.component.sheet.rememberPlayerSheetState
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.about.AboutDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.equalizer.EqualizerBottomSheet
-import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.PlayerScreen
-import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.sheet.PlayerSheetLayout
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.rate.RateUsBottomSheet
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.scan.ScanMediaDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.sleeptimer.SleepTimerDialog
 import com.sftwr.cleandevelopment.musicplayer.model.Screen
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.Locale
 
 /**
- * Root application content composable responsible for hosting the navigation graph,
- * managing bidirectional layout direction (RTL/LTR), locale reconfiguration,
- * and dynamically displaying the persistent bottom mini-player bar and slanted drawer.
+ * Root application content composable hosting the navigation graph,
+ * bidirectional layout direction (RTL/LTR), locale reconfiguration,
+ * and standard persistent bottom mini-player bar and slanted drawer.
  */
 @RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalMaterial3Api::class)
@@ -128,9 +122,6 @@ fun AppRootContent(
             } else null
         }
 
-        val playerSheetState = rememberPlayerSheetState()
-        val coroutineScope = rememberCoroutineScope()
-
         var isDrawerOpen by remember { mutableStateOf(false) }
         var selectedDrawerItem by remember { mutableStateOf("Equalizer") }
 
@@ -178,7 +169,6 @@ fun AppRootContent(
                 onCloseDrawer = { isDrawerOpen = false }
             )
 
-            // Optional subtle scrim overlay over background area when drawer is open
             if (drawerProgress > 0.01f) {
                 Box(
                     modifier = Modifier
@@ -215,53 +205,49 @@ fun AppRootContent(
                     ),
                 contentAlignment = Alignment.TopCenter
             ) {
-                PlayerSheetLayout(
-                    sheetState = playerSheetState,
-                    hasTrack = currentSong != null && showBottomBar,
-                    songTitle = currentSong?.title.orEmpty(),
-                    artistName = currentSong?.artist.orEmpty(),
-                    isPlaying = isPlaying,
-                    hasNext = playerManager.hasNext,
-                    hasPrevious = playerManager.hasPrevious,
-                    artUri = artUri,
-                    onPlayPauseClick = { playerManager.togglePlayPause() },
-                    onNextClick = { playerManager.playNext() },
-                    onPreviousClick = { playerManager.playPrevious() },
-                    modifier = Modifier.fillMaxSize(),
-                    content = {
-                        AppNavGraph(
+                Box(modifier = Modifier.fillMaxSize()) {
+                    AppNavGraph(
+                        modifier = Modifier.fillMaxSize(),
+                        navController = navController,
+                        playerManager = playerManager,
+                        onOpenDrawer = {
+                            isDrawerOpen = !isDrawerOpen
+                        }
+                    )
+
+                    // Standard persistent mini-player bar
+                    if (currentSong != null && showBottomBar) {
+                        Box(
                             modifier = Modifier
-                                .fillMaxSize(),
-                            navController = navController,
-                            playerManager = playerManager,
-                            onOpenDrawer = {
-                                isDrawerOpen = !isDrawerOpen
-                            },
-                            onExpandPlayer = {
-                                coroutineScope.launch { playerSheetState.expand() }
-                            }
-                        )
-                    },
-                    fullPlayerContent = { sheetProgress, onCollapse ->
-                        PlayerScreen(
-                            sheetProgress = sheetProgress,
-                            onBackClick = {
-                                coroutineScope.launch {
-                                    onCollapse()
-                                    if (currentRoute?.contains("Player") == true) {
-                                        navController.popBackStack()
-                                    }
-                                }
-                            },
-                            onNavigateToVisualizerSelection = {
-                                navController.navigate(Screen.VisualizerSelection)
-                            },
-                            onNavigateToSoundEffect = {
-                                navController.navigate(Screen.SoundEffect)
-                            }
-                        )
+                                .fillMaxWidth()
+                                .align(Alignment.BottomCenter)
+                                .navigationBarsPadding()
+                                .padding(horizontal = 8.dp)
+                        ) {
+                            BottomPlayerBar(
+                                hasNext = playerManager.hasNext,
+                                hasPrevious = playerManager.hasPrevious,
+                                artUri = artUri,
+                                songTitle = currentSong?.title.orEmpty(),
+                                artistName = currentSong?.artist.orEmpty(),
+                                isPlaying = isPlaying,
+                                onPlayPauseClick = { playerManager.togglePlayPause() },
+                                onNextClick = { playerManager.playNext() },
+                                onPreviousClick = { playerManager.playPrevious() },
+                                onPlayerClick = {
+                                    navController.navigate(Screen.Player)
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .background(
+                                        color = settings.colorPalette.surfaceCard,
+                                        shape = RoundedCornerShape(16.dp)
+                                    )
+                                    .clip(RoundedCornerShape(16.dp))
+                            )
+                        }
                     }
-                )
+                }
             }
         }
 

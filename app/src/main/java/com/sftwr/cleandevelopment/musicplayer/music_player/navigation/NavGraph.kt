@@ -43,8 +43,7 @@ fun AppNavGraph(
     navController: NavHostController,
     playerManager: PlayerManager,
     modifier: Modifier = Modifier,
-    onOpenDrawer: () -> Unit = {},
-    onExpandPlayer: () -> Unit = {}
+    onOpenDrawer: () -> Unit = {}
 ) {
     NavHost(
         navController = navController,
@@ -54,7 +53,7 @@ fun AppNavGraph(
         // Home feature navigation graph
         homeGraph(
             onNavigateToPlayer = { songId ->
-                onExpandPlayer()
+                navController.navigate(Screen.Player)
             },
             onNavigateToSearch = {
                 navController.navigate(Screen.Search)
@@ -276,7 +275,7 @@ fun AppNavGraph(
                     navController.popBackStack()
                 },
                 onNavigateToPlayer = {
-                    onExpandPlayer()
+                    navController.navigate(Screen.Player)
                 },
                 onInfoClick = { songId ->
                     navController.navigate(Screen.SongDetail(songId))
@@ -289,9 +288,6 @@ fun AppNavGraph(
 
         // Full-screen audio player destination route
         composable<Screen.Player> {
-            androidx.compose.runtime.LaunchedEffect(Unit) {
-                onExpandPlayer()
-            }
             PlayerScreen(
                 onBackClick = {
                     navController.popBackStack()
