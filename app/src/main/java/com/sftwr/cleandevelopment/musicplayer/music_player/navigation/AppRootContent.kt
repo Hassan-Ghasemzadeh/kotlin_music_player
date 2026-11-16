@@ -231,8 +231,7 @@ fun AppRootContent(
                     content = {
                         AppNavGraph(
                             modifier = Modifier
-                                .fillMaxSize()
-                                .statusBarsPadding(),
+                                .fillMaxSize(),
                             navController = navController,
                             playerManager = playerManager,
                             onOpenDrawer = {
