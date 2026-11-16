@@ -302,7 +302,7 @@ fun PlayerScreen(
                     )
                 }
                 Text(
-                    text = "Now Playing",
+                    text = stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.now_playing),
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.9f)
                     ),
