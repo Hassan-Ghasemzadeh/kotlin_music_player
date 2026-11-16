@@ -3,7 +3,6 @@ package com.sftwr.cleandevelopment.musicplayer.designsystem.component
 import android.graphics.Bitmap
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,7 +30,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.res.painterResource
@@ -45,7 +43,8 @@ import com.sftwr.cleandevelopment.musicplayer.designsystem.R
 
 /**
  * Bottom mini player bar displaying the currently playing track metadata (art, title, artist)
- * and essential playback control actions (play/pause, next, previous).
+ * and essential playback control actions (play/pause, next, previous) inside a sleek,
+ * translucent glassmorphic card container.
  */
 @Composable
 fun BottomPlayerBar(
@@ -62,24 +61,18 @@ fun BottomPlayerBar(
     onPlayerClick: () -> Unit,
 ) {
     GlassCard(
+        shape = RoundedCornerShape(16.dp),
         modifier = modifier
             .fillMaxWidth()
-            .height(72.dp)
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .height(64.dp)
             .clickable(onClick = onPlayerClick)
-            .border(
-                width = 1.dp, color = Color(0x33A855F7), shape = RoundedCornerShape(16.dp)
-            )
-            .background(
-                color = LocalColorPalette.current.surfaceCard, shape = RoundedCornerShape(16.dp)
-            )
     ) {
         val layoutDirection = LocalLayoutDirection.current
         CompositionLocalProvider(LocalLayoutDirection provides layoutDirection) {
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 12.dp),
+                    .padding(horizontal = 12.dp, vertical = 6.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -127,7 +120,7 @@ fun BottomPlayerBar(
                         Text(
                             text = songTitle,
                             color = Color.White,
-                            fontSize = 16.sp,
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -156,7 +149,7 @@ fun BottomPlayerBar(
                                 imageVector = Icons.Default.SkipPrevious,
                                 contentDescription = "Previous",
                                 tint = Color.White.copy(alpha = if (hasPrevious) 1f else 0.3f),
-                                modifier = Modifier.size(28.dp)
+                                modifier = Modifier.size(26.dp)
                             )
                         }
 
@@ -174,7 +167,7 @@ fun BottomPlayerBar(
                                 imageVector = Icons.Default.SkipNext,
                                 contentDescription = "Next",
                                 tint = Color.White.copy(alpha = if (hasNext) 1f else 0.3f),
-                                modifier = Modifier.size(28.dp)
+                                modifier = Modifier.size(26.dp)
                             )
                         }
                     }
