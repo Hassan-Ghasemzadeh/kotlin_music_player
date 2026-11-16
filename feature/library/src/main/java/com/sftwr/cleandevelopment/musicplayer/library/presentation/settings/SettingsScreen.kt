@@ -81,6 +81,7 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.border
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.VolumeUp
+import androidx.compose.material.icons.filled.AutoAwesome
 import com.sftwr.cleandevelopment.musicplayer.data.util.FolderFilterHelper
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
@@ -163,6 +164,7 @@ fun SettingsScreen(
     onPlaylistBackupClick: () -> Unit,
     onPlaylistBackupDialogDismiss: () -> Unit,
     onNavigateToPermissions: () -> Unit,
+    onSoundEffectClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val settings = uiState.settings
@@ -408,6 +410,16 @@ fun SettingsScreen(
                             subtitle = VisualizerStyle.fromId(settings.selectedVisualizer.ifEmpty { settings.circularVisualizerType }).title,
                             icon = Icons.Default.GraphicEq,
                             onClick = onVisualizerClick
+                        )
+
+                        SettingsDivider()
+
+                        // Sound Effects Selector Row
+                        SettingsRowItem(
+                            title = "Sound Effects",
+                            subtitle = "Electronic tube, 3D rotate, Surround sound",
+                            icon = Icons.Default.AutoAwesome,
+                            onClick = onSoundEffectClick
                         )
 
                         SettingsDivider()
