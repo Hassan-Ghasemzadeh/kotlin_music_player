@@ -200,7 +200,7 @@ class PlayerManager @Inject constructor(
     override val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
     private val _queue = MutableStateFlow<List<SongUiModel>>(emptyList())
-    val queue: StateFlow<List<SongUiModel>> = _queue.asStateFlow()
+    override val queue: StateFlow<List<SongUiModel>> = _queue.asStateFlow()
 
     private var activeQueue: List<SongUiModel> = emptyList()
     val hasNext: Boolean
@@ -883,7 +883,7 @@ class PlayerManager @Inject constructor(
         }
     }
 
-    fun playQueueItem(index: Int) {
+    override fun playQueueItem(index: Int) {
         runOnMainThread {
             val songs = if (activeQueue.isNotEmpty()) activeQueue else _allSongs.value
             if (index in songs.indices) {
@@ -894,7 +894,7 @@ class PlayerManager @Inject constructor(
         }
     }
 
-    fun removeFromQueue(index: Int) {
+    override fun removeFromQueue(index: Int) {
         runOnMainThread {
             val currentQueue = if (activeQueue.isNotEmpty()) activeQueue.toMutableList() else _allSongs.value.toMutableList()
             if (index in currentQueue.indices) {
