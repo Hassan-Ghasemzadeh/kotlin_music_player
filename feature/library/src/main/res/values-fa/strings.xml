@@ -240,4 +240,26 @@
     <string name="backup_error">خطا در صادرات لیست‌های پخش: %1$s</string>
     <string name="restore_error">خطا در وارد کردن لیست‌های پخش: %1$s</string>
     <string name="no_custom_playlists_backup">هیچ لیست پخش سفارشی برای پشتیبان‌گیری موجود نیست.</string>
+
+    <!-- Sound Effects Feature -->
+    <string name="sound_effects">جلوه‌های صوتی</string>
+    <string name="audio_effects_engine">موتور جلوه‌های صوتی</string>
+    <string name="active_and_processing">فعال و در حال پردازش</string>
+    <string name="disabled">غیرفعال</string>
+    <string name="enhancement_intensity">شدت بهبود صدا</string>
+    <string name="available_sound_effects">جلوه‌های صوتی موجود</string>
+    <string name="active">فعال</string>
+    <string name="use">استفاده</string>
+    <string name="effect_electronic_tube">لامپ خلاء الکترونیکی</string>
+    <string name="effect_electronic_tube_desc">اشباع گرم لامپ قدیمی و گرما هارمونیک</string>
+    <string name="effect_three_d_rotate">چرخش سه‌بعدی</string>
+    <string name="effect_three_d_rotate_desc">چرخش صوتی سه‌بعدی فضایی و فراگیر</string>
+    <string name="effect_tone_low">بیس عمیق</string>
+    <string name="effect_tone_low_desc">تشدید بیس عمیق و غنی با تأکید روی فرکانس‌های پایین</string>
+    <string name="effect_surround_sound">صدای فراگیر</string>
+    <string name="effect_surround_sound_desc">آکوستیک چندکاناله مجازی و گسترش صحنه صوتی</string>
+    <string name="effect_magic_sound">صدای جادویی</string>
+    <string name="effect_magic_sound_desc">بهبود فضایی سایکوآکوستیک چندباند پویا</string>
+    <string name="effect_live_treble">تریبل زنده</string>
+    <string name="effect_live_treble_desc">شفافیت بالای صدا و درخشش فرکانس‌های بالا</string>
 </resources>
