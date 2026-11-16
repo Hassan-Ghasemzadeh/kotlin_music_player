@@ -20,6 +20,7 @@ fun SettingsRoute(
     onNavigateToPermissions: () -> Unit,
     onNavigateToVisualizerSelection: () -> Unit,
     onNavigateToThemePicker: () -> Unit,
+    onNavigateToSoundEffect: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
@@ -97,6 +98,7 @@ fun SettingsRoute(
         onPlaylistBackupClick = { viewModel.showPlaylistBackupDialog(true) },
         onPlaylistBackupDialogDismiss = { viewModel.showPlaylistBackupDialog(false) },
         onNavigateToPermissions = onNavigateToPermissions,
+        onSoundEffectClick = onNavigateToSoundEffect,
         modifier = modifier
     )
 
