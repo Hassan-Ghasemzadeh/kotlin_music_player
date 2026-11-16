@@ -87,6 +87,7 @@ data class SongUiModel(
     val albumId: Long = -1L,
     val albumArtUri: String? = null,
     val isFavorite: Boolean = false,
+    val durationInMs: Long = 0L,
 )
 
 /**
