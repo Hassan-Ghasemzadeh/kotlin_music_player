@@ -39,23 +39,11 @@ enum class VisualizerStyle(
         description = "Crystalline matrix layout shifting with sound intensity",
         type = CircularVisualizerType.NEON_CRYSTAL_MATRIX
     ),
-    HARMONIC_RINGS(
-        id = "harmonic_rings",
-        title = "Harmonic Rings",
-        description = "Concentric harmonic rings expanding outward with music",
-        type = CircularVisualizerType.NEON_HARMONIC_RINGS
-    ),
     CYMATICS_PATTERN(
         id = "cymatics_pattern",
         title = "Cymatics Pattern",
         description = "Cymatics geometric sound pattern visualization",
         type = CircularVisualizerType.NEON_CYMATICS_PATTERN
-    ),
-    STARBURST_SPIKES(
-        id = "starburst_spikes",
-        title = "Starburst Spikes",
-        description = "Starburst spikes reacting dynamically to high frequencies",
-        type = CircularVisualizerType.NEON_STARBURST_SPIKES
     ),
     FRACTAL_FLOWER(
         id = "fractal_flower",
@@ -68,18 +56,6 @@ enum class VisualizerStyle(
         title = "Singularity Vortex",
         description = "Rotating gravitational vortex swallowing sound waves",
         type = CircularVisualizerType.NEON_SINGULARITY_VORTEX
-    ),
-    QUANTUM_FLUX(
-        id = "quantum_flux",
-        title = "Quantum Flux",
-        description = "Quantum lines with random jumps triggered by bass spikes",
-        type = CircularVisualizerType.NEON_QUANTUM_FLUX
-    ),
-    DNA_HELIX_PULSE(
-        id = "dna_helix_pulse",
-        title = "DNA Helix Pulse",
-        description = "Double DNA helixes pulsing to rhythm of heart and music",
-        type = CircularVisualizerType.NEON_DNA_HELIX_PULSE
     ),
     HYPERSPACE_TUNNEL(
         id = "hyperspace_tunnel",

@@ -259,22 +259,6 @@ fun NeonCircularVisualizer(
                             }
                         }
 
-                        CircularVisualizerType.NEON_HARMONIC_RINGS -> {
-                            for (ring in 1..3) {
-                                val r = baseRadius + (ring * (safeMaxOutward / 3f))
-                                drawCircle(
-                                    color = when (ring) {
-                                        1 -> neonCyan.copy(alpha = 0.6f)
-                                        2 -> neonPink.copy(alpha = 0.5f)
-                                        else -> neonGold.copy(alpha = 0.4f)
-                                    },
-                                    radius = r,
-                                    center = center,
-                                    style = Stroke(width = 2f),
-                                )
-                            }
-                        }
-
                         CircularVisualizerType.NEON_CYMATICS_PATTERN -> {
                             val particleCount = 24
                             for (i in 0 until particleCount) {
@@ -292,23 +276,6 @@ fun NeonCircularVisualizer(
                             }
                         }
 
-                        CircularVisualizerType.NEON_STARBURST_SPIKES -> {
-                            val avgAmp = safeFft.average().toFloat().takeIf { !it.isNaN() } ?: 0.3f
-                            val pulseRadius = baseRadius + (avgAmp * safeMaxOutward * 0.9f)
-                            drawCircle(
-                                brush = Brush.sweepGradient(
-                                    listOf(
-                                        neonCyan,
-                                        neonPurple,
-                                        neonPink,
-                                        neonCyan
-                                    )
-                                ),
-                                radius = pulseRadius,
-                                center = center,
-                                style = Stroke(width = 4f),
-                            )
-                        }
 
                         CircularVisualizerType.NEON_FRACTAL_FLOWER -> {
                             for (i in 0 until pointsCount) {
@@ -349,33 +316,6 @@ fun NeonCircularVisualizer(
                             }
                         }
 
-                        CircularVisualizerType.NEON_QUANTUM_FLUX -> {
-                            for (ring in 1..4) {
-                                val amp = safeFft.getOrElse((ring * 4) % safeFft.size) { 0.3f }
-                                val r = baseRadius + (ring * (safeMaxOutward / 4f)) + (amp * 8f)
-                                drawCircle(
-                                    color = neonBlue.copy(alpha = 0.8f - (ring * 0.15f)),
-                                    radius = r,
-                                    center = center,
-                                    style = Stroke(width = 1.5f + ring),
-                                )
-                            }
-                        }
-
-                        CircularVisualizerType.NEON_DNA_HELIX_PULSE -> {
-                            val path = Path()
-                            val sides = 6
-                            for (i in 0..sides) {
-                                val angle =
-                                    (2 * PI * i / sides) + Math.toRadians(rotationAngle.toDouble())
-                                val avgAmp = safeFft.average().toFloat().takeIf { !it.isNaN() } ?: 0.3f
-                                val r = baseRadius + 8f + (avgAmp * safeMaxOutward * 0.6f)
-                                val x = (center.x + r * cos(angle)).toFloat()
-                                val y = (center.y + r * sin(angle)).toFloat()
-                                if (i == 0) path.moveTo(x, y) else path.lineTo(x, y)
-                            }
-                            drawPath(path, neonGold, style = Stroke(width = 3f))
-                        }
 
                         CircularVisualizerType.NEON_HYPERSPACE_TUNNEL -> {
                             for (i in 0 until pointsCount) {
@@ -440,17 +380,29 @@ fun NeonCircularVisualizer(
                         }
 
                         CircularVisualizerType.NEON_CYBER_MATRIX_GRID -> {
-                            val barCount = 16
+                            val barCount = 72
                             for (i in 0 until barCount) {
-                                val angle =
-                                    (2 * PI * i / barCount) + Math.toRadians(rotationAngle.toDouble())
-                                val amp = safeFft.getOrElse((i * 3) % safeFft.size) { 0.3f }
-                                val blockCount = (1 + (amp * 6).toInt()).coerceIn(1, 6)
+                                val angle = (2 * PI * i / barCount) + Math.toRadians(rotationAngle.toDouble() * 0.5)
+                                val amp = safeFft.getOrElse((i * 2) % safeFft.size) { 0.3f }
+
+                                val blockCount = (2 + (amp * 8).toInt()).coerceIn(2, 10)
+
                                 for (b in 0 until blockCount) {
-                                    val r = baseRadius + 4f + (b * 7f)
+                                    val r = baseRadius + 6f + (b * 9f)
                                     val x = (center.x + r * cos(angle)).toFloat()
                                     val y = (center.y + r * sin(angle)).toFloat()
-                                    drawCircle(neonGreen, radius = 2.5f, center = Offset(x, y))
+
+                                    val dotColor = when {
+                                        b == blockCount - 1 -> neonCyan
+                                        i % 3 == 0 -> neonGreen
+                                        else -> neonGreen.copy(alpha = 0.7f)
+                                    }
+
+                                    drawCircle(
+                                        color = dotColor,
+                                        radius = 2f + (amp * 1.5f),
+                                        center = Offset(x, y)
+                                    )
                                 }
                             }
                         }
