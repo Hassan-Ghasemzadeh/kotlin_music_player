@@ -4,6 +4,7 @@ import android.os.Build
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -24,8 +25,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Disable system window fitting to enable edge-to-edge layout design
+        // Enable edge-to-edge display and disable system window fitting
+        enableEdgeToEdge()
         WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.isNavigationBarContrastEnforced = false
 
         setContent {
             // Apply application custom theme
