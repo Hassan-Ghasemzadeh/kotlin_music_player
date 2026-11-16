@@ -90,6 +90,7 @@ fun AlbumDetailScreen(
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = Color.Transparent,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
             val adjustedBottomPadding = (bottomPadding - 60.dp).coerceAtLeast(8.dp)
             AnimatedVisibility(
@@ -132,6 +133,7 @@ fun AlbumDetailScreen(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .statusBarsPadding()
                     .padding(16.dp)
             ) {
                 // Top App Bar
