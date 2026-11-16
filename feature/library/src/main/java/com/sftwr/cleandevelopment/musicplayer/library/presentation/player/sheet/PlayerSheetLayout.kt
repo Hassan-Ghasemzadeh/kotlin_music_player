@@ -165,7 +165,7 @@ fun PlayerSheetLayout(
                         }
                         .then(
                             if (isTallDevice) Modifier.navigationBarsPadding()
-                            else Modifier.padding(vertical = 45.dp)
+                            else Modifier.padding(vertical = 40.dp)
                         )
                         .padding(horizontal = 8.dp)
                         .then(dragGestureModifier)
