@@ -7,6 +7,7 @@ import androidx.lifecycle.viewModelScope
 import androidx.media3.common.Player
 import androidx.media3.common.PlaybackParameters
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.UpdateAudioSettingsUseCase
+import com.sftwr.cleandevelopment.musicplayer.domain.usecase.SaveVisualizerConfigUseCase
 import androidx.media3.common.util.UnstableApi
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
@@ -47,6 +48,7 @@ class PlayerViewModel @Inject constructor(
     private val addSongToPlaylistUseCase: AddSongToPlaylistUseCase,
     getSettingsUseCase: GetSettingsUseCase,
     private val updateAudioSettingsUseCase: UpdateAudioSettingsUseCase,
+    private val saveVisualizerConfigUseCase: SaveVisualizerConfigUseCase,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -100,6 +102,8 @@ class PlayerViewModel @Inject constructor(
             updateAudioSettingsUseCase.setCircularVisualizerType(typeKey)
         }
     }
+
+
 
     fun playQueueItem(index: Int) {
         playerManager.playQueueItem(index)
