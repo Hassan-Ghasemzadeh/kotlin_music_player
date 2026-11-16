@@ -42,9 +42,7 @@ import coil.compose.AsyncImage
 import com.sftwr.cleandevelopment.musicplayer.designsystem.R
 
 /**
- * Bottom mini player bar displaying the currently playing track metadata (art, title, artist)
- * and essential playback control actions (play/pause, next, previous) inside a sleek,
- * translucent glassmorphic card container.
+ * Compact and sleek bottom mini player bar displaying track metadata and controls.
  */
 @Composable
 fun BottomPlayerBar(
@@ -61,10 +59,10 @@ fun BottomPlayerBar(
     onPlayerClick: () -> Unit,
 ) {
     GlassCard(
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(14.dp),
         modifier = modifier
             .fillMaxWidth()
-            .height(64.dp)
+            .height(56.dp) // ارتفاع کاهش‌یافته و جمع‌وجورتر (به جای 64dp)
             .clickable(onClick = onPlayerClick)
     ) {
         val layoutDirection = LocalLayoutDirection.current
@@ -72,7 +70,7 @@ fun BottomPlayerBar(
             Row(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 12.dp, vertical = 6.dp),
+                    .padding(horizontal = 10.dp, vertical = 4.dp), // پدینگ داخلی فشرده‌تر
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -80,9 +78,10 @@ fun BottomPlayerBar(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.weight(1f, fill = false)
                 ) {
+                    // عکس آلبوم کوچک‌تر و ظریف‌تر (40dp)
                     Box(
                         modifier = Modifier
-                            .size(48.dp)
+                            .size(40.dp)
                             .clip(RoundedCornerShape(8.dp))
                             .background(Color.Gray)
                     ) {
@@ -93,13 +92,13 @@ fun BottomPlayerBar(
                                 contentDescription = null,
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier
-                                    .size(48.dp)
+                                    .size(40.dp)
                                     .clip(RoundedCornerShape(8.dp))
                             )
                         } else {
                             Box(
                                 modifier = Modifier
-                                    .size(48.dp)
+                                    .size(40.dp)
                                     .clip(RoundedCornerShape(8.dp))
                                     .background(Color.DarkGray),
                                 contentAlignment = Alignment.Center
@@ -114,22 +113,22 @@ fun BottomPlayerBar(
                         }
                     }
 
-                    Spacer(modifier = Modifier.width(12.dp))
+                    Spacer(modifier = Modifier.width(10.dp))
 
                     Column {
                         Text(
                             text = songTitle,
                             color = Color.White,
-                            fontSize = 15.sp,
+                            fontSize = 13.5.sp, // فونت کمی جمع‌وجورتر
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
                         )
-                        Spacer(modifier = Modifier.height(2.dp))
+                        Spacer(modifier = Modifier.height(1.dp))
                         Text(
                             text = artistName,
                             color = Color.White.copy(alpha = 0.7f),
-                            fontSize = 12.sp,
+                            fontSize = 11.sp,
                             fontWeight = FontWeight.Light,
                             maxLines = 1,
                             overflow = TextOverflow.Ellipsis,
@@ -137,37 +136,48 @@ fun BottomPlayerBar(
                     }
                 }
 
-                Spacer(modifier = Modifier.width(8.dp))
+                Spacer(modifier = Modifier.width(6.dp))
 
                 CompositionLocalProvider(LocalLayoutDirection provides LayoutDirection.Ltr) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp)
+                        horizontalArrangement = Arrangement.spacedBy(0.dp) // حذف فاصله اضافه بین دکمه‌ها
                     ) {
-                        IconButton(enabled = hasPrevious, onClick = onPreviousClick) {
+                        IconButton(
+                            enabled = hasPrevious,
+                            onClick = onPreviousClick,
+                            modifier = Modifier.size(36.dp) // محدود کردن سایز کلیک آیکون‌ها برای جلوگیری از اشغال فضای اضافی
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.SkipPrevious,
                                 contentDescription = "Previous",
                                 tint = Color.White.copy(alpha = if (hasPrevious) 1f else 0.3f),
-                                modifier = Modifier.size(26.dp)
+                                modifier = Modifier.size(22.dp)
                             )
                         }
 
-                        IconButton(onClick = onPlayPauseClick) {
+                        IconButton(
+                            onClick = onPlayPauseClick,
+                            modifier = Modifier.size(36.dp)
+                        ) {
                             Icon(
                                 imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
                                 contentDescription = "Play/Pause",
                                 tint = Color.White,
-                                modifier = Modifier.size(28.dp)
+                                modifier = Modifier.size(24.dp)
                             )
                         }
 
-                        IconButton(enabled = hasNext, onClick = onNextClick) {
+                        IconButton(
+                            enabled = hasNext,
+                            onClick = onNextClick,
+                            modifier = Modifier.size(36.dp)
+                        ) {
                             Icon(
                                 imageVector = Icons.Default.SkipNext,
                                 contentDescription = "Next",
                                 tint = Color.White.copy(alpha = if (hasNext) 1f else 0.3f),
-                                modifier = Modifier.size(26.dp)
+                                modifier = Modifier.size(22.dp)
                             )
                         }
                     }

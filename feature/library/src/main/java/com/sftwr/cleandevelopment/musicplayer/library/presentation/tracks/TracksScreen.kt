@@ -150,7 +150,7 @@ fun TracksScreen(
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
             val bottomPadding = rememberPlayerAwareBottomPadding()
-            val adjustedBottomPadding = (bottomPadding - 60.dp).coerceAtLeast(8.dp)
+            val adjustedBottomPadding = (bottomPadding - 50.dp).coerceAtLeast(8.dp)
 
             // Show floating action button only when a song is currently loaded
             AnimatedVisibility(

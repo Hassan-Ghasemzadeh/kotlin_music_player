@@ -32,14 +32,6 @@ import com.sftwr.cleandevelopment.musicplayer.designsystem.component.sheet.Playe
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
 
-/**
- * Clean Architecture transition coordinator layout providing high-performance,
- * GPU-accelerated Samsung Music-style expand/collapse transitions between the
- * collapsed mini-player bar and the full-screen Now Playing screen.
- *
- * Runs all animation calculations on the GPU via [Modifier.graphicsLayer] to maintain
- * rock-solid 60/120 FPS performance without layout recomposition overhead.
- */
 @Composable
 fun PlayerSheetLayout(
     sheetState: PlayerSheetState,
@@ -60,7 +52,6 @@ fun PlayerSheetLayout(
     val scope = rememberCoroutineScope()
     val colorPalette = LocalColorPalette.current
 
-    // Intercept hardware/system back button when player sheet is expanded
     BackHandler(enabled = sheetState.progress > 0.05f) {
         scope.launch {
             sheetState.collapse()
@@ -74,9 +65,30 @@ fun PlayerSheetLayout(
     val miniBarHeightDp = 72.dp
     val miniBarHeightPx = with(density) { miniBarHeightDp.toPx() }
 
-    // Total swipe distance from collapsed docked position to expanded full-screen top
     val maxOffsetPx = (screenHeightPx - miniBarHeightPx).coerceAtLeast(1f)
     val progress = sheetState.progress
+
+    // تعریف مشترک درگ برای اینکه هم روی مینی‌پلیر و هم صفحه کامل به درستی کار کند
+    val velocityTracker = remember { VelocityTracker() }
+    val dragGestureModifier = Modifier.pointerInput(Unit) {
+        detectVerticalDragGestures(
+            onDragStart = { velocityTracker.resetTracking() },
+            onDragEnd = {
+                val velocity = velocityTracker.calculateVelocity().y
+                scope.launch { sheetState.settle(velocity) }
+            },
+            onDragCancel = {
+                scope.launch { sheetState.settle(0f) }
+            },
+            onVerticalDrag = { change, dragAmount ->
+                change.consume()
+                velocityTracker.addPosition(change.uptimeMillis, change.position)
+                scope.launch {
+                    sheetState.dispatchRawDelta(dragAmount, maxOffsetPx)
+                }
+            }
+        )
+    }
 
     Box(modifier = modifier.fillMaxSize()) {
         // 1. Base Main App Content
@@ -84,7 +96,7 @@ fun PlayerSheetLayout(
             content()
         }
 
-        // 2. Dimmed Scrim Overlay (تغییر رنگ پس‌زمینه تاریک‌کننده به رنگ پالت دلخواه شما)
+        // 2. Dimmed Scrim Overlay
         if (progress > 0.01f) {
             Box(
                 modifier = Modifier
@@ -92,7 +104,6 @@ fun PlayerSheetLayout(
                     .graphicsLayer {
                         alpha = (progress * 0.85f).coerceIn(0f, 0.85f)
                     }
-                    // استفاده از رنگ پالت (مثلا primaryBackground یا هر رنگ دلخواه دیگر از colorPalette)
                     .background(colorPalette.surfaceCard)
                     .clickable(enabled = progress > 0.3f) {
                         scope.launch { sheetState.collapse() }
@@ -100,37 +111,8 @@ fun PlayerSheetLayout(
             )
         }
 
-        // 3. Persistent Sheet Container hosting Mini-Player and Full-Screen Player
         if (hasTrack) {
-            val velocityTracker = remember { VelocityTracker() }
-
-            val dragGestureModifier = Modifier.pointerInput(Unit) {
-                detectVerticalDragGestures(
-                    onDragStart = {
-                        velocityTracker.resetTracking()
-                    },
-                    onDragEnd = {
-                        val velocity = velocityTracker.calculateVelocity().y
-                        scope.launch {
-                            sheetState.settle(velocity)
-                        }
-                    },
-                    onDragCancel = {
-                        scope.launch {
-                            sheetState.settle(0f)
-                        }
-                    },
-                    onVerticalDrag = { change, dragAmount ->
-                        change.consume()
-                        velocityTracker.addPosition(change.uptimeMillis, change.position)
-                        scope.launch {
-                            sheetState.dispatchRawDelta(dragAmount, maxOffsetPx)
-                        }
-                    }
-                )
-            }
-
-            // Expanded Full-Screen Sheet sliding container
+            // 3. Expanded Full-Screen Sheet sliding container (بدون درگ اضافه در فضای خالی)
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -139,7 +121,6 @@ fun PlayerSheetLayout(
                         IntOffset(0, sheetOffsetY)
                     }
                     .graphicsLayer {
-                        // Smoothly morph top corner radius from mini-bar (16dp) to full screen (0dp)
                         val cornerRadiusPx = with(density) { (16.dp * (1f - progress)).toPx() }
                         shadowElevation = with(density) { (16.dp * progress).toPx() }
                         clip = progress < 0.99f
@@ -148,7 +129,6 @@ fun PlayerSheetLayout(
                             topEnd = cornerRadiusPx
                         )
                     }
-                    // پس‌زمینه فقط هنگام باز شدن صفحه اعمال می‌شود تا مینی‌پلیر شفاف بماند
                     .background(
                         if (progress > 0.05f) {
                             colorPalette.primaryBackground.copy(alpha = progress.coerceIn(0f, 1f))
@@ -156,9 +136,7 @@ fun PlayerSheetLayout(
                             Color.Transparent
                         }
                     )
-                    .then(dragGestureModifier)
             ) {
-                // Full Screen Player Content (fades in smoothly as sheet expands)
                 if (progress > 0.05f) {
                     Box(
                         modifier = Modifier
@@ -172,42 +150,47 @@ fun PlayerSheetLayout(
                         }
                     }
                 }
+            }
 
-                // Collapsed Mini-Player Bar (دارای پس‌زمینه اختصاصی، مات، خوانا و کاملاً هم‌اندازه خودِ مینی‌پلیر)
-                if (progress < 0.99f) {
-                    Box(
+            // 4. Collapsed Mini-Player Bar (تنها مرجع درگ و کلیک برای حالت بسته)
+            if (progress < 0.99f) {
+                val isTallDevice = screenHeightPx > 2400f
+
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.BottomCenter)
+                        .graphicsLayer {
+                            alpha = (1f - progress * 1.5f).coerceIn(0f, 1f)
+                        }
+                        .then(
+                            if (isTallDevice) Modifier.navigationBarsPadding()
+                            else Modifier.padding(vertical = 45.dp)
+                        )
+                        .padding(horizontal = 8.dp)
+                        .then(dragGestureModifier)
+                ) {
+                    BottomPlayerBar(
+                        hasNext = hasNext,
+                        hasPrevious = hasPrevious,
+                        artUri = artUri,
+                        songTitle = songTitle,
+                        artistName = artistName,
+                        isPlaying = isPlaying,
+                        onPlayPauseClick = onPlayPauseClick,
+                        onNextClick = onNextClick,
+                        onPreviousClick = onPreviousClick,
+                        onPlayerClick = {
+                            scope.launch { sheetState.expand() }
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .align(Alignment.TopCenter)
-                            .graphicsLayer {
-                                alpha = (1f - progress * 1.5f).coerceIn(0f, 1f)
-                            }
-                            .padding(horizontal = 8.dp, vertical = 20.dp)
-                    ) {
-                        BottomPlayerBar(
-                            hasNext = hasNext,
-                            hasPrevious = hasPrevious,
-                            artUri = artUri,
-                            songTitle = songTitle,
-                            artistName = artistName,
-                            isPlaying = isPlaying,
-                            onPlayPauseClick = onPlayPauseClick,
-                            onNextClick = onNextClick,
-                            onPreviousClick = onPreviousClick,
-                            onPlayerClick = {
-                                scope.launch { sheetState.expand() }
-                            },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .navigationBarsPadding()
-                                .padding(horizontal = 12.dp, vertical = 4.dp)
-                                .background(
-                                    color = colorPalette.surfaceCard,
-                                    shape = RoundedCornerShape(16.dp)
-                                )
-                                .clip(RoundedCornerShape(16.dp))
-                        )
-                    }
+                            .background(
+                                color = colorPalette.surfaceCard,
+                                shape = RoundedCornerShape(16.dp)
+                            )
+                            .clip(RoundedCornerShape(16.dp))
+                    )
                 }
             }
         }
