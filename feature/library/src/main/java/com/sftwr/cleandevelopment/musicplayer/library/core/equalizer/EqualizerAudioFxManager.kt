@@ -26,7 +26,7 @@ class EqualizerAudioFxManager @Inject constructor(
 ) : AudioEffectEngine {
 
     private val tag = "EqualizerAudioFxManager"
-    private val scope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     private var currentSessionId: Int = -1
     private var equalizerEffect: Equalizer? = null
@@ -154,9 +154,9 @@ class EqualizerAudioFxManager @Inject constructor(
         val eq = equalizerEffect ?: return EqualizerPreset.DEFAULT_BANDS
         return runCatching {
             val bandCount = eq.numberOfBands
-            val range = eq.bandLevelRange ?: shortArrayOf(-1500, 1500)
-            val minMb = range[0]
-            val maxMb = range[1]
+            val range = eq.bandLevelRange
+            val minMb = if (range != null && range.size >= 2) range[0] else -1500
+            val maxMb = if (range != null && range.size >= 2) range[1] else 1500
 
             (0 until bandCount).map { bandIdx ->
                 val shortIdx = bandIdx.toShort()
