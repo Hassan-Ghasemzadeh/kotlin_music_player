@@ -12,14 +12,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.home.R
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
-import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.AddToPlaylistDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.components.NeonSearchBar
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.components.SearchEmptyState
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
@@ -31,50 +29,40 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.TrackI
  */
 @Composable
 fun SearchScreen(
+    modifier: Modifier = Modifier,
     uiState: SearchUiState,
     actions: SearchActions,
     onAddToPlaylistClick: (SongUiModel) -> Unit = {},
     onFavoriteClick: (SongUiModel) -> Unit = {},
-    onSelectPlaylistForAdd: (songId: Long, Playlist) -> Unit = { _, _ -> },
-    onToggleFavoriteForAdd: (songId: Long, isFavorite: Boolean) -> Unit = { _, _ -> },
-    onDismissAddToPlaylistDialog: () -> Unit = {},
-    modifier: Modifier = Modifier
 ) {
     var expandedSongId: String? by remember { mutableStateOf(null) }
 
-    Box(
-        modifier = modifier
-            .fillMaxSize()
-            .background(
-                Brush.verticalGradient(
-                    colors = listOf(
-                        Color(0xFF0F0B21), Color(0xFF181035), Color(0xFF2C1454)
-                    )
-                )
+    Scaffold(
+        modifier = modifier.fillMaxSize(),
+        containerColor = Color.Transparent,
+        contentWindowInsets = WindowInsets(0, 0, 0, 0)
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .statusBarsPadding()
+        ) {
+            NeonSearchBar(
+                query = uiState.query,
+                onQueryChange = actions.onQueryChange,
+                onClearQuery = actions.onClearQueryClick,
             )
-    ) {
-        Scaffold(
-            modifier = modifier.fillMaxSize(),
-            containerColor = Color.Transparent,
-            topBar = {
-                NeonSearchBar(
-                    query = uiState.query,
-                    onQueryChange = actions.onQueryChange,
-                    onClearQuery = actions.onClearQueryClick,
-                    onCancelClick = actions.onCancelClick
-                )
-            }
-        ) { innerPadding ->
             Box(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .padding(innerPadding)
+                    .fillMaxWidth()
+                    .weight(1f)
             ) {
                 when {
                     uiState.isLoading -> {
                         CircularProgressIndicator(
                             modifier = Modifier.align(Alignment.Center),
-                            color = Color(0xFF00D2FF)
+                            color = LocalColorPalette.current.accent
                         )
                     }
 
@@ -111,12 +99,22 @@ fun SearchScreen(
                                     onClick = { actions.onSongClick(song.id) },
                                     isMenuExpanded = expandedSongId == song.id,
                                     onMenuClick = {
-                                        expandedSongId = if (expandedSongId == song.id) null else song.id
+                                        expandedSongId =
+                                            if (expandedSongId == song.id) null else song.id
                                     },
                                     onDismissMenu = { expandedSongId = null },
-                                    onDeleteClick = { song.id.toLongOrNull()?.let { id -> actions.onDeleteClick(id) } },
-                                    onInfoClick = { song.id.toLongOrNull()?.let { id -> actions.onInfoClick(id) } },
-                                    onTagEditClick = { song.id.toLongOrNull()?.let { id -> actions.onTagEditClick(id) } },
+                                    onDeleteClick = {
+                                        song.id.toLongOrNull()
+                                            ?.let { id -> actions.onDeleteClick(id) }
+                                    },
+                                    onInfoClick = {
+                                        song.id.toLongOrNull()
+                                            ?.let { id -> actions.onInfoClick(id) }
+                                    },
+                                    onTagEditClick = {
+                                        song.id.toLongOrNull()
+                                            ?.let { id -> actions.onTagEditClick(id) }
+                                    },
                                     onShareClick = { actions.onShareClick(song) },
                                     onAddToPlaylistClick = { onAddToPlaylistClick(song) },
                                     onFavoriteClick = { onFavoriteClick(song) }

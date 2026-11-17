@@ -85,7 +85,7 @@ fun GenreDetailScreen(
         modifier = modifier.fillMaxSize(),
         containerColor = Color.Transparent,
         floatingActionButton = {
-            val adjustedBottomPadding = (bottomPadding - 60.dp).coerceAtLeast(8.dp)
+            val adjustedBottomPadding = (bottomPadding - 50.dp).coerceAtLeast(8.dp)
             AnimatedVisibility(
                 visible = currentPlayingSongId != null,
                 enter = fadeIn() + scaleIn(),
@@ -365,7 +365,7 @@ fun GenreDetailScreen(
                         },
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .padding(bottom = 80.dp)
+                            .padding(bottom =  bottomPadding + 15.dp)
                     )
                 }
             }

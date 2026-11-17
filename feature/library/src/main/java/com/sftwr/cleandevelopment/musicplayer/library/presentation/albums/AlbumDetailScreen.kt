@@ -92,7 +92,7 @@ fun AlbumDetailScreen(
         containerColor = Color.Transparent,
         contentWindowInsets = WindowInsets(0, 0, 0, 0),
         floatingActionButton = {
-            val adjustedBottomPadding = (bottomPadding - 60.dp).coerceAtLeast(8.dp)
+            val adjustedBottomPadding = (bottomPadding - 50.dp).coerceAtLeast(8.dp)
             AnimatedVisibility(
                 visible = currentPlayingSongId != null,
                 enter = fadeIn() + scaleIn(),
@@ -211,24 +211,24 @@ fun AlbumDetailScreen(
                                     ),
                                 contentAlignment = Alignment.Center
                             ) {
-                            val isAlbumArtworkEnabled = LocalAlbumArtworkEnabled.current
-                            if (isAlbumArtworkEnabled) {
-                                AsyncImage(
-                                    model = "content://media/external/audio/albumart/$albumId",
-                                    contentDescription = albumTitle,
-                                    modifier = Modifier.fillMaxSize(),
-                                    contentScale = ContentScale.Crop,
-                                    error = painterResource(id = com.sftwr.cleandevelopment.musicplayer.designsystem.R.drawable.ic_default_album_art),
-                                    placeholder = painterResource(id = com.sftwr.cleandevelopment.musicplayer.designsystem.R.drawable.ic_default_album_art)
-                                )
-                            } else {
-                                Image(
-                                    painter = painterResource(id = com.sftwr.cleandevelopment.musicplayer.designsystem.R.drawable.ic_default_album_art),
-                                    contentDescription = null,
-                                    modifier = Modifier.matchParentSize(),
-                                    contentScale = ContentScale.Crop
-                                )
-                            }
+                                val isAlbumArtworkEnabled = LocalAlbumArtworkEnabled.current
+                                if (isAlbumArtworkEnabled) {
+                                    AsyncImage(
+                                        model = "content://media/external/audio/albumart/$albumId",
+                                        contentDescription = albumTitle,
+                                        modifier = Modifier.fillMaxSize(),
+                                        contentScale = ContentScale.Crop,
+                                        error = painterResource(id = com.sftwr.cleandevelopment.musicplayer.designsystem.R.drawable.ic_default_album_art),
+                                        placeholder = painterResource(id = com.sftwr.cleandevelopment.musicplayer.designsystem.R.drawable.ic_default_album_art)
+                                    )
+                                } else {
+                                    Image(
+                                        painter = painterResource(id = com.sftwr.cleandevelopment.musicplayer.designsystem.R.drawable.ic_default_album_art),
+                                        contentDescription = null,
+                                        modifier = Modifier.matchParentSize(),
+                                        contentScale = ContentScale.Crop
+                                    )
+                                }
                             }
 
                             Spacer(modifier = Modifier.width(16.dp))
@@ -390,7 +390,7 @@ fun AlbumDetailScreen(
                         },
                         modifier = Modifier
                             .align(Alignment.BottomCenter)
-                            .padding(bottom = 80.dp)
+                            .padding(bottom = bottomPadding + 15.dp)
                     )
                 }
             }

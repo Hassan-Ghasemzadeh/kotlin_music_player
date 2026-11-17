@@ -14,6 +14,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.home.R
 
 @Composable
@@ -26,7 +27,7 @@ fun SearchEmptyState(
             .padding(24.dp),
         shape = RoundedCornerShape(24.dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.15f)
+            containerColor = LocalColorPalette.current.accent.copy(alpha = 0.15f)
         )
     ) {
         Column(
@@ -42,7 +43,7 @@ fun SearchEmptyState(
                     contentDescription = null,
                     modifier = Modifier
                         .size(width = 280.dp, height = 300.dp)
-                        .alpha(0.8f)
+                        .alpha(0.8f),
                 )
             }
 

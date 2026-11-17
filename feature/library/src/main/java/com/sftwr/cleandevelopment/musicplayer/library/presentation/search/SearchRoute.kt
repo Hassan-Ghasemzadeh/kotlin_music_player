@@ -85,14 +85,5 @@ fun SearchRoute(
                 viewModel.toggleFavorite(songId, !song.isFavorite)
             }
         },
-        onSelectPlaylistForAdd = { songId, playlist ->
-            viewModel.addSongToPlaylist(songId, playlist)
-        },
-        onToggleFavoriteForAdd = { songId, isFav ->
-            viewModel.toggleFavorite(songId, isFav)
-        },
-        onDismissAddToPlaylistDialog = {
-            viewModel.closeAddToPlaylistDialog()
-        }
     )
 }

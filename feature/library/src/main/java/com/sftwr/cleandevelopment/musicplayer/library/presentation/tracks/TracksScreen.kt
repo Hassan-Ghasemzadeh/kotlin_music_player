@@ -369,7 +369,7 @@ fun TracksScreen(
                                     },
                                     modifier = Modifier
                                         .align(Alignment.BottomCenter)
-                                        .padding(bottom = 80.dp) // Placed right above the mini player
+                                        .padding(bottom = bottomPadding + 15.dp) // Placed right above the mini player
                                 )
                             }
                         }
@@ -424,7 +424,10 @@ fun TrackItem(
     val ctx = LocalContext.current
     val isGlassmorphic = LocalGlassmorphicEnabled.current
     val accent = LocalColorPalette.current.accent
-    val borderColor = if (isPlaying) accent else if (isGlassmorphic) Color.White.copy(alpha = 0.12f) else Color.White.copy(alpha = 0.05f)
+    val borderColor =
+        if (isPlaying) accent else if (isGlassmorphic) Color.White.copy(alpha = 0.12f) else Color.White.copy(
+            alpha = 0.05f
+        )
     val backgroundColor = when {
         isPlaying -> accent.copy(alpha = 0.15f)
         isGlassmorphic -> Color.White.copy(alpha = 0.07f)
