@@ -387,7 +387,7 @@ fun FavoritesScreen(
                                                 modifier = Modifier
                                                     .align(Alignment.CenterEnd)
                                                     .padding(bottom = bottomPadding)
-                                                    .padding(end = 2.dp)
+                                                    .padding(end = 8.dp)
                                             )
                                         }
                                     }
