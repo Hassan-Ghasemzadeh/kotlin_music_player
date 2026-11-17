@@ -26,6 +26,7 @@ import com.sftwr.cleandevelopment.musicplayer.domain.usecase.DeleteSongUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetDeviceSongsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetSettingsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.equalizer.EqualizerAudioFxManager
+import com.sftwr.cleandevelopment.musicplayer.library.core.soundeffect.SoundEffectAudioFxManager
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import com.sftwr.cleandevelopment.musicplayer.library.service.MusicPlaybackService
@@ -56,6 +57,7 @@ class PlayerManager @Inject constructor(
     private val playlistRepository: PlaylistRepository,
     val musicRepository: MusicRepository,
     val equalizerAudioFxManager: EqualizerAudioFxManager,
+    val soundEffectAudioFxManager: SoundEffectAudioFxManager,
     private val getSettingsUseCase: GetSettingsUseCase,
     @param:ApplicationContext private val context: Context,
 ) : PlayerController {
@@ -335,12 +337,20 @@ class PlayerManager @Inject constructor(
         var lastRecordedId: String? = null
 
         exoPlayer.addListener(object : Player.Listener {
+            override fun onAudioSessionIdChanged(audioSessionId: Int) {
+                if (audioSessionId > 0) {
+                    equalizerAudioFxManager.attachAudioSession(audioSessionId)
+                    soundEffectAudioFxManager.attachAudioSession(audioSessionId)
+                }
+            }
+
             override fun onIsPlayingChanged(isPlayingState: Boolean) {
                 updateIsPlayingState()
                 if (isPlayingState) {
                     val sessionId = exoPlayer.audioSessionId
                     if (sessionId > 0) {
                         equalizerAudioFxManager.attachAudioSession(sessionId)
+                        soundEffectAudioFxManager.attachAudioSession(sessionId)
                     }
                     _currentSong.value?.let { song ->
                         if (lastRecordedId != song.id) {
@@ -360,6 +370,7 @@ class PlayerManager @Inject constructor(
                 val sessionId = exoPlayer.audioSessionId
                 if (sessionId > 0) {
                     equalizerAudioFxManager.attachAudioSession(sessionId)
+                    soundEffectAudioFxManager.attachAudioSession(sessionId)
                 }
                 val currentIndex = exoPlayer.currentMediaItemIndex
                 if (currentIndex in activeQueue.indices) {
@@ -488,6 +499,7 @@ class PlayerManager @Inject constructor(
             val sessionId = try { currentPlayer.audioSessionId } catch (_: Exception) { 0 }
             if (sessionId > 0) {
                 equalizerAudioFxManager.attachAudioSession(sessionId)
+                soundEffectAudioFxManager.attachAudioSession(sessionId)
             }
 
             crossfadeRampJob?.cancel()
@@ -530,6 +542,7 @@ class PlayerManager @Inject constructor(
         val sessionId = try { currentPlayer.audioSessionId } catch (_: Exception) { 0 }
         if (sessionId > 0) {
             equalizerAudioFxManager.attachAudioSession(sessionId)
+            soundEffectAudioFxManager.attachAudioSession(sessionId)
         }
     }
 
@@ -648,6 +661,7 @@ class PlayerManager @Inject constructor(
         crossfadeJob?.cancel()
         withContext(Dispatchers.Main) {
             equalizerAudioFxManager.releaseEffects()
+            soundEffectAudioFxManager.releaseEffects()
             playerA.stop()
             playerA.clearMediaItems()
             setPlayerVolume(playerA, 1.0f)
