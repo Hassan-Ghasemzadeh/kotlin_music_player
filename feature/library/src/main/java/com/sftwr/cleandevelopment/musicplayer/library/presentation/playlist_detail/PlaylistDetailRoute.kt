@@ -46,6 +46,7 @@ fun PlaylistDetailRoute(
     }
 
     PlaylistDetailScreen(
+        adManager = viewModel.adManager,
         playlistTitle = uiState.playlistName,
         playlistType = uiState.playlistType,
         songs = uiState.songs,

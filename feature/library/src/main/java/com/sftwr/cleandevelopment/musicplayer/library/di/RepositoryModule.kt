@@ -116,4 +116,31 @@ abstract class RepositoryModule {
     abstract fun bindSettingsRepository(
         settingsRepositoryImpl: com.sftwr.cleandevelopment.musicplayer.data.repository.SettingsRepositoryImpl,
     ): com.sftwr.cleandevelopment.musicplayer.domain.repository.SettingsRepository
+
+    /**
+     * Binds the implementation of PremiumRepository to its interface.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindPremiumRepository(
+        premiumRepositoryImpl: com.sftwr.cleandevelopment.musicplayer.data.repository.PremiumRepositoryImpl,
+    ): com.sftwr.cleandevelopment.musicplayer.domain.repository.PremiumRepository
+
+    /**
+     * Binds the implementation of AdManager to its interface.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindAdManager(
+        defaultAdManager: com.sftwr.cleandevelopment.musicplayer.data.ad.DefaultAdManager,
+    ): com.sftwr.cleandevelopment.musicplayer.domain.ad.AdManager
+
+    /**
+     * Binds the implementation of RewardedAdManager to its interface.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindRewardedAdManager(
+        rewardedAdManagerImpl: com.sftwr.cleandevelopment.musicplayer.data.ad.RewardedAdManagerImpl,
+    ): com.sftwr.cleandevelopment.musicplayer.domain.ad.RewardedAdManager
 }

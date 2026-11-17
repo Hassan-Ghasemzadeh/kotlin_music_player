@@ -23,6 +23,8 @@ import com.google.accompanist.permissions.isGranted
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.library.core.permissions.rememberAppPermissionsState
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
+import com.sftwr.cleandevelopment.musicplayer.domain.ad.AdManager
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.ad.BannerAdView
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components.CreatePlaylistNameDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components.LibraryCard
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.components.PlaylistCard
@@ -39,6 +41,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.viewmode
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
+    adManager: AdManager? = null,
     uiState: HomeUiState,
     playlistsState: PlaylistsUiState = PlaylistsUiState(),
     actions: HomeActions,
@@ -222,7 +225,10 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = androidx.compose.ui.res.stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.playlists_count, playlistsState.totalPlaylistCount),
+                            text = androidx.compose.ui.res.stringResource(
+                                com.sftwr.cleandevelopment.musicplayer.home.R.string.playlists_count,
+                                playlistsState.totalPlaylistCount
+                            ),
                             color = Color.White,
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold
@@ -246,9 +252,21 @@ fun HomeScreen(
                         subtitle = playlist.subtitle,
                         icon = playlist.icon,
                         modifier = Modifier.clickable {
-                            actions.onPlaylistCardClick(playlist.id, playlist.title, playlist.type.name)
+                            actions.onPlaylistCardClick(
+                                playlist.id,
+                                playlist.title,
+                                playlist.type.name
+                            )
                         }
                     )
+                }
+
+                // Tapsell Banner Ad Placement at the bottom of Home Screen
+                if (adManager != null) {
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        BannerAdView(adManager = adManager)
+                    }
                 }
             }
         }

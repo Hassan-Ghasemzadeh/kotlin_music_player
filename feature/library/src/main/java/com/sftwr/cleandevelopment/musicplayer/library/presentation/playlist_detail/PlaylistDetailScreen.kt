@@ -47,6 +47,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -67,9 +68,13 @@ import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Playlist
 import com.sftwr.cleandevelopment.musicplayer.domain.model.PlaylistType
+import com.sftwr.cleandevelopment.musicplayer.domain.ad.AdManager
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.rememberPlayerAwareBottomPadding
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.AddToPlaylistDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.ScrollToTopButton
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.ad.ListItemWithAd
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.ad.NativeAdCard
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.ad.insertAdsEvery
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.TrackItem
 import kotlinx.coroutines.launch
@@ -80,6 +85,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun PlaylistDetailScreen(
     modifier: Modifier = Modifier,
+    adManager: AdManager? = null,
     playlistTitle: String,
     playlistType: PlaylistType,
     songs: List<SongUiModel>,
@@ -343,6 +349,11 @@ fun PlaylistDetailScreen(
                         }
 
                         else -> {
+                            val isAdFreeState = adManager?.isAdFree?.collectAsState()?.value ?: false
+                            val songsWithAds = remember(songs, isAdFreeState) {
+                                songs.insertAdsEvery(interval = 10, isAdFree = isAdFreeState)
+                            }
+
                             Box(modifier = Modifier.fillMaxSize()) {
                                 LazyColumn(
                                     state = listState,
@@ -352,29 +363,48 @@ fun PlaylistDetailScreen(
                                     verticalArrangement = Arrangement.spacedBy(10.dp),
                                     contentPadding = PaddingValues(bottom = bottomPadding)
                                 ) {
-                                    items(songs, key = { it.id }) { song ->
-                                        val isMenuExpanded = expandedSongId == song.id
-                                        val isThisSongPlaying =
-                                            (currentPlayingSongId == song.id) && isPlayingGlobal
-                                        val songIdLong = song.id.toLongOrNull() ?: -1L
+                                    items(
+                                        items = songsWithAds,
+                                        key = { item ->
+                                            when (item) {
+                                                is ListItemWithAd.Item -> "song_${item.data.id}"
+                                                is ListItemWithAd.Ad -> item.adKey
+                                            }
+                                        }
+                                    ) { item ->
+                                        when (item) {
+                                            is ListItemWithAd.Ad -> {
+                                                if (adManager != null) {
+                                                    NativeAdCard(adManager = adManager)
+                                                }
+                                            }
 
-                                        TrackItem(
-                                            song = song,
-                                            onClick = { onSongClick(song.id) },
-                                            isMenuExpanded = isMenuExpanded,
-                                            onMenuClick = { expandedSongId = song.id },
-                                            onDismissMenu = { expandedSongId = null },
-                                            onDeleteClick = { onDeleteSongClick(songIdLong) },
-                                            onInfoClick = { onInfoClick(songIdLong) },
-                                            onTagEditClick = { onTagEditClick(songIdLong) },
-                                            onShareClick = { onShareClick(song) },
-                                            onAddToPlaylistClick = { onAddToPlaylistClick(song) },
-                                            onFavoriteClick = { onFavoriteClick(song) },
-                                            onRemoveFromPlaylist = if (isCustomPlaylist && onRemoveFromPlaylistClick != null) {
-                                                { onRemoveFromPlaylistClick(songIdLong) }
-                                            } else null,
-                                            isPlaying = isThisSongPlaying
-                                        )
+                                            is ListItemWithAd.Item -> {
+                                                val song = item.data
+                                                val isMenuExpanded = expandedSongId == song.id
+                                                val isThisSongPlaying =
+                                                    (currentPlayingSongId == song.id) && isPlayingGlobal
+                                                val songIdLong = song.id.toLongOrNull() ?: -1L
+
+                                                TrackItem(
+                                                    song = song,
+                                                    onClick = { onSongClick(song.id) },
+                                                    isMenuExpanded = isMenuExpanded,
+                                                    onMenuClick = { expandedSongId = song.id },
+                                                    onDismissMenu = { expandedSongId = null },
+                                                    onDeleteClick = { onDeleteSongClick(songIdLong) },
+                                                    onInfoClick = { onInfoClick(songIdLong) },
+                                                    onTagEditClick = { onTagEditClick(songIdLong) },
+                                                    onShareClick = { onShareClick(song) },
+                                                    onAddToPlaylistClick = { onAddToPlaylistClick(song) },
+                                                    onFavoriteClick = { onFavoriteClick(song) },
+                                                    onRemoveFromPlaylist = if (isCustomPlaylist && onRemoveFromPlaylistClick != null) {
+                                                        { onRemoveFromPlaylistClick(songIdLong) }
+                                                    } else null,
+                                                    isPlaying = isThisSongPlaying
+                                                )
+                                            }
+                                        }
                                     }
                                 }
 

@@ -47,6 +47,10 @@ dependencies {
     ksp(libs.hilt.compiler)
     implementation(libs.androidx.hilt.navigation.compose)
 
+    // Tapsell Mediation SDK
+    implementation(libs.tapsell)
+    implementation(libs.tapsell.legacy)
+
     implementation(libs.androidx.work.runtime.ktx)
 
     implementation(libs.kotlinx.serialization.json)

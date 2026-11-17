@@ -28,6 +28,7 @@ navigationCommonKtx = "2.8.7"
 navigationRuntimeKtx = "2.8.7"
 remoteCreationCore = "1.0.0-alpha21"
 datastore = "1.1.1"
+tapsell = "1.4.0-alpha04"
 work = "2.9.1"
 
 [libraries]
@@ -83,6 +84,8 @@ androidx-navigation-common-ktx = { group = "androidx.navigation", name = "naviga
 androidx-navigation-runtime-ktx = { group = "androidx.navigation", name = "navigation-runtime-ktx", version.ref = "navigationRuntimeKtx" }
 androidx-compose-foundation-layout = { group = "androidx.compose.foundation", name = "foundation-layout" }
 androidx-compose-remote-creation-core = { group = "androidx.compose.remote", name = "remote-creation-core", version.ref = "remoteCreationCore" }
+tapsell = { module = "ir.tapsell:tapsell", version.ref = "tapsell" }
+tapsell-legacy = { module = "ir.tapsell.mediation.adapter:legacy", version.ref = "tapsell" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

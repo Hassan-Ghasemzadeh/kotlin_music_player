@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import com.sftwr.cleandevelopment.musicplayer.domain.ad.AdManager
+
 @HiltViewModel
 class TracksViewModel @Inject constructor(
     private val musicRepository: MusicRepository,
@@ -31,6 +33,7 @@ class TracksViewModel @Inject constructor(
     private val addSongToPlaylistUseCase: AddSongToPlaylistUseCase,
     private val playerManager: PlayerManager,
     private val savedStateHandle: SavedStateHandle,
+    val adManager: AdManager,
 ) : ViewModel() {
 
     var scrollIndex: Int

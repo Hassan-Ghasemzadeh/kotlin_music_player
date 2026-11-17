@@ -7,12 +7,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.core.view.WindowCompat
-import androidx.core.view.WindowInsetsCompat
-import androidx.core.view.WindowInsetsControllerCompat
 import androidx.navigation.compose.rememberNavController
+import com.sftwr.cleandevelopment.musicplayer.domain.ad.AdManager
 import com.sftwr.cleandevelopment.musicplayer.music_player.navigation.AppRootContent
 import com.sftwr.cleandevelopment.musicplayer.music_player.ui.theme.Music_playerTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 /**
  * Main entry point activity annotated with @AndroidEntryPoint
@@ -21,9 +21,16 @@ import dagger.hilt.android.AndroidEntryPoint
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
+    @Inject
+    lateinit var adManager: AdManager
+
     @RequiresApi(Build.VERSION_CODES.S)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Initialize Tapsell SDK and pass mandatory Activity User Consent (GDPR compliance)
+        adManager.initialize()
+        adManager.setUserConsent(this, userConsent = true)
 
         // Enable edge-to-edge display and disable system window fitting
         enableEdgeToEdge()

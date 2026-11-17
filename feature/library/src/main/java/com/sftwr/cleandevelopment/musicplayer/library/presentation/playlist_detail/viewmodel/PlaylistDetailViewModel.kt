@@ -23,6 +23,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import com.sftwr.cleandevelopment.musicplayer.domain.ad.AdManager
+
 @HiltViewModel
 class PlaylistDetailViewModel @Inject constructor(
     private val getPlaylistSongsUseCase: GetPlaylistSongsUseCase,
@@ -30,7 +32,8 @@ class PlaylistDetailViewModel @Inject constructor(
     private val addSongToPlaylistUseCase: AddSongToPlaylistUseCase,
     private val playlistRepository: PlaylistRepository,
     private val playerManager: PlayerManager,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
+    val adManager: AdManager,
 ) : ViewModel() {
 
     val playlistId: Long = savedStateHandle.get<Long>("playlistId") ?: -1L

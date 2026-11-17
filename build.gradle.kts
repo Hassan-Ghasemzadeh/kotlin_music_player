@@ -10,6 +10,7 @@ plugins {
 }
 
 subprojects {
+    // اعمال تنظیمات رزولوشن دیپندنسی‌ها
     configurations.all {
         resolutionStrategy {
             force("androidx.lifecycle:lifecycle-common-java8:2.8.7")
@@ -20,6 +21,15 @@ subprojects {
             force("androidx.navigation:navigation-compose:2.8.7")
             force("androidx.navigation:navigation-common:2.8.7")
             force("androidx.navigation:navigation-runtime:2.8.7")
+        }
+    }
+}
+
+// تنظیم سراسری جاوا ۱۷ برای ماژول‌هایی که افزونه کاتلین را دارند
+subprojects {
+    plugins.withId("org.jetbrains.kotlin.android") {
+        extensions.configure<org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension> {
+            jvmToolchain(17)
         }
     }
 }

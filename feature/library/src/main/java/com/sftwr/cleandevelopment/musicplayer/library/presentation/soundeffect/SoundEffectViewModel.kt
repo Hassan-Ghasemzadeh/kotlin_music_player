@@ -2,11 +2,13 @@ package com.sftwr.cleandevelopment.musicplayer.library.presentation.soundeffect
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sftwr.cleandevelopment.musicplayer.domain.ad.AdManager
 import com.sftwr.cleandevelopment.musicplayer.domain.model.SoundEffect
 import com.sftwr.cleandevelopment.musicplayer.domain.model.SoundEffectState
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetSoundEffectsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.SaveSoundEffectConfigUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.soundeffect.SoundEffectAudioFxManager
+import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +23,9 @@ import javax.inject.Inject
 class SoundEffectViewModel @Inject constructor(
     getSoundEffectsUseCase: GetSoundEffectsUseCase,
     private val saveSoundEffectConfigUseCase: SaveSoundEffectConfigUseCase,
-    private val soundEffectAudioFxManager: SoundEffectAudioFxManager
+    private val soundEffectAudioFxManager: SoundEffectAudioFxManager,
+    private val playerManager: PlayerManager,
+    val adManager: AdManager
 ) : ViewModel() {
 
     val uiState: StateFlow<SoundEffectState> = getSoundEffectsUseCase()
@@ -40,6 +44,20 @@ class SoundEffectViewModel @Inject constructor(
     fun selectEffect(effect: SoundEffect) {
         viewModelScope.launch {
             saveSoundEffectConfigUseCase.setCurrentEffect(effect)
+        }
+    }
+
+    fun pausePlaybackIfPlaying(): Boolean {
+        val playing = playerManager.isPlaying.value
+        if (playing) {
+            playerManager.exoPlayer.pause()
+        }
+        return playing
+    }
+
+    fun resumePlaybackIfWasPlaying(wasPlaying: Boolean) {
+        if (wasPlaying && !playerManager.isPlaying.value) {
+            playerManager.exoPlayer.play()
         }
     }
 

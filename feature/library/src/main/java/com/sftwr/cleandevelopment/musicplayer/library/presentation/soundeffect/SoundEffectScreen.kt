@@ -20,6 +20,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.Lock
+import androidx.compose.ui.platform.LocalContext
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.ad.showRewardedAdToUnlockFeature
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,6 +39,9 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -218,6 +224,10 @@ fun SoundEffectScreen(
                 modifier = Modifier.padding(bottom = 8.dp)
             )
 
+            val context = LocalContext.current
+            val isAdFree by viewModel.adManager.isAdFree.collectAsState()
+            var transientUnlockedEffect by remember { mutableStateOf<SoundEffect?>(null) }
+
             // Effects List
             LazyColumn(
                 modifier = Modifier
@@ -228,15 +238,42 @@ fun SoundEffectScreen(
             ) {
                 items(uiState.availableEffects) { effect ->
                     val isSelected = effect == uiState.currentEffect
+                    val isFree = effect == SoundEffect.ELECTRONIC_TUBE || effect == SoundEffect.LIVE_TREBLE
+                    val isUnlocked = isAdFree || isFree || transientUnlockedEffect == effect
                     SoundEffectItem(
                         effect = effect,
                         isSelected = isSelected,
+                        isUnlocked = isUnlocked,
                         accentColor = accent,
                         onUseClick = {
                             if (!uiState.isEnabled) {
                                 viewModel.toggleEnabled(true)
                             }
-                            viewModel.selectEffect(effect)
+                            val isFree = effect == SoundEffect.ELECTRONIC_TUBE || effect == SoundEffect.LIVE_TREBLE
+                            val isUnlocked = isAdFree || isFree || transientUnlockedEffect == effect
+
+                            if (effect != transientUnlockedEffect) {
+                                transientUnlockedEffect = null
+                            }
+
+                            if (isUnlocked) {
+                                viewModel.selectEffect(effect)
+                            } else {
+                                val wasPlaying = viewModel.pausePlaybackIfPlaying()
+                                showRewardedAdToUnlockFeature(
+                                    context = context,
+                                    adManager = viewModel.adManager,
+                                    featureName = "Sound Effect: ${effect.displayName}",
+                                    onRewardUnlocked = {
+                                        transientUnlockedEffect = effect
+                                        viewModel.selectEffect(effect)
+                                        viewModel.resumePlaybackIfWasPlaying(wasPlaying)
+                                    },
+                                    onAdDismissOrError = {
+                                        viewModel.resumePlaybackIfWasPlaying(wasPlaying)
+                                    }
+                                )
+                            }
                         }
                     )
                 }
@@ -249,6 +286,7 @@ fun SoundEffectScreen(
 private fun SoundEffectItem(
     effect: SoundEffect,
     isSelected: Boolean,
+    isUnlocked: Boolean,
     accentColor: Color,
     onUseClick: () -> Unit
 ) {
@@ -280,9 +318,9 @@ private fun SoundEffectItem(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.AutoAwesome,
+                        imageVector = if (!isUnlocked) Icons.Default.Lock else Icons.Default.AutoAwesome,
                         contentDescription = null,
-                        tint = if (isSelected) Color.Black else Color.White
+                        tint = if (isSelected) Color.Black else if (!isUnlocked) Color(0xFFFFD54F) else Color.White
                     )
                 }
 
@@ -310,13 +348,13 @@ private fun SoundEffectItem(
             Button(
                 onClick = onUseClick,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isSelected) accentColor else Color.White.copy(alpha = 0.15f),
-                    contentColor = if (isSelected) Color.Black else Color.White
+                    containerColor = if (isSelected) accentColor else if (!isUnlocked) Color(0xFFFFD54F) else Color.White.copy(alpha = 0.15f),
+                    contentColor = if (isSelected || !isUnlocked) Color.Black else Color.White
                 ),
                 shape = RoundedCornerShape(20.dp)
             ) {
                 Text(
-                    text = if (isSelected) stringResource(R.string.active) else stringResource(R.string.use),
+                    text = if (isSelected) stringResource(R.string.active) else if (!isUnlocked) "Unlock" else stringResource(R.string.use),
                     fontWeight = FontWeight.Bold,
                     fontSize = 12.sp
                 )

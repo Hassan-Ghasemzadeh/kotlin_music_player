@@ -17,10 +17,13 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import com.sftwr.cleandevelopment.musicplayer.domain.ad.AdManager
+
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     getDeviceSongsUseCase: GetDeviceSongsUseCase,
     private val musicRepository: MusicRepository,
+    val adManager: AdManager,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUiState())

@@ -22,8 +22,12 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.GraphicEq
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.SurroundSound
+import androidx.compose.ui.platform.LocalContext
+import com.sftwr.cleandevelopment.musicplayer.domain.ad.AdManager
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.ad.showRewardedAdToUnlockFeature
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -39,6 +43,9 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -109,13 +116,45 @@ fun EqualizerBottomSheet(
                     .alpha(if (uiState.isEnabled) 1.0f else 0.45f)
             ) {
                 Column {
+                    val context = LocalContext.current
+                    val isAdFree by viewModel.adManager.isAdFree.collectAsState()
+                    var transientUnlockedPreset by remember { mutableStateOf<EqualizerPreset?>(null) }
+
                     PresetsSection(
                         availablePresets = uiState.availablePresets,
                         currentPresetId = uiState.currentPresetId,
+                        isAdFree = isAdFree,
+                        transientUnlockedPreset = transientUnlockedPreset,
                         isEnabled = uiState.isEnabled,
                         accentColor = accent,
                         secondaryColor = palette.surfaceCard,
-                        onPresetSelected = { viewModel.selectPreset(it) }
+                        onPresetSelected = { preset ->
+                            val isFree = preset == EqualizerPreset.NORMAL || preset == EqualizerPreset.FLAT || preset == EqualizerPreset.OFF
+                            val isUnlocked = isAdFree || isFree || transientUnlockedPreset == preset
+
+                            if (preset != transientUnlockedPreset) {
+                                transientUnlockedPreset = null
+                            }
+
+                            if (isUnlocked) {
+                                viewModel.selectPreset(preset)
+                            } else {
+                                val wasPlaying = viewModel.pausePlaybackIfPlaying()
+                                showRewardedAdToUnlockFeature(
+                                    context = context,
+                                    adManager = viewModel.adManager,
+                                    featureName = "Equalizer Preset: ${preset.displayName}",
+                                    onRewardUnlocked = {
+                                        transientUnlockedPreset = preset
+                                        viewModel.selectPreset(preset)
+                                        viewModel.resumePlaybackIfWasPlaying(wasPlaying)
+                                    },
+                                    onAdDismissOrError = {
+                                        viewModel.resumePlaybackIfWasPlaying(wasPlaying)
+                                    }
+                                )
+                            }
+                        }
                     )
 
                     Spacer(modifier = Modifier.height(24.dp))
@@ -228,6 +267,8 @@ private fun EqualizerHeader(
 private fun PresetsSection(
     availablePresets: List<EqualizerPreset>,
     currentPresetId: Short,
+    isAdFree: Boolean,
+    transientUnlockedPreset: EqualizerPreset?,
     isEnabled: Boolean,
     accentColor: Color,
     secondaryColor: Color,
@@ -252,6 +293,8 @@ private fun PresetsSection(
                 key = { it.id }
             ) { preset ->
                 val isSelected = currentPresetId == preset.id
+                val isFree = preset == EqualizerPreset.NORMAL || preset == EqualizerPreset.FLAT || preset == EqualizerPreset.OFF
+                val isUnlocked = isAdFree || isFree || transientUnlockedPreset == preset
                 val shape = RoundedCornerShape(20.dp)
 
                 Box(
@@ -282,15 +325,26 @@ private fun PresetsSection(
                         .clickable(enabled = isEnabled) {
                             onPresetSelected(preset)
                         }
-                        .padding(horizontal = 16.dp, vertical = 8.dp)
+                        .padding(horizontal = 14.dp, vertical = 8.dp)
                 ) {
-                    Text(
-                        text = preset.name,
-                        style = MaterialTheme.typography.bodyMedium.copy(
-                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                            color = if (isSelected) accentColor else Color.White.copy(alpha = 0.8f)
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (!isUnlocked) {
+                            Icon(
+                                imageVector = Icons.Default.Lock,
+                                contentDescription = "Locked",
+                                tint = Color(0xFFFFD54F),
+                                modifier = Modifier.size(14.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                        }
+                        Text(
+                            text = preset.name,
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                color = if (isSelected) accentColor else Color.White.copy(alpha = 0.8f)
+                            )
                         )
-                    )
+                    }
                 }
             }
         }

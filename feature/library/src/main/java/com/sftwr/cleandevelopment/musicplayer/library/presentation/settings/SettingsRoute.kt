@@ -52,6 +52,7 @@ fun SettingsRoute(
     val isHeadsetControlsEnabled by viewModel.isHeadsetControlsEnabled.collectAsStateWithLifecycle()
     val isAllowExternalDevicePlaybackEnabled by viewModel.isAllowExternalDevicePlaybackEnabled.collectAsStateWithLifecycle()
     val isSwipeArtworkToSkipEnabled by viewModel.isSwipeArtworkToSkipEnabled.collectAsStateWithLifecycle()
+    val isAdFree by viewModel.isAdFree.collectAsStateWithLifecycle()
 
     SettingsScreen(
         uiState = uiState,
@@ -65,6 +66,8 @@ fun SettingsRoute(
         isHeadsetControlsEnabled = isHeadsetControlsEnabled,
         isAllowExternalDevicePlaybackEnabled = isAllowExternalDevicePlaybackEnabled,
         isSwipeArtworkToSkipEnabled = isSwipeArtworkToSkipEnabled,
+        isAdFree = isAdFree,
+        onAdFreeToggle = viewModel::setAdFree,
         onBackClick = onBackClick,
         onLanguageClick = { viewModel.showLanguageDialog(true) },
         onLanguageSelected = viewModel::onLanguageSelected,

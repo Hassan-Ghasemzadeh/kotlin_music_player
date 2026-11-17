@@ -2,11 +2,13 @@ package com.sftwr.cleandevelopment.musicplayer.library.presentation.equalizer
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sftwr.cleandevelopment.musicplayer.domain.ad.AdManager
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerPreset
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerState
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetEqualizerSettingsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.SaveEqualizerSettingsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.equalizer.EqualizerAudioFxManager
+import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +23,9 @@ import javax.inject.Inject
 class EqualizerViewModel @Inject constructor(
     getEqualizerSettingsUseCase: GetEqualizerSettingsUseCase,
     private val saveEqualizerSettingsUseCase: SaveEqualizerSettingsUseCase,
-    private val equalizerAudioFxManager: EqualizerAudioFxManager
+    private val equalizerAudioFxManager: EqualizerAudioFxManager,
+    private val playerManager: PlayerManager,
+    val adManager: AdManager
 ) : ViewModel() {
 
     val uiState: StateFlow<EqualizerState> = getEqualizerSettingsUseCase()
@@ -40,6 +44,20 @@ class EqualizerViewModel @Inject constructor(
     fun selectPreset(preset: EqualizerPreset) {
         viewModelScope.launch {
             saveEqualizerSettingsUseCase.setPreset(preset)
+        }
+    }
+
+    fun pausePlaybackIfPlaying(): Boolean {
+        val playing = playerManager.isPlaying.value
+        if (playing) {
+            playerManager.exoPlayer.pause()
+        }
+        return playing
+    }
+
+    fun resumePlaybackIfWasPlaying(wasPlaying: Boolean) {
+        if (wasPlaying && !playerManager.isPlaying.value) {
+            playerManager.exoPlayer.play()
         }
     }
 

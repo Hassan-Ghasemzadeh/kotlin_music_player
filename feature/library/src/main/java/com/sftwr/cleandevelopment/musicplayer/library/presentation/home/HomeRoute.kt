@@ -51,6 +51,7 @@ fun HomeRoute(
 
     // Pass state and action callbacks down to the stateless UI screen
     HomeScreen(
+        adManager = viewModel.adManager,
         uiState = uiState,
         playlistsState = playlistsState,
         actions = HomeActions(

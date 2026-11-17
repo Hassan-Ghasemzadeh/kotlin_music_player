@@ -33,6 +33,8 @@ import javax.inject.Inject
 
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerPreset
 
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.PremiumRepository
+
 @OptIn(UnstableApi::class)
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
@@ -45,8 +47,22 @@ class SettingsViewModel @Inject constructor(
     private val scanMediaUseCase: ScanMediaUseCase,
     private val playerManager: PlayerManager,
     private val settingsRepository: SettingsRepository,
+    private val premiumRepository: PremiumRepository,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
+
+    val isAdFree: StateFlow<Boolean> = premiumRepository.isAdFree
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = false
+        )
+
+    fun setAdFree(enabled: Boolean) {
+        viewModelScope.launch {
+            premiumRepository.setAdFree(enabled)
+        }
+    }
 
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()

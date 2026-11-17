@@ -132,6 +132,8 @@ fun SettingsScreen(
     isHeadsetControlsEnabled: Boolean = uiState.settings.headsetControlsEnabled,
     isAllowExternalDevicePlaybackEnabled: Boolean = uiState.settings.allowExternalDevicePlayback,
     isSwipeArtworkToSkipEnabled: Boolean = uiState.settings.swipeArtworkToSkipEnabled,
+    isAdFree: Boolean = false,
+    onAdFreeToggle: (Boolean) -> Unit = {},
     onBackClick: () -> Unit,
     onLanguageClick: () -> Unit,
     onLanguageSelected: (AppLanguage) -> Unit,
@@ -231,6 +233,22 @@ fun SettingsScreen(
                 verticalArrangement = Arrangement.spacedBy(20.dp),
                 contentPadding = PaddingValues(vertical = 8.dp)
             ) {
+//                item {
+//                    // Section 0: Premium & Monetization
+//                    SettingsCategorySection(
+//                        title = "Monetization & Premium",
+//                        icon = Icons.Default.AutoAwesome
+//                    ) {
+//                        SettingSwitchItem(
+//                            title = "Remove Ads (Ad-Free Mode)",
+//                            subtitle = "Enable ad-free status to bypass all Tapsell banner and native ads",
+//                            icon = Icons.Default.AutoAwesome,
+//                            checked = isAdFree,
+//                            onCheckedChange = onAdFreeToggle
+//                        )
+//                    }
+//                }
+
                 item {
                     // Section 1: Appearance & Language
                     SettingsCategorySection(

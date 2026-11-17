@@ -91,6 +91,7 @@ fun TracksRoute(
 
     // Pass immutable state and action callbacks down to the stateless UI screen
     TracksScreen(
+        adManager = viewModel.adManager,
         songs = uiState.songs,
         playlists = uiState.playlists,
         customPlaylists = uiState.customPlaylists,

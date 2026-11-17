@@ -22,10 +22,10 @@ object DatabaseModule {
         @ApplicationContext context: Context
     ): MusicDatabase {
         return Room.databaseBuilder(
-            context,
-            MusicDatabase::class.java,
-            MusicDatabase.DATABASE_NAME
-        ).fallbackToDestructiveMigration()
+                context,
+                MusicDatabase::class.java,
+                MusicDatabase.DATABASE_NAME
+            ).fallbackToDestructiveMigration(false)
          .build()
     }
 
