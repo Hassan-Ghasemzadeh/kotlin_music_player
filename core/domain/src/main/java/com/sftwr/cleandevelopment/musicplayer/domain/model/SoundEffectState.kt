@@ -48,6 +48,12 @@ enum class SoundEffect(
 }
 
 /**
+ * Returns true if the sound effect is available freely without watching a rewarded ad.
+ */
+fun SoundEffect.isFree(): Boolean =
+    this == SoundEffect.ELECTRONIC_TUBE || this == SoundEffect.LIVE_TREBLE
+
+/**
  * Domain model representing the full state of audio sound effects.
  *
  * @property isEnabled Whether sound effects are globally active.

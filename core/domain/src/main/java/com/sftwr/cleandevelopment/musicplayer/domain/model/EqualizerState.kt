@@ -72,6 +72,12 @@ enum class EqualizerPreset(
 }
 
 /**
+ * Returns true if the preset is available freely without watching a rewarded ad.
+ */
+fun EqualizerPreset.isFree(): Boolean =
+    this == EqualizerPreset.NORMAL || this == EqualizerPreset.FLAT || this == EqualizerPreset.OFF
+
+/**
  * Domain model representing the full state of audio equalizer and sound effects.
  *
  * @property isEnabled Whether audio equalizer effect is active.
