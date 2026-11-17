@@ -63,6 +63,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -1184,6 +1185,12 @@ fun VisualizerSelectorDialog(
 ) {
     val accent = LocalColorPalette.current.accent
     val audioVisualizerManager = remember { AudioVisualizerManager() }
+
+    DisposableEffect(Unit) {
+        onDispose {
+            audioVisualizerManager.stopListening()
+        }
+    }
 
     val primaryBackGroundHex = LocalColorPalette.current.primaryBackgroundHex
     val secondaryBackGroundHex = LocalColorPalette.current.secondaryBackgroundHex
