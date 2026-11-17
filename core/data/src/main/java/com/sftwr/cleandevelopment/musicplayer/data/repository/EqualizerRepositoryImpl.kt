@@ -8,7 +8,6 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
-import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerBand
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerPreset
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerState
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.EqualizerRepository

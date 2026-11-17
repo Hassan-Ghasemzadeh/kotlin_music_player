@@ -37,6 +37,8 @@ dependencies {
     // Hilt DI
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+    implementation(libs.tapsell)
+    implementation(libs.tapsell.legacy)
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
     implementation(libs.material)
