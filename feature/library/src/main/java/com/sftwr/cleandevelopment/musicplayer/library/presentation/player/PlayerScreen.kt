@@ -63,6 +63,7 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -179,17 +180,17 @@ fun PlayerScreen(
         }
     }
 
-    // Bind and control the visualizer lifecycle based on playback state, active song, and audio recording permissions
-    LaunchedEffect(isPlaying, hasAudioPermission, songState?.id) {
-        if (isPlaying && hasAudioPermission) {
-            delay(200.milliseconds)
-            val sessionId = viewModel.audioSessionId
-            Log.d("VisualizerDebug", "Active Session ID: $sessionId")
+    val sessionId = viewModel.audioSessionId
 
-            if (sessionId > 0) {
-                visualizerManager.startListening(sessionId)
-            }
+    // Bind and control the visualizer lifecycle based on playback state, active song, and audio recording permissions
+    DisposableEffect(isPlaying, hasAudioPermission, songState?.id, sessionId) {
+        if (isPlaying && hasAudioPermission && sessionId > 0) {
+            Log.d("VisualizerDebug", "Active Session ID: $sessionId")
+            visualizerManager.startListening(sessionId)
         } else {
+            visualizerManager.stopListening()
+        }
+        onDispose {
             visualizerManager.stopListening()
         }
     }
