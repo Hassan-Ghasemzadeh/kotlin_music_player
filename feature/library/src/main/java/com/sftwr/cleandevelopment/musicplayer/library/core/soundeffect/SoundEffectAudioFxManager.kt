@@ -23,7 +23,7 @@ class SoundEffectAudioFxManager @Inject constructor(
     private val getSoundEffectsUseCase: GetSoundEffectsUseCase
 ) {
     private val tag = "SoundEffectAudioFxManager"
-    private val scope = CoroutineScope(Dispatchers.Main.immediate + SupervisorJob())
+    private val scope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     private var currentSessionId: Int = -1
     private var presetReverb: PresetReverb? = null
