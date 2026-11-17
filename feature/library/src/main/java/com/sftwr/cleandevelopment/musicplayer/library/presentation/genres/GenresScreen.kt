@@ -117,6 +117,7 @@ fun GenresScreen(
                                 CircularProgressIndicator(color = accent)
                             }
                         }
+
                         genres.isEmpty() -> {
                             Box(
                                 modifier = Modifier.fillMaxSize(),
@@ -129,6 +130,7 @@ fun GenresScreen(
                                 )
                             }
                         }
+
                         else -> {
                             LazyVerticalGrid(
                                 state = gridState,
@@ -151,7 +153,7 @@ fun GenresScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(bottom = 80.dp),
+                            .padding(bottom = bottomPadding + 80.dp),
                         contentAlignment = Alignment.BottomCenter
                     ) {
                         ScrollToTopButton(
@@ -177,9 +179,12 @@ fun GenreItemCard(
 ) {
     val isGlassmorphic = LocalGlassmorphicEnabled.current
     val palette = LocalColorPalette.current
-    val backgroundColor = if (isGlassmorphic) Color.White.copy(alpha = 0.06f) else palette.secondaryBackground
-    val borderColor = if (isGlassmorphic) Color.White.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.05f)
-    val imageBackground = if (isGlassmorphic) Color.White.copy(alpha = 0.08f) else palette.surfaceCard
+    val backgroundColor =
+        if (isGlassmorphic) Color.White.copy(alpha = 0.06f) else palette.secondaryBackground
+    val borderColor =
+        if (isGlassmorphic) Color.White.copy(alpha = 0.1f) else Color.White.copy(alpha = 0.05f)
+    val imageBackground =
+        if (isGlassmorphic) Color.White.copy(alpha = 0.08f) else palette.surfaceCard
 
     Column(
         modifier = modifier
