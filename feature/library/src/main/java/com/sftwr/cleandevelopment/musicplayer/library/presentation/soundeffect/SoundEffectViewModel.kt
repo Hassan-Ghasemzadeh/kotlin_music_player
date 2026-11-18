@@ -7,8 +7,8 @@ import com.sftwr.cleandevelopment.musicplayer.domain.model.SoundEffect
 import com.sftwr.cleandevelopment.musicplayer.domain.model.SoundEffectState
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetSoundEffectsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.SaveSoundEffectConfigUseCase
+import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerController
 import com.sftwr.cleandevelopment.musicplayer.library.core.soundeffect.SoundEffectAudioFxManager
-import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,7 +24,7 @@ class SoundEffectViewModel @Inject constructor(
     getSoundEffectsUseCase: GetSoundEffectsUseCase,
     private val saveSoundEffectConfigUseCase: SaveSoundEffectConfigUseCase,
     private val soundEffectAudioFxManager: SoundEffectAudioFxManager,
-    private val playerManager: PlayerManager,
+    private val playerController: PlayerController,
     val adManager: AdManager
 ) : ViewModel() {
 
@@ -48,16 +48,16 @@ class SoundEffectViewModel @Inject constructor(
     }
 
     fun pausePlaybackIfPlaying(): Boolean {
-        val playing = playerManager.isPlaying.value
+        val playing = playerController.isPlaying.value
         if (playing) {
-            playerManager.exoPlayer.pause()
+            playerController.togglePlayPause()
         }
         return playing
     }
 
     fun resumePlaybackIfWasPlaying(wasPlaying: Boolean) {
-        if (wasPlaying && !playerManager.isPlaying.value) {
-            playerManager.exoPlayer.play()
+        if (wasPlaying && !playerController.isPlaying.value) {
+            playerController.togglePlayPause()
         }
     }
 
