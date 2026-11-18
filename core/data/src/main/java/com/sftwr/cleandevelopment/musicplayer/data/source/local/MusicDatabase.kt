@@ -2,6 +2,7 @@ package com.sftwr.cleandevelopment.musicplayer.data.source.local
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import com.sftwr.cleandevelopment.musicplayer.data.model.LyricEntity
 import com.sftwr.cleandevelopment.musicplayer.data.model.PlaylistEntity
 import com.sftwr.cleandevelopment.musicplayer.data.model.PlaylistSongCrossRef
 import com.sftwr.cleandevelopment.musicplayer.data.model.SongEntity
@@ -10,14 +11,16 @@ import com.sftwr.cleandevelopment.musicplayer.data.model.SongEntity
     entities = [
         SongEntity::class,
         PlaylistEntity::class,
-        PlaylistSongCrossRef::class
+        PlaylistSongCrossRef::class,
+        LyricEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class MusicDatabase : RoomDatabase() {
     abstract fun songDao(): SongDao
     abstract fun playlistDao(): PlaylistDao
+    abstract fun lyricDao(): LyricDao
 
     companion object {
         const val DATABASE_NAME = "music_player_db"
