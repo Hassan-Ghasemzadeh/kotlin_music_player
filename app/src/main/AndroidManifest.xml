@@ -34,7 +34,7 @@
         android:theme="@style/Theme.Music_player">
         <meta-data
             android:name="ir.tapsell.sdk.APPLICATION_ID"
-            android:value="bkmtlebgltcebmnpnlcoqrcraorfjjdjffqefsmrtebidmqakgicbddqojdalabtmeegmr" />
+            android:value="${TapsellMediationAppKey}" />
         <meta-data
             android:name="TapsellMediationAppKey"
             android:value="${TapsellMediationAppKey}" />
