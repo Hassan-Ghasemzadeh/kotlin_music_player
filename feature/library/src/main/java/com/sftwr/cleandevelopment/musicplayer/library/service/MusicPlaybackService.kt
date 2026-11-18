@@ -37,6 +37,7 @@ import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetSettingsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.equalizer.EqualizerAudioFxManager
+import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import com.sftwr.cleandevelopment.musicplayer.library.core.soundeffect.SoundEffectAudioFxManager
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
 import kotlinx.coroutines.CoroutineScope
@@ -51,6 +52,7 @@ interface MusicPlaybackServiceEntryPoint {
     fun getSettingsUseCase(): GetSettingsUseCase
     fun equalizerAudioFxManager(): EqualizerAudioFxManager
     fun soundEffectAudioFxManager(): SoundEffectAudioFxManager
+    fun playerManager(): PlayerManager
 }
 
 @OptIn(UnstableApi::class)
@@ -61,6 +63,7 @@ class MusicPlaybackService : MediaSessionService() {
     private var bluetoothReceiver: BroadcastReceiver? = null
     private var equalizerAudioFxManager: EqualizerAudioFxManager? = null
     private var soundEffectAudioFxManager: SoundEffectAudioFxManager? = null
+    private var playerManager: PlayerManager? = null
     private var lockscreenControlsEnabled = true
     private var screenOffPlaybackEnabled = true
     private var headsetControlsEnabled = true
@@ -84,6 +87,7 @@ class MusicPlaybackService : MediaSessionService() {
         val settingsUseCase = entryPoint.getSettingsUseCase()
         equalizerAudioFxManager = entryPoint.equalizerAudioFxManager()
         soundEffectAudioFxManager = entryPoint.soundEffectAudioFxManager()
+        playerManager = entryPoint.playerManager()
 
         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
             settingsUseCase().collect { settings ->
@@ -224,6 +228,7 @@ class MusicPlaybackService : MediaSessionService() {
         mediaSession
 
     override fun onTaskRemoved(rootIntent: Intent?) {
+        playerManager?.saveCurrentPlaybackState()
         val player = mediaSession?.player
         if (player == null || !player.playWhenReady || player.playbackState == Player.STATE_ENDED) {
             stopSelf()
@@ -232,6 +237,7 @@ class MusicPlaybackService : MediaSessionService() {
     }
 
     override fun onDestroy() {
+        playerManager?.saveCurrentPlaybackState()
         equalizerAudioFxManager?.releaseEffects()
         soundEffectAudioFxManager?.releaseEffects()
 
