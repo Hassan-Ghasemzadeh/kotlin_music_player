@@ -92,21 +92,24 @@ fun AppRootContent(
         resources.updateConfiguration(config, resources.displayMetrics)
     }
 
-    LaunchedEffect(mainViewModel) {
-        mainViewModel.shortcutCommand.collect { command ->
+    val shortcutCommand by mainViewModel.shortcutCommand.collectAsStateWithLifecycle()
+    LaunchedEffect(shortcutCommand) {
+        shortcutCommand?.let { command ->
             when (command) {
                 ShortcutCommand.OpenFavorites -> {
                     navController.navigate(Screen.Favorites) {
                         launchSingleTop = true
                     }
+                    mainViewModel.clearShortcutCommand()
                 }
                 ShortcutCommand.OpenSearch -> {
                     navController.navigate(Screen.Search) {
                         launchSingleTop = true
                     }
+                    mainViewModel.clearShortcutCommand()
                 }
                 ShortcutCommand.ResumePlayback, ShortcutCommand.ShuffleAll -> {
-                    // Playback actions handled directly by PlayerManager
+                    mainViewModel.clearShortcutCommand()
                 }
             }
         }

@@ -9,11 +9,10 @@ import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetSettingsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -43,8 +42,8 @@ class MainViewModel @Inject constructor(
             initialValue = AppSettings()
         )
 
-    private val _shortcutCommand = MutableSharedFlow<ShortcutCommand>(extraBufferCapacity = 1)
-    val shortcutCommand: SharedFlow<ShortcutCommand> = _shortcutCommand.asSharedFlow()
+    private val _shortcutCommand = MutableStateFlow<ShortcutCommand?>(null)
+    val shortcutCommand: StateFlow<ShortcutCommand?> = _shortcutCommand.asStateFlow()
 
     init {
         viewModelScope.launch {
@@ -60,20 +59,24 @@ class MainViewModel @Inject constructor(
             when (action) {
                 ACTION_RESUME_PLAYBACK -> {
                     playerManager.resumePlayback()
-                    _shortcutCommand.emit(ShortcutCommand.ResumePlayback)
+                    _shortcutCommand.value = ShortcutCommand.ResumePlayback
                 }
                 ACTION_SHUFFLE_ALL -> {
                     playerManager.shuffleAll()
-                    _shortcutCommand.emit(ShortcutCommand.ShuffleAll)
+                    _shortcutCommand.value = ShortcutCommand.ShuffleAll
                 }
                 ACTION_OPEN_FAVORITES -> {
-                    _shortcutCommand.emit(ShortcutCommand.OpenFavorites)
+                    _shortcutCommand.value = ShortcutCommand.OpenFavorites
                 }
                 ACTION_OPEN_SEARCH -> {
-                    _shortcutCommand.emit(ShortcutCommand.OpenSearch)
+                    _shortcutCommand.value = ShortcutCommand.OpenSearch
                 }
             }
         }
+    }
+
+    fun clearShortcutCommand() {
+        _shortcutCommand.value = null
     }
 
     companion object {
