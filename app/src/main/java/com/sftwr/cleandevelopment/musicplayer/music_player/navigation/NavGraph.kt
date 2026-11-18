@@ -25,6 +25,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.folders.folde
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.genres.genreDetailGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.genres.genresGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.home.homeGraph
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.lyrics.LyricManagementScreen
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.PlayerScreen
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.playlist_detail.playlistDetailGraph
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.SearchRoute
@@ -297,6 +298,18 @@ fun AppNavGraph(
                 },
                 onNavigateToSoundEffect = {
                     navController.navigate(Screen.SoundEffect)
+                },
+                onNavigateToLyricManagement = {
+                    navController.navigate(Screen.LyricManagement)
+                }
+            )
+        }
+
+        // Local lyrics management screen destination route
+        composable<Screen.LyricManagement> {
+            LyricManagementScreen(
+                onBackClick = {
+                    navController.popBackStack()
                 }
             )
         }
