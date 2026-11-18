@@ -263,4 +263,34 @@
     <string name="effect_live_treble">Live treble</string>
     <string name="effect_live_treble_desc">Crisp vocal clarity and sparkling high-frequency sheen</string>
     <string name="now_playing">Now Playing</string>
+
+    <!-- Lyrics Feature -->
+    <string name="lyric_click_to_find">Tap to find lyrics</string>
+    <string name="lyric_title">Lyrics</string>
+    <string name="lyric_source_dialog_title">Lyric Options</string>
+    <string name="lyric_search_online">Online Search 🌐</string>
+    <string name="lyric_local_files">Local File (.lrc) 📁</string>
+    <string name="lyric_add_edit_manually">Add / Edit Manually ✍️</string>
+    <string name="lyric_search_online_title">Search Lyrics Online</string>
+    <string name="lyric_search_artist_hint">Artist Name</string>
+    <string name="lyric_search_track_hint">Track Title</string>
+    <string name="lyric_searching">Searching online...</string>
+    <string name="lyric_not_found">No lyrics found online</string>
+    <string name="lyric_manual_edit_title">Edit Lyrics</string>
+    <string name="lyric_manual_input_hint">Enter LRC content or plain text lyrics...</string>
+    <string name="lyric_saved_management">Local Lyrics Management</string>
+    <string name="lyric_no_saved_lyrics">No saved lyrics found</string>
+    <string name="lyric_rename">Rename</string>
+    <string name="lyric_delete">Delete</string>
+    <string name="lyric_edit">Edit</string>
+    <string name="lyric_delete_confirm_title">Delete Lyric</string>
+    <string name="lyric_delete_confirm_msg">Are you sure you want to delete lyrics for %1$s?</string>
+    <string name="lyric_rename_title">Rename Lyric</string>
+    <string name="lyric_saved_successfully">Lyric saved successfully</string>
+    <string name="lyric_deleted_successfully">Lyric deleted</string>
+    <string name="lyric_renamed_successfully">Lyric renamed</string>
+    <string name="lyric_select_lrc_file">Select .lrc File</string>
+    <string name="lyric_plain_text">Plain Text</string>
+    <string name="lyric_synced">Synced (LRC)</string>
+    <string name="lyric_manage_saved">Manage Saved Lyrics</string>
 </resources>
