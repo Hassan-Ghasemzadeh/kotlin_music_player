@@ -97,8 +97,15 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.viewmo
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.sleeptimer.SleepTimerDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.visualizer.NeonCircularVisualizer
 import com.sftwr.cleandevelopment.musicplayer.model.VisualizerStyle
+import androidx.compose.material.icons.filled.Search
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.AudioVisualizerManager
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.lyrics.LyricSourceDialog
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.lyrics.ManualLyricEditDialog
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.lyrics.NoLyricPromptView
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.lyrics.OnlineLyricSearchDialog
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.lyrics.SynchronizedLyricView
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.lyrics.viewmodel.LyricViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlin.time.Duration.Companion.milliseconds
@@ -112,10 +119,12 @@ import kotlin.time.Duration.Companion.milliseconds
 @Composable
 fun PlayerScreen(
     viewModel: PlayerViewModel = hiltViewModel(),
+    lyricViewModel: LyricViewModel = hiltViewModel(),
     sheetProgress: Float = 1f,
     onBackClick: () -> Unit,
     onNavigateToVisualizerSelection: () -> Unit = {},
-    onNavigateToSoundEffect: () -> Unit = {}
+    onNavigateToSoundEffect: () -> Unit = {},
+    onNavigateToLyricManagement: () -> Unit = {}
 ) {
     // Collecting player state flows reactively from the ViewModel with lifecycle awareness
     val isPlaying by viewModel.isPlaying.collectAsStateWithLifecycle()
@@ -123,6 +132,8 @@ fun PlayerScreen(
     val isShuffleEnabled by viewModel.isShuffleEnabled.collectAsStateWithLifecycle()
     val repeatMode by viewModel.repeatMode.collectAsStateWithLifecycle()
     val songState by viewModel.currentSong.collectAsStateWithLifecycle()
+    val currentLyric by viewModel.currentLyric.collectAsStateWithLifecycle()
+    val onlineSearchState by lyricViewModel.onlineSearchState.collectAsStateWithLifecycle()
     val playlists by viewModel.playlists.collectAsStateWithLifecycle()
     val isAddToPlaylistDialogVisible by viewModel.isAddToPlaylistDialogVisible.collectAsStateWithLifecycle()
     val visualizerStyle by viewModel.visualizerStyle.collectAsStateWithLifecycle()
@@ -139,11 +150,29 @@ fun PlayerScreen(
     var showQueueSheet by remember { mutableStateOf(false) }
     var showAudioControlsSheet by remember { mutableStateOf(false) }
 
+    var isLyricOverlayActive by remember { mutableStateOf(false) }
+    var showLyricSourceDialog by remember { mutableStateOf(false) }
+    var showOnlineSearchDialog by remember { mutableStateOf(false) }
+    var showManualEditDialog by remember { mutableStateOf(false) }
+
     val totalDuration = songState?.duration ?: ""
     val songTitle = songState?.title ?: stringResource(R.string.unknown_title)
     val artistName = songState?.artist ?: stringResource(R.string.unknown_artist)
 
     val context = LocalContext.current
+
+    val lrcFilePickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        if (uri != null) {
+            val songId = songState?.id?.toLongOrNull() ?: -1L
+            if (songId > 0) {
+                lyricViewModel.loadAndSaveLrcFromUri(context, songId, songTitle, artistName, uri)
+                isLyricOverlayActive = true
+            }
+        }
+    }
+
     val visualizerManager = remember { AudioVisualizerManager() }
 
     LaunchedEffect(key1 = true) {
@@ -300,6 +329,18 @@ fun PlayerScreen(
                     modifier = Modifier.weight(1f)
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    // Strictly conditional magnifying glass icon for lyrics management/viewing
+                    if (currentLyric != null) {
+                        IconButton(onClick = { showLyricSourceDialog = true }) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = stringResource(R.string.lyric_title),
+                                tint = accent,
+                                modifier = Modifier.size(24.dp)
+                            )
+                        }
+                    }
+
                     IconButton(onClick = { showQueueSheet = true }) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.QueueMusic,
@@ -321,7 +362,7 @@ fun PlayerScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Neon circular visualizer and album art container view
+            // Neon circular visualizer, album art, or interactive lyrics container view
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -332,17 +373,37 @@ fun PlayerScreen(
                         scaleY = scale
                         alpha = ((sheetProgress - 0.05f) / 0.95f).coerceIn(0f, 1f)
                     }
-                    .then(artworkModifier),
+                    .then(artworkModifier)
+                    .clickable {
+                        isLyricOverlayActive = !isLyricOverlayActive
+                    },
                 contentAlignment = Alignment.Center
             ) {
-                NeonCircularVisualizer(
-                    type = visualizerStyle.type,
-                    fftData = fftData,
-                    albumArtUrl = songState?.uri,
-                    isPlaying = isPlaying,
-                    size = 390.dp,
-                    discRatio = 0.82f
-                )
+                if (isLyricOverlayActive) {
+                    val activeLyric = currentLyric
+                    if (activeLyric != null) {
+                        SynchronizedLyricView(
+                            lyric = activeLyric,
+                            currentPositionMs = currentPosition,
+                            onSeekTo = { seekMs -> viewModel.seekTo(seekMs) },
+                            onEditClick = { showManualEditDialog = true },
+                            onCloseClick = { isLyricOverlayActive = false }
+                        )
+                    } else {
+                        NoLyricPromptView(
+                            onClick = { showLyricSourceDialog = true }
+                        )
+                    }
+                } else {
+                    NeonCircularVisualizer(
+                        type = visualizerStyle.type,
+                        fftData = fftData,
+                        albumArtUrl = songState?.uri,
+                        isPlaying = isPlaying,
+                        size = 390.dp,
+                        discRatio = 0.82f
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -921,5 +982,57 @@ fun PlayerScreen(
                 }
             }
         }
+    }
+
+    if (showLyricSourceDialog) {
+        LyricSourceDialog(
+            onDismissRequest = { showLyricSourceDialog = false },
+            onSelectOnlineSearch = {
+                lyricViewModel.resetOnlineSearchState()
+                showOnlineSearchDialog = true
+            },
+            onSelectLocalFile = {
+                lrcFilePickerLauncher.launch("*/*")
+            },
+            onSelectManualEdit = {
+                showManualEditDialog = true
+            },
+            onSelectManageSaved = {
+                onNavigateToLyricManagement()
+            }
+        )
+    }
+
+    if (showOnlineSearchDialog) {
+        OnlineLyricSearchDialog(
+            initialTitle = songTitle,
+            initialArtist = artistName,
+            searchState = onlineSearchState,
+            onSearch = { title, artist ->
+                lyricViewModel.searchOnline(title, artist)
+            },
+            onSave = { rawContent ->
+                val songId = songState?.id?.toLongOrNull() ?: -1L
+                if (songId > 0) {
+                    lyricViewModel.saveLyric(songId, songTitle, artistName, rawContent)
+                    isLyricOverlayActive = true
+                }
+            },
+            onDismissRequest = { showOnlineSearchDialog = false }
+        )
+    }
+
+    if (showManualEditDialog) {
+        ManualLyricEditDialog(
+            initialContent = currentLyric?.content ?: "",
+            onSave = { updatedContent ->
+                val songId = songState?.id?.toLongOrNull() ?: -1L
+                if (songId > 0) {
+                    lyricViewModel.saveLyric(songId, songTitle, artistName, updatedContent)
+                    isLyricOverlayActive = true
+                }
+            },
+            onDismissRequest = { showManualEditDialog = false }
+        )
     }
 }
