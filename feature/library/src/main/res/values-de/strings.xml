@@ -263,4 +263,34 @@
     <string name="effect_live_treble">Live-Höhen</string>
     <string name="effect_live_treble_desc">Klare Gesangswiedergabe und funkelnder Hochfrequenzglanz</string>
     <string name="now_playing">Aktuelle Wiedergabe</string>
+
+    <!-- Lyrics Feature -->
+    <string name="lyric_click_to_find">Tippen, um Songtext zu suchen</string>
+    <string name="lyric_title">Songtext</string>
+    <string name="lyric_source_dialog_title">Songtext-Optionen</string>
+    <string name="lyric_search_online">Online-Suche 🌐</string>
+    <string name="lyric_local_files">Lokale Datei (.lrc) 📁</string>
+    <string name="lyric_add_edit_manually">Manuell hinzufügen / bearbeiten ✍️</string>
+    <string name="lyric_search_online_title">Songtext online suchen</string>
+    <string name="lyric_search_artist_hint">Künstlername</string>
+    <string name="lyric_search_track_hint">Titel</string>
+    <string name="lyric_searching">Suche online...</string>
+    <string name="lyric_not_found">Keine Songtexte online gefunden</string>
+    <string name="lyric_manual_edit_title">Songtext bearbeiten</string>
+    <string name="lyric_manual_input_hint">LRC-Inhalt oder Fließtext-Songtext eingeben...</string>
+    <string name="lyric_saved_management">Lokale Songtext-Verwaltung</string>
+    <string name="lyric_no_saved_lyrics">Keine gespeicherten Songtexte gefunden</string>
+    <string name="lyric_rename">Umbenennen</string>
+    <string name="lyric_delete">Löschen</string>
+    <string name="lyric_edit">Bearbeiten</string>
+    <string name="lyric_delete_confirm_title">Songtext löschen</string>
+    <string name="lyric_delete_confirm_msg">Möchten Sie den Songtext für %1$s wirklich löschen?</string>
+    <string name="lyric_rename_title">Songtext umbenennen</string>
+    <string name="lyric_saved_successfully">Songtext erfolgreich gespeichert</string>
+    <string name="lyric_deleted_successfully">Songtext gelöscht</string>
+    <string name="lyric_renamed_successfully">Songtext umbenannt</string>
+    <string name="lyric_select_lrc_file">.lrc-Datei auswählen</string>
+    <string name="lyric_plain_text">Klartext</string>
+    <string name="lyric_synced">Synchronisiert (LRC)</string>
+    <string name="lyric_manage_saved">Gespeicherte Songtexte verwalten</string>
 </resources>
