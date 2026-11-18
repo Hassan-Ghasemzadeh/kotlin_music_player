@@ -263,4 +263,34 @@
     <string name="effect_live_treble">Canlı tiz</string>
     <string name="effect_live_treble_desc">Net vokal berraklığı ve parıldayan yüksek frekans ışıltısı</string>
     <string name="now_playing">Şimdi Çalınıyor</string>
+
+    <!-- Lyrics Feature -->
+    <string name="lyric_click_to_find">Şarkı sözlerini bulmak için dokunun</string>
+    <string name="lyric_title">Şarkı Sözleri</string>
+    <string name="lyric_source_dialog_title">Şarkı Sözü Seçenekleri</string>
+    <string name="lyric_search_online">Çevrimiçi Ara 🌐</string>
+    <string name="lyric_local_files">Yerel Dosya (.lrc) 📁</string>
+    <string name="lyric_add_edit_manually">Manuel Ekle / Düzenle ✍️</string>
+    <string name="lyric_search_online_title">Çevrimiçi Şarkı Sözü Ara</string>
+    <string name="lyric_search_artist_hint">Sanatçı Adı</string>
+    <string name="lyric_search_track_hint">Şarkı Adı</string>
+    <string name="lyric_searching">Çevrimiçi aranıyor...</string>
+    <string name="lyric_not_found">Çevrimiçi şarkı sözü bulunamadı</string>
+    <string name="lyric_manual_edit_title">Şarkı Sözlerini Düzenle</string>
+    <string name="lyric_manual_input_hint">LRC içeriğini veya düz metin şarkı sözünü girin...</string>
+    <string name="lyric_saved_management">Yerel Şarkı Sözü Yönetimi</string>
+    <string name="lyric_no_saved_lyrics">Kaydedilmiş şarkı sözü bulunamadı</string>
+    <string name="lyric_rename">Yeniden Adlandır</string>
+    <string name="lyric_delete">Sil</string>
+    <string name="lyric_edit">Düzenle</string>
+    <string name="lyric_delete_confirm_title">Şarkı Sözünü Sil</string>
+    <string name="lyric_delete_confirm_msg">%1$s için şarkı sözünü silmek istediğinizden emin misiniz?</string>
+    <string name="lyric_rename_title">Şarkı Sözünü Yeniden Adlandır</string>
+    <string name="lyric_saved_successfully">Şarkı sözü başarıyla kaydedildi</string>
+    <string name="lyric_deleted_successfully">Şarkı sözü silindi</string>
+    <string name="lyric_renamed_successfully">Şarkı sözü yeniden adlandırıldı</string>
+    <string name="lyric_select_lrc_file">.lrc Dosyası Seç</string>
+    <string name="lyric_plain_text">Düz Metin</string>
+    <string name="lyric_synced">Senkronize (LRC)</string>
+    <string name="lyric_manage_saved">Kaydedilmiş Şarkı Sözlerini Yönet</string>
 </resources>
