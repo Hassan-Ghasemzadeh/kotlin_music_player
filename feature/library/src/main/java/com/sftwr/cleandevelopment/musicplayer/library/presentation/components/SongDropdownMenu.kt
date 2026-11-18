@@ -12,6 +12,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.home.R
 
 data class SongMenuItem(
@@ -33,11 +34,16 @@ fun SongDropdownMenu(
     onRemoveFromPlaylist: (() -> Unit)? = null,
     isFavorite: Boolean = false
 ) {
-    val favoriteTitle = if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites)
+    val favoriteTitle =
+        if (isFavorite) stringResource(R.string.remove_from_favorites) else stringResource(R.string.add_to_favorites)
     val favoriteIcon = if (isFavorite) Icons.Default.Favorite else Icons.Default.FavoriteBorder
 
     val menuItems = mutableListOf(
-        SongMenuItem(stringResource(R.string.add_to_playlist), Icons.AutoMirrored.Filled.PlaylistAdd, onAddToPlaylist),
+        SongMenuItem(
+            stringResource(R.string.add_to_playlist),
+            Icons.AutoMirrored.Filled.PlaylistAdd,
+            onAddToPlaylist
+        ),
         SongMenuItem(favoriteTitle, favoriteIcon, onFavoriteClick),
         SongMenuItem(stringResource(R.string.share_song), Icons.Default.Share, onShareClick),
         SongMenuItem(stringResource(R.string.song_info), Icons.Default.Info, onInfoClick),
@@ -45,10 +51,22 @@ fun SongDropdownMenu(
     )
 
     if (onRemoveFromPlaylist != null) {
-        menuItems.add(SongMenuItem(stringResource(R.string.remove_from_playlist), Icons.Default.RemoveCircleOutline, onRemoveFromPlaylist))
+        menuItems.add(
+            SongMenuItem(
+                stringResource(R.string.remove_from_playlist),
+                Icons.Default.RemoveCircleOutline,
+                onRemoveFromPlaylist
+            )
+        )
     }
 
-    menuItems.add(SongMenuItem(stringResource(R.string.delete_from_device), Icons.Default.Delete, onDeleteClick))
+    menuItems.add(
+        SongMenuItem(
+            stringResource(R.string.delete_from_device),
+            Icons.Default.Delete,
+            onDeleteClick
+        )
+    )
 
     DropdownMenu(
         expanded = expanded,
@@ -56,7 +74,7 @@ fun SongDropdownMenu(
         containerColor = Color.Transparent,
         modifier = Modifier
             .background(
-                color = Color(0xFF0F0B21),
+                color = LocalColorPalette.current.surfaceCard,
                 shape = RoundedCornerShape(16.dp)
             )
     ) {
