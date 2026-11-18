@@ -87,4 +87,7 @@ sealed interface Screen {
 
     @Serializable
     data object SoundEffect : Screen
+
+    @Serializable
+    data object LyricManagement : Screen
 }
