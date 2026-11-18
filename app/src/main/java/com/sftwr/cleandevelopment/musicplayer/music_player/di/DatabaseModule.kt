@@ -2,6 +2,7 @@ package com.sftwr.cleandevelopment.musicplayer.music_player.di
 
 import android.content.Context
 import androidx.room.Room
+import com.sftwr.cleandevelopment.musicplayer.data.source.local.LyricDao
 import com.sftwr.cleandevelopment.musicplayer.data.source.local.MusicDatabase
 import com.sftwr.cleandevelopment.musicplayer.data.source.local.PlaylistDao
 import com.sftwr.cleandevelopment.musicplayer.data.source.local.SongDao
@@ -25,7 +26,7 @@ object DatabaseModule {
                 context,
                 MusicDatabase::class.java,
                 MusicDatabase.DATABASE_NAME
-            ).fallbackToDestructiveMigration(false)
+            ).fallbackToDestructiveMigration(true)
          .build()
     }
 
@@ -39,5 +40,11 @@ object DatabaseModule {
     @Singleton
     fun providePlaylistDao(database: MusicDatabase): PlaylistDao {
         return database.playlistDao()
+    }
+
+    @Provides
+    @Singleton
+    fun provideLyricDao(database: MusicDatabase): LyricDao {
+        return database.lyricDao()
     }
 }
