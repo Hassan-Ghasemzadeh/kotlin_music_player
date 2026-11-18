@@ -263,4 +263,34 @@
     <string name="effect_live_treble">تریبل زنده</string>
     <string name="effect_live_treble_desc">شفافیت بالای صدا و درخشش فرکانس‌های بالا</string>
     <string name="now_playing">در حال پخش</string>
+
+    <!-- Lyrics Feature -->
+    <string name="lyric_click_to_find">برای یافتن متن ترانه ضربه بزنید</string>
+    <string name="lyric_title">متن ترانه</string>
+    <string name="lyric_source_dialog_title">گزینه‌های متن ترانه</string>
+    <string name="lyric_search_online">جستجوی آنلاین 🌐</string>
+    <string name="lyric_local_files">فایل محلی (.lrc) 📁</string>
+    <string name="lyric_add_edit_manually">افزودن / ویرایش دستی ✍️</string>
+    <string name="lyric_search_online_title">جستجوی آنلاین متن ترانه</string>
+    <string name="lyric_search_artist_hint">نام خواننده</string>
+    <string name="lyric_search_track_hint">عنوان آهنگ</string>
+    <string name="lyric_searching">در حال جستجوی آنلاین...</string>
+    <string name="lyric_not_found">متن ترانه‌ای به‌صورت آنلاین یافت نشد</string>
+    <string name="lyric_manual_edit_title">ویرایش متن ترانه</string>
+    <string name="lyric_manual_input_hint">محتوای LRC یا متن ساده ترانه را وارد کنید...</string>
+    <string name="lyric_saved_management">مدیریت متن‌های ترانه محلی</string>
+    <string name="lyric_no_saved_lyrics">هیچ متن ترانه ذخیره‌شده‌ای یافت نشد</string>
+    <string name="lyric_rename">تغییر نام</string>
+    <string name="lyric_delete">حذف</string>
+    <string name="lyric_edit">ویرایش</string>
+    <string name="lyric_delete_confirm_title">حذف متن ترانه</string>
+    <string name="lyric_delete_confirm_msg">آیا از حذف متن ترانه برای %1$s اطمینان دارید؟</string>
+    <string name="lyric_rename_title">تغییر نام متن ترانه</string>
+    <string name="lyric_saved_successfully">متن ترانه با موفقیت ذخیره شد</string>
+    <string name="lyric_deleted_successfully">متن ترانه حذف شد</string>
+    <string name="lyric_renamed_successfully">نام متن ترانه تغییر کرد</string>
+    <string name="lyric_select_lrc_file">انتخاب فایل .lrc</string>
+    <string name="lyric_plain_text">متن ساده</string>
+    <string name="lyric_synced">همگام‌سازی‌شده (LRC)</string>
+    <string name="lyric_manage_saved">مدیریت متن‌های ترانه ذخیره‌شده</string>
 </resources>
