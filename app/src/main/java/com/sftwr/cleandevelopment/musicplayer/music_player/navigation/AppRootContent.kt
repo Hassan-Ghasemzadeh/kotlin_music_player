@@ -92,6 +92,26 @@ fun AppRootContent(
         resources.updateConfiguration(config, resources.displayMetrics)
     }
 
+    LaunchedEffect(mainViewModel) {
+        mainViewModel.shortcutCommand.collect { command ->
+            when (command) {
+                ShortcutCommand.OpenFavorites -> {
+                    navController.navigate(Screen.Favorites) {
+                        launchSingleTop = true
+                    }
+                }
+                ShortcutCommand.OpenSearch -> {
+                    navController.navigate(Screen.Search) {
+                        launchSingleTop = true
+                    }
+                }
+                ShortcutCommand.ResumePlayback, ShortcutCommand.ShuffleAll -> {
+                    // Playback actions handled directly by PlayerManager
+                }
+            }
+        }
+    }
+
     CompositionLocalProvider(
         LocalLayoutDirection provides layoutDirection,
         LocalGlassmorphicEnabled provides settings.glassmorphicStyleEnabled,

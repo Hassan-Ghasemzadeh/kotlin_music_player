@@ -38,6 +38,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -1152,6 +1153,43 @@ class PlayerManager @Inject constructor(
                     }
                 }
                 startPlaybackService()
+            }
+        }
+    }
+
+    fun resumePlayback() {
+        runOnMainThread {
+            if (!exoPlayer.isPlaying) {
+                togglePlayPause()
+            }
+        }
+    }
+
+    fun shuffleAll() {
+        playerScope.launch {
+            var songs = _allSongs.value
+            if (songs.isEmpty()) {
+                val domainSongs = runCatching { getDeviceSongsUseCase().first() }.getOrDefault(emptyList())
+                songs = domainSongs.map { song ->
+                    SongUiModel(
+                        id = song.id.toString(),
+                        title = song.title,
+                        artist = song.artist,
+                        duration = song.duration.formatTime(),
+                        uri = song.path,
+                        year = song.year,
+                        album = song.album,
+                        genre = song.genre,
+                        albumId = song.albumId,
+                        albumArtUri = song.albumArtUri,
+                        isFavorite = song.isFavorite,
+                        durationInMs = song.duration,
+                    )
+                }
+            }
+            if (songs.isNotEmpty()) {
+                val shuffled = songs.shuffled()
+                setQueue(shuffled, startIndex = 0)
             }
         }
     }

@@ -1,4 +1,14 @@
 <resources>
     <string name="app_name">Music Player</string>
     <string name="media_notification_channel_name">Music Playback Controls</string>
+
+    <!-- App Shortcuts -->
+    <string name="shortcut_resume_playback">Resume Playback</string>
+    <string name="shortcut_resume_playback_long">Resume Last Played Track</string>
+    <string name="shortcut_shuffle_all">Shuffle All</string>
+    <string name="shortcut_shuffle_all_long">Shuffle All Music Tracks</string>
+    <string name="shortcut_favorites">Liked Songs</string>
+    <string name="shortcut_favorites_long">Open Favorites Library</string>
+    <string name="shortcut_search">Search</string>
+    <string name="shortcut_search_long">Search Tracks, Artists &amp; Albums</string>
 </resources>

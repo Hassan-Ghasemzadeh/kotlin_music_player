@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:shortcutId="resume_playback"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_play"
+        android:shortcutShortLabel="@string/shortcut_resume_playback"
+        android:shortcutLongLabel="@string/shortcut_resume_playback_long">
+        <intent
+            android:action="com.sftwr.cleandevelopment.musicplayer.RESUME_PLAYBACK"
+            android:targetPackage="com.sftwr.cleandevelopment.musicplayer.music_player"
+            android:targetClass="com.sftwr.cleandevelopment.musicplayer.music_player.MainActivity" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="shuffle_all"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_shuffle"
+        android:shortcutShortLabel="@string/shortcut_shuffle_all"
+        android:shortcutLongLabel="@string/shortcut_shuffle_all_long">
+        <intent
+            android:action="com.sftwr.cleandevelopment.musicplayer.SHUFFLE_ALL"
+            android:targetPackage="com.sftwr.cleandevelopment.musicplayer.music_player"
+            android:targetClass="com.sftwr.cleandevelopment.musicplayer.music_player.MainActivity" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="favorites"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_favorite"
+        android:shortcutShortLabel="@string/shortcut_favorites"
+        android:shortcutLongLabel="@string/shortcut_favorites_long">
+        <intent
+            android:action="com.sftwr.cleandevelopment.musicplayer.OPEN_FAVORITES"
+            android:targetPackage="com.sftwr.cleandevelopment.musicplayer.music_player"
+            android:targetClass="com.sftwr.cleandevelopment.musicplayer.music_player.MainActivity" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="search"
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_search"
+        android:shortcutShortLabel="@string/shortcut_search"
+        android:shortcutLongLabel="@string/shortcut_search_long">
+        <intent
+            android:action="com.sftwr.cleandevelopment.musicplayer.OPEN_SEARCH"
+            android:targetPackage="com.sftwr.cleandevelopment.musicplayer.music_player"
+            android:targetClass="com.sftwr.cleandevelopment.musicplayer.music_player.MainActivity" />
+    </shortcut>
+
+</shortcuts>
