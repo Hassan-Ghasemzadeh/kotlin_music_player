@@ -1,5 +1,6 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.equalizer
 
+import com.sftwr.cleandevelopment.musicplayer.domain.ad.AdManager
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppLanguage
 import com.sftwr.cleandevelopment.musicplayer.domain.model.AppSettings
 import com.sftwr.cleandevelopment.musicplayer.domain.model.ColorPalette
@@ -11,11 +12,13 @@ import com.sftwr.cleandevelopment.musicplayer.domain.repository.SettingsReposito
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetEqualizerSettingsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.SaveEqualizerSettingsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.equalizer.EqualizerAudioFxManager
+import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerController
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks.SongUiModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
@@ -34,6 +37,8 @@ class EqualizerViewModelTest {
     private lateinit var fakeRepository: FakeEqualizerRepository
     private lateinit var getUseCase: GetEqualizerSettingsUseCase
     private lateinit var saveUseCase: SaveEqualizerSettingsUseCase
+    private lateinit var fakePlayerController: FakePlayerController
+    private lateinit var fakeAdManager: FakeAdManager
 
     @Before
     fun setUp() {
@@ -41,6 +46,8 @@ class EqualizerViewModelTest {
         fakeRepository = FakeEqualizerRepository()
         getUseCase = GetEqualizerSettingsUseCase(fakeRepository)
         saveUseCase = SaveEqualizerSettingsUseCase(fakeRepository, FakeSettingsRepository())
+        fakePlayerController = FakePlayerController()
+        fakeAdManager = FakeAdManager()
     }
 
     @After
@@ -51,7 +58,7 @@ class EqualizerViewModelTest {
     @Test
     fun uiState_reflectsRepositoryUpdates() = runTest {
         val fxManager = EqualizerAudioFxManager(getUseCase)
-        val viewModel = EqualizerViewModel(getUseCase, saveUseCase, fxManager)
+        val viewModel = EqualizerViewModel(getUseCase, saveUseCase, fxManager, fakePlayerController, fakeAdManager)
 
         backgroundScope.launch { viewModel.uiState.collect {} }
         testDispatcher.scheduler.advanceUntilIdle()
@@ -65,7 +72,7 @@ class EqualizerViewModelTest {
     @Test
     fun selectPreset_updatesPresetInUiState() = runTest {
         val fxManager = EqualizerAudioFxManager(getUseCase)
-        val viewModel = EqualizerViewModel(getUseCase, saveUseCase, fxManager)
+        val viewModel = EqualizerViewModel(getUseCase, saveUseCase, fxManager, fakePlayerController, fakeAdManager)
 
         backgroundScope.launch { viewModel.uiState.collect {} }
         testDispatcher.scheduler.advanceUntilIdle()
@@ -81,7 +88,7 @@ class EqualizerViewModelTest {
     @Test
     fun setBandLevel_updatesBandAndPresetToCustom() = runTest {
         val fxManager = EqualizerAudioFxManager(getUseCase)
-        val viewModel = EqualizerViewModel(getUseCase, saveUseCase, fxManager)
+        val viewModel = EqualizerViewModel(getUseCase, saveUseCase, fxManager, fakePlayerController, fakeAdManager)
 
         backgroundScope.launch { viewModel.uiState.collect {} }
         testDispatcher.scheduler.advanceUntilIdle()
@@ -97,7 +104,7 @@ class EqualizerViewModelTest {
     @Test
     fun setBassBoostAndVirtualizer_updatesStateValues() = runTest {
         val fxManager = EqualizerAudioFxManager(getUseCase)
-        val viewModel = EqualizerViewModel(getUseCase, saveUseCase, fxManager)
+        val viewModel = EqualizerViewModel(getUseCase, saveUseCase, fxManager, fakePlayerController, fakeAdManager)
 
         backgroundScope.launch { viewModel.uiState.collect {} }
         testDispatcher.scheduler.advanceUntilIdle()
@@ -109,6 +116,49 @@ class EqualizerViewModelTest {
         assertEquals(750.toShort(), viewModel.uiState.value.bassBoostStrength)
         assertEquals(900.toShort(), viewModel.uiState.value.virtualizerStrength)
     }
+}
+
+private class FakePlayerController : PlayerController {
+    override val currentSong: StateFlow<SongUiModel?> = MutableStateFlow(null)
+    override val isPlaying: StateFlow<Boolean> = MutableStateFlow(false)
+    override fun togglePlayPause() {}
+    override fun playNext() {}
+    override fun playPrevious() {}
+}
+
+private class FakeAdManager : AdManager {
+    override val isAdFree: StateFlow<Boolean> = MutableStateFlow(false)
+    override val isInitialized: StateFlow<Boolean> = MutableStateFlow(true)
+    override fun initialize() {}
+    override fun setUserConsent(activity: android.app.Activity, userConsent: Boolean) {}
+    override fun setAdFree(isAdFree: Boolean) {}
+    override fun requestBannerAd(
+        zoneId: String,
+        activity: android.app.Activity?,
+        onSuccess: (adId: String) -> Unit,
+        onFailure: (error: String) -> Unit
+    ) {}
+    override fun requestNativeAd(
+        zoneId: String,
+        activity: android.app.Activity?,
+        onSuccess: (adId: String) -> Unit,
+        onFailure: (error: String) -> Unit
+    ) {}
+    override fun requestRewardedAd(
+        zoneId: String,
+        activity: android.app.Activity?,
+        onSuccess: (adId: String) -> Unit,
+        onFailure: (error: String) -> Unit
+    ) {}
+    override fun showRewardedAd(
+        adId: String,
+        activity: android.app.Activity,
+        onRewarded: () -> Unit,
+        onError: (error: String) -> Unit,
+        onClosed: () -> Unit
+    ) {}
+    override fun destroyBannerAd(zoneId: String) {}
+    override fun destroyNativeAd(zoneId: String) {}
 }
 
 private class FakeEqualizerRepository : EqualizerRepository {
