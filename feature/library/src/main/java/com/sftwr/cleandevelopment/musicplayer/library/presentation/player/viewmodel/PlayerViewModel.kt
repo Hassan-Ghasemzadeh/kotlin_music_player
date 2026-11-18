@@ -35,6 +35,12 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import kotlin.time.Duration.Companion.milliseconds
 
+import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetLyricForSongUseCase
+import com.sftwr.cleandevelopment.musicplayer.model.Lyric
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
+
 /**
  * PlayerViewModel manages the audio playback states, transport controls (play, pause, skip, seek),
  * repeat/shuffle configurations, favorites, sharing, custom playlist adding, and periodic progress tracking.
@@ -49,6 +55,7 @@ class PlayerViewModel @Inject constructor(
     getSettingsUseCase: GetSettingsUseCase,
     private val updateAudioSettingsUseCase: UpdateAudioSettingsUseCase,
     private val saveVisualizerConfigUseCase: SaveVisualizerConfigUseCase,
+    private val getLyricForSongUseCase: GetLyricForSongUseCase,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -190,6 +197,22 @@ class PlayerViewModel @Inject constructor(
     // States are directly driven by PlayerManager or connected StateFlows
     val isPlaying: StateFlow<Boolean> = playerManager.isPlaying
     val currentSong: StateFlow<SongUiModel?> = playerManager.currentSong
+
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val currentLyric: StateFlow<Lyric?> = playerManager.currentSong
+        .flatMapLatest { song ->
+            val songId = song?.id?.toLongOrNull() ?: -1L
+            if (songId > 0) {
+                getLyricForSongUseCase(songId)
+            } else {
+                flowOf(null)
+            }
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = null
+        )
 
     val visualizerStyle: StateFlow<VisualizerStyle> = getSettingsUseCase()
         .map { settings ->
