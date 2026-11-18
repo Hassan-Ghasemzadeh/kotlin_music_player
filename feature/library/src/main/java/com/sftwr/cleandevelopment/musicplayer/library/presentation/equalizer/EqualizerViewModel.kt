@@ -8,7 +8,7 @@ import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerState
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetEqualizerSettingsUseCase
 import com.sftwr.cleandevelopment.musicplayer.domain.usecase.SaveEqualizerSettingsUseCase
 import com.sftwr.cleandevelopment.musicplayer.library.core.equalizer.EqualizerAudioFxManager
-import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerManager
+import com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerController
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,7 +24,7 @@ class EqualizerViewModel @Inject constructor(
     getEqualizerSettingsUseCase: GetEqualizerSettingsUseCase,
     private val saveEqualizerSettingsUseCase: SaveEqualizerSettingsUseCase,
     private val equalizerAudioFxManager: EqualizerAudioFxManager,
-    private val playerManager: PlayerManager,
+    private val playerController: PlayerController,
     val adManager: AdManager
 ) : ViewModel() {
 
@@ -48,16 +48,16 @@ class EqualizerViewModel @Inject constructor(
     }
 
     fun pausePlaybackIfPlaying(): Boolean {
-        val playing = playerManager.isPlaying.value
+        val playing = playerController.isPlaying.value
         if (playing) {
-            playerManager.exoPlayer.pause()
+            playerController.togglePlayPause()
         }
         return playing
     }
 
     fun resumePlaybackIfWasPlaying(wasPlaying: Boolean) {
-        if (wasPlaying && !playerManager.isPlaying.value) {
-            playerManager.exoPlayer.play()
+        if (wasPlaying && !playerController.isPlaying.value) {
+            playerController.togglePlayPause()
         }
     }
 
