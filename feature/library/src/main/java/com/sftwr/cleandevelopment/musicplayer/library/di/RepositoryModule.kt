@@ -143,4 +143,13 @@ abstract class RepositoryModule {
     abstract fun bindRewardedAdManager(
         rewardedAdManagerImpl: com.sftwr.cleandevelopment.musicplayer.data.ad.RewardedAdManagerImpl,
     ): com.sftwr.cleandevelopment.musicplayer.domain.ad.RewardedAdManager
+
+    /**
+     * Binds the implementation of LyricRepository to its interface.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindLyricRepository(
+        lyricRepositoryImpl: com.sftwr.cleandevelopment.musicplayer.data.repository.LyricRepositoryImpl,
+    ): com.sftwr.cleandevelopment.musicplayer.domain.repository.LyricRepository
 }
