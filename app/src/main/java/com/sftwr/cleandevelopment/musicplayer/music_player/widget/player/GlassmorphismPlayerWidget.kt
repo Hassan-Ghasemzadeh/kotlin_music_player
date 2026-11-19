@@ -9,6 +9,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
@@ -87,6 +88,8 @@ class GlassmorphismPlayerWidget : GlanceAppWidget() {
             val durMs = prefs[WidgetPreferencesKeys.KEY_DURATION] ?: directState.durationMs
             val isShuffle = prefs[WidgetPreferencesKeys.KEY_IS_SHUFFLE] ?: directState.isShuffleEnabled
             val isFav = prefs[WidgetPreferencesKeys.KEY_IS_FAVORITE] ?: directState.isFavorite
+            val hasNext = prefs[WidgetPreferencesKeys.KEY_HAS_NEXT] ?: directState.hasNext
+            val hasPrevious = prefs[WidgetPreferencesKeys.KEY_HAS_PREVIOUS] ?: directState.hasPrevious
             val title = prefs[WidgetPreferencesKeys.KEY_TRACK_TITLE] ?: directState.currentSong?.title ?: "No Track Playing"
             val artist = prefs[WidgetPreferencesKeys.KEY_ARTIST_NAME] ?: directState.currentSong?.artist ?: "Unknown Artist"
             val album = prefs[WidgetPreferencesKeys.KEY_ALBUM_NAME] ?: directState.currentSong?.album ?: "Music Library"
@@ -99,6 +102,8 @@ class GlassmorphismPlayerWidget : GlanceAppWidget() {
                 durationMs = durMs,
                 isShuffleEnabled = isShuffle,
                 isFavorite = isFav,
+                hasNext = hasNext,
+                hasPrevious = hasPrevious,
                 currentSong = directState.currentSong?.copy(
                     id = songId,
                     title = title,
@@ -117,7 +122,7 @@ class GlassmorphismPlayerWidget : GlanceAppWidget() {
                 maxHeightDp = 120
             )
 
-            key(songId, artUri, isPlaying, isShuffle, isFav, activeState.lastUpdatedTimestamp) {
+            key(songId, artUri, isPlaying, isShuffle, isFav, hasNext, hasPrevious, activeState.lastUpdatedTimestamp) {
                 GlassmorphismPlayerContent(
                     state = activeState,
                     albumArtBitmap = albumArtBitmap
@@ -249,15 +254,30 @@ class GlassmorphismPlayerWidget : GlanceAppWidget() {
                         Box(
                             modifier = GlanceModifier
                                 .size(36.dp)
-                                .background(ColorProvider(Color(0x1FFFFFFF)))
+                                .background(
+                                    ColorProvider(
+                                        if (state.hasPrevious) Color(0x1FFFFFFF) else Color(0x0AFFFFFF)
+                                    )
+                                )
                                 .cornerRadius(18.dp)
-                                .clickable(actionRunCallback<SkipPreviousAction>()),
+                                .then(
+                                    if (state.hasPrevious) {
+                                        GlanceModifier.clickable(actionRunCallback<SkipPreviousAction>())
+                                    } else {
+                                        GlanceModifier
+                                    }
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
                             Image(
                                 provider = ImageProvider(R.drawable.ic_widget_skip_previous),
                                 contentDescription = "Previous Track",
-                                modifier = GlanceModifier.size(20.dp)
+                                modifier = GlanceModifier.size(20.dp),
+                                colorFilter = ColorFilter.tint(
+                                    ColorProvider(
+                                        if (state.hasPrevious) Color.White else Color(0x3DFFFFFF)
+                                    )
+                                )
                             )
                         }
 
@@ -287,15 +307,30 @@ class GlassmorphismPlayerWidget : GlanceAppWidget() {
                         Box(
                             modifier = GlanceModifier
                                 .size(36.dp)
-                                .background(ColorProvider(Color(0x1FFFFFFF)))
+                                .background(
+                                    ColorProvider(
+                                        if (state.hasNext) Color(0x1FFFFFFF) else Color(0x0AFFFFFF)
+                                    )
+                                )
                                 .cornerRadius(18.dp)
-                                .clickable(actionRunCallback<SkipNextAction>()),
+                                .then(
+                                    if (state.hasNext) {
+                                        GlanceModifier.clickable(actionRunCallback<SkipNextAction>())
+                                    } else {
+                                        GlanceModifier
+                                    }
+                                ),
                             contentAlignment = Alignment.Center
                         ) {
                             Image(
                                 provider = ImageProvider(R.drawable.ic_widget_skip_next),
                                 contentDescription = "Next Track",
-                                modifier = GlanceModifier.size(20.dp)
+                                modifier = GlanceModifier.size(20.dp),
+                                colorFilter = ColorFilter.tint(
+                                    ColorProvider(
+                                        if (state.hasNext) Color.White else Color(0x3DFFFFFF)
+                                    )
+                                )
                             )
                         }
 
