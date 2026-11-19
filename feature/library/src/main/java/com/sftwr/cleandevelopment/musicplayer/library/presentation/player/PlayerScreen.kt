@@ -381,7 +381,8 @@ fun PlayerScreen(
             ) {
                 if (isLyricOverlayActive) {
                     val activeLyric = currentLyric
-                    if (activeLyric != null) {
+                    val hasLyrics = activeLyric != null && activeLyric.content.isNotBlank()
+                    if (hasLyrics) {
                         SynchronizedLyricView(
                             lyric = activeLyric,
                             currentPositionMs = currentPosition,
@@ -391,7 +392,8 @@ fun PlayerScreen(
                         )
                     } else {
                         NoLyricPromptView(
-                            onClick = { showLyricSourceDialog = true }
+                            onClick = { showLyricSourceDialog = true },
+                            onCloseClick = { isLyricOverlayActive = false }
                         )
                     }
                 } else {
