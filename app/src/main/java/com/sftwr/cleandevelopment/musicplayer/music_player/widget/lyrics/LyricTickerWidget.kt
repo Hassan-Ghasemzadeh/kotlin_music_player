@@ -135,7 +135,21 @@ class LyricTickerWidget : GlanceAppWidget() {
                 )
             )
 
-            key(songId, isShuffle, isFav, hasNext, hasPrevious, activeLyrics?.lines?.size, activeState.lastUpdatedTimestamp) {
+            val progressPercent = (activeState.progressRatio * 100).toInt()
+            val positionBucket = activeState.currentPositionMs / 1000
+
+            key(
+                songId,
+                isPlaying,
+                progressPercent,
+                positionBucket,
+                isShuffle,
+                isFav,
+                hasNext,
+                hasPrevious,
+                activeLyrics?.lines?.size,
+                activeState.lastUpdatedTimestamp
+            ) {
                 LyricTickerContent(state = activeState)
             }
         }
