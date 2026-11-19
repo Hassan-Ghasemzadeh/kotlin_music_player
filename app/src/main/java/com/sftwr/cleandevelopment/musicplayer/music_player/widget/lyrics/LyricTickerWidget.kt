@@ -8,6 +8,7 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.datastore.preferences.core.Preferences
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
@@ -87,6 +88,8 @@ class LyricTickerWidget : GlanceAppWidget() {
             val durMs = prefs[WidgetPreferencesKeys.KEY_DURATION] ?: directState.durationMs
             val isShuffle = prefs[WidgetPreferencesKeys.KEY_IS_SHUFFLE] ?: directState.isShuffleEnabled
             val isFav = prefs[WidgetPreferencesKeys.KEY_IS_FAVORITE] ?: directState.isFavorite
+            val hasNext = prefs[WidgetPreferencesKeys.KEY_HAS_NEXT] ?: directState.hasNext
+            val hasPrevious = prefs[WidgetPreferencesKeys.KEY_HAS_PREVIOUS] ?: directState.hasPrevious
             val title = prefs[WidgetPreferencesKeys.KEY_TRACK_TITLE] ?: directState.currentSong?.title ?: "No Track Playing"
             val artist = prefs[WidgetPreferencesKeys.KEY_ARTIST_NAME] ?: directState.currentSong?.artist ?: "Unknown Artist"
             val songId = prefs[WidgetPreferencesKeys.KEY_SONG_ID] ?: directState.currentSong?.id ?: -1L
@@ -121,6 +124,8 @@ class LyricTickerWidget : GlanceAppWidget() {
                 durationMs = durMs,
                 isShuffleEnabled = isShuffle,
                 isFavorite = isFav,
+                hasNext = hasNext,
+                hasPrevious = hasPrevious,
                 lyrics = activeLyrics,
                 currentSong = directState.currentSong?.copy(
                     id = songId,
@@ -130,7 +135,7 @@ class LyricTickerWidget : GlanceAppWidget() {
                 )
             )
 
-            key(songId, isShuffle, isFav, activeLyrics?.lines?.size, activeState.lastUpdatedTimestamp) {
+            key(songId, isShuffle, isFav, hasNext, hasPrevious, activeLyrics?.lines?.size, activeState.lastUpdatedTimestamp) {
                 LyricTickerContent(state = activeState)
             }
         }
@@ -296,13 +301,30 @@ class LyricTickerWidget : GlanceAppWidget() {
                     Box(
                         modifier = GlanceModifier
                             .size(30.dp)
-                            .clickable(actionRunCallback<SkipPreviousAction>()),
+                            .background(
+                                ColorProvider(
+                                    if (state.hasPrevious) Color(0x33FFFFFF) else Color(0x0AFFFFFF)
+                                )
+                            )
+                            .cornerRadius(15.dp)
+                            .then(
+                                if (state.hasPrevious) {
+                                    GlanceModifier.clickable(actionRunCallback<SkipPreviousAction>())
+                                } else {
+                                    GlanceModifier
+                                }
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
                             provider = ImageProvider(R.drawable.ic_widget_skip_previous),
                             contentDescription = "Previous",
-                            modifier = GlanceModifier.size(18.dp)
+                            modifier = GlanceModifier.size(18.dp),
+                            colorFilter = ColorFilter.tint(
+                                ColorProvider(
+                                    if (state.hasPrevious) Color.White else Color(0x3DFFFFFF)
+                                )
+                            )
                         )
                     }
 
@@ -332,13 +354,30 @@ class LyricTickerWidget : GlanceAppWidget() {
                     Box(
                         modifier = GlanceModifier
                             .size(30.dp)
-                            .clickable(actionRunCallback<SkipNextAction>()),
+                            .background(
+                                ColorProvider(
+                                    if (state.hasNext) Color(0x33FFFFFF) else Color(0x0AFFFFFF)
+                                )
+                            )
+                            .cornerRadius(15.dp)
+                            .then(
+                                if (state.hasNext) {
+                                    GlanceModifier.clickable(actionRunCallback<SkipNextAction>())
+                                } else {
+                                    GlanceModifier
+                                }
+                            ),
                         contentAlignment = Alignment.Center
                     ) {
                         Image(
                             provider = ImageProvider(R.drawable.ic_widget_skip_next),
                             contentDescription = "Next",
-                            modifier = GlanceModifier.size(18.dp)
+                            modifier = GlanceModifier.size(18.dp),
+                            colorFilter = ColorFilter.tint(
+                                ColorProvider(
+                                    if (state.hasNext) Color.White else Color(0x3DFFFFFF)
+                                )
+                            )
                         )
                     }
 
