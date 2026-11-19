@@ -18,6 +18,8 @@ object WidgetPreferencesKeys {
     val KEY_DURATION = longPreferencesKey("widget_duration")
     val KEY_IS_SHUFFLE = booleanPreferencesKey("widget_is_shuffle")
     val KEY_IS_FAVORITE = booleanPreferencesKey("widget_is_favorite")
+    val KEY_HAS_NEXT = booleanPreferencesKey("widget_has_next")
+    val KEY_HAS_PREVIOUS = booleanPreferencesKey("widget_has_previous")
     val KEY_LYRICS_JSON = stringPreferencesKey("widget_lyrics_json")
     val KEY_REVISION = longPreferencesKey("widget_revision")
 }
