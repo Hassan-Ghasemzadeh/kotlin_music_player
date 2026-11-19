@@ -12,6 +12,8 @@ data class WidgetPlaybackState(
     val durationMs: Long = 0L,
     val isShuffleEnabled: Boolean = false,
     val isFavorite: Boolean = false,
+    val hasNext: Boolean = true,
+    val hasPrevious: Boolean = true,
     val lyrics: Lyric? = null,
     val lastUpdatedTimestamp: Long = System.currentTimeMillis()
 ) {
