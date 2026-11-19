@@ -77,4 +77,10 @@ object MediaModule {
     fun providePlayerController(
         playerManager: PlayerManager
     ): com.sftwr.cleandevelopment.musicplayer.library.core.manager.PlayerController = playerManager
+
+    @Provides
+    @Singleton
+    fun providePlayerControlBridge(
+        playerManager: PlayerManager
+    ): com.sftwr.cleandevelopment.musicplayer.domain.player.PlayerControlBridge = playerManager
 }

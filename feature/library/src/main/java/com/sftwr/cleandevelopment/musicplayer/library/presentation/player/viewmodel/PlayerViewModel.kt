@@ -247,8 +247,7 @@ class PlayerViewModel @Inject constructor(
     val songs: StateFlow<List<Song>> = _songs.asStateFlow()
 
     // Shuffle and repeat state flow streams
-    private val _isShuffleEnabled = MutableStateFlow(false)
-    val isShuffleEnabled: StateFlow<Boolean> = _isShuffleEnabled.asStateFlow()
+    val isShuffleEnabled: StateFlow<Boolean> = playerManager.isShuffleEnabled
 
     private val _repeatMode = MutableStateFlow(RepeatMode.OFF)
     val repeatMode: StateFlow<RepeatMode> = _repeatMode.asStateFlow()
@@ -382,11 +381,7 @@ class PlayerViewModel @Inject constructor(
      * Toggles shuffle mode state across player manager and ExoPlayer instance.
      */
     fun toggleShuffle() {
-        val newShuffleState = !_isShuffleEnabled.value
-        _isShuffleEnabled.value = newShuffleState
-        runOnMainThread {
-            exoPlayer.shuffleModeEnabled = newShuffleState
-        }
+        playerManager.toggleShuffle()
     }
 
     /**

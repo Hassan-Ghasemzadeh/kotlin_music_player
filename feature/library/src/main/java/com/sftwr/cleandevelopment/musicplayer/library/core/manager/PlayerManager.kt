@@ -42,6 +42,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import com.sftwr.cleandevelopment.musicplayer.domain.player.PlayerControlBridge
+import com.sftwr.cleandevelopment.musicplayer.domain.repository.WidgetMusicRepository
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -62,8 +64,9 @@ class PlayerManager @Inject constructor(
     val equalizerAudioFxManager: EqualizerAudioFxManager,
     val soundEffectAudioFxManager: SoundEffectAudioFxManager,
     private val getSettingsUseCase: GetSettingsUseCase,
+    private val widgetMusicRepository: WidgetMusicRepository,
     @param:ApplicationContext private val context: Context,
-) : PlayerController {
+) : PlayerController, PlayerControlBridge {
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
@@ -208,6 +211,9 @@ class PlayerManager @Inject constructor(
     private val _isPlaying = MutableStateFlow(false)
     override val isPlaying: StateFlow<Boolean> = _isPlaying.asStateFlow()
 
+    private val _isShuffleEnabled = MutableStateFlow(false)
+    val isShuffleEnabled: StateFlow<Boolean> = _isShuffleEnabled.asStateFlow()
+
     private val _queue = MutableStateFlow<List<SongUiModel>>(emptyList())
     override val queue: StateFlow<List<SongUiModel>> = _queue.asStateFlow()
 
@@ -244,6 +250,11 @@ class PlayerManager @Inject constructor(
     fun saveCurrentPlaybackState() {
         val song = _currentSong.value ?: return
         val positionMs = runCatching { currentPlayer.currentPosition }.getOrDefault(0L).coerceAtLeast(0L)
+        val isPlayingState = _isPlaying.value
+        val isShuffleState = _isShuffleEnabled.value || runCatching { exoPlayer.shuffleModeEnabled }.getOrDefault(false)
+        val songIdLong = song.id.toLongOrNull() ?: -1L
+        val durMs = if (song.durationInMs > 0L) song.durationInMs else runCatching { currentPlayer.duration }.getOrDefault(0L)
+
         playerScope.launch(Dispatchers.IO) {
             songPreferencesRepository.saveLastPlayedSong(
                 LastPlayedSongState(
@@ -261,6 +272,21 @@ class PlayerManager @Inject constructor(
                     genre = song.genre
                 )
             )
+
+            runCatching {
+                widgetMusicRepository.syncPlaybackState(
+                    songId = songIdLong,
+                    title = song.title,
+                    artist = song.artist,
+                    album = song.album,
+                    albumArtUri = song.albumArtUri,
+                    isPlaying = isPlayingState,
+                    positionMs = positionMs,
+                    durationMs = if (durMs > 0L) durMs else 1L,
+                    isShuffle = isShuffleState,
+                    isFavorite = song.isFavorite
+                )
+            }
         }
     }
 
@@ -468,9 +494,19 @@ class PlayerManager @Inject constructor(
         })
     }
 
-    fun toggleFavorite(songId: Long, isFavorite: Boolean) {
+    override fun toggleFavorite(songId: Long, isFavorite: Boolean) {
         playerScope.launch(Dispatchers.IO) {
             playlistRepository.toggleFavorite(songId, isFavorite)
+            saveCurrentPlaybackState()
+        }
+    }
+
+    override fun toggleShuffle() {
+        runOnMainThread {
+            val nextState = !exoPlayer.shuffleModeEnabled
+            exoPlayer.shuffleModeEnabled = nextState
+            _isShuffleEnabled.value = nextState
+            saveCurrentPlaybackState()
         }
     }
 
@@ -865,10 +901,10 @@ class PlayerManager @Inject constructor(
         }
     }
 
-    fun seekTo(position: Long) {
+    override fun seekTo(positionMs: Long) {
         runOnMainThread {
             cancelCrossfade()
-            currentPlayer.seekTo(position)
+            currentPlayer.seekTo(positionMs)
             saveCurrentPlaybackState()
         }
     }
