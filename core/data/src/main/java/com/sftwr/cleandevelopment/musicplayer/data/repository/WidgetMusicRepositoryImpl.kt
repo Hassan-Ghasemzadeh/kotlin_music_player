@@ -23,6 +23,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -96,6 +97,52 @@ class WidgetMusicRepositoryImpl @Inject constructor(
 
     init {
         scope.launch {
+            runCatching {
+                val prefs = context.widgetDataStore.data.first()
+                val songId = prefs[WidgetPreferencesKeys.KEY_SONG_ID]
+                val title = prefs[WidgetPreferencesKeys.KEY_TRACK_TITLE]
+                if (songId != null && title != null) {
+                    val artist = prefs[WidgetPreferencesKeys.KEY_ARTIST_NAME] ?: "Unknown Artist"
+                    val album = prefs[WidgetPreferencesKeys.KEY_ALBUM_NAME] ?: "Unknown Album"
+                    val artUri = prefs[WidgetPreferencesKeys.KEY_ALBUM_ART_URI]
+                    val isPlaying = prefs[WidgetPreferencesKeys.KEY_IS_PLAYING] ?: false
+                    val position = prefs[WidgetPreferencesKeys.KEY_CURRENT_POSITION] ?: 0L
+                    val duration = prefs[WidgetPreferencesKeys.KEY_DURATION] ?: 233000L
+                    val isShuffle = prefs[WidgetPreferencesKeys.KEY_IS_SHUFFLE] ?: false
+                    val isFavorite = prefs[WidgetPreferencesKeys.KEY_IS_FAVORITE] ?: false
+                    val hasNext = prefs[WidgetPreferencesKeys.KEY_HAS_NEXT] ?: true
+                    val hasPrevious = prefs[WidgetPreferencesKeys.KEY_HAS_PREVIOUS] ?: false
+                    val revision = prefs[WidgetPreferencesKeys.KEY_REVISION] ?: System.currentTimeMillis()
+
+                    val song = Song(
+                        id = songId,
+                        title = title,
+                        artist = artist,
+                        album = album,
+                        albumId = -1L,
+                        contentUri = Uri.EMPTY,
+                        albumArtUri = if (artUri.isNullOrEmpty()) null else artUri,
+                        duration = duration,
+                        isFavorite = isFavorite
+                    )
+
+                    val restoredState = WidgetPlaybackState(
+                        currentSong = song,
+                        isPlaying = isPlaying,
+                        currentPositionMs = position,
+                        durationMs = duration,
+                        isShuffleEnabled = isShuffle,
+                        isFavorite = isFavorite,
+                        hasNext = hasNext,
+                        hasPrevious = hasPrevious,
+                        lastUpdatedTimestamp = revision
+                    )
+                    _stateFlow.value = restoredState
+                    loadLyricsForCurrentSong(songId)
+                    startPositionTickerIfNeeded(isPlaying)
+                    return@launch
+                }
+            }
             loadLyricsForCurrentSong(_stateFlow.value.currentSong?.id ?: 101L)
             persistStateToDataStore(_stateFlow.value)
             startPositionTickerIfNeeded(_stateFlow.value.isPlaying)
