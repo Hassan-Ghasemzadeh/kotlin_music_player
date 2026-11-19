@@ -122,7 +122,21 @@ class GlassmorphismPlayerWidget : GlanceAppWidget() {
                 maxHeightDp = 120
             )
 
-            key(songId, artUri, isPlaying, isShuffle, isFav, hasNext, hasPrevious, activeState.lastUpdatedTimestamp) {
+            val progressPercent = (activeState.progressRatio * 100).toInt()
+            val positionBucket = activeState.currentPositionMs / 1000
+
+            key(
+                songId,
+                artUri,
+                isPlaying,
+                progressPercent,
+                positionBucket,
+                isShuffle,
+                isFav,
+                hasNext,
+                hasPrevious,
+                activeState.lastUpdatedTimestamp
+            ) {
                 GlassmorphismPlayerContent(
                     state = activeState,
                     albumArtBitmap = albumArtBitmap
