@@ -220,20 +220,38 @@ class PlayerManager @Inject constructor(
     private var activeQueue: List<SongUiModel> = emptyList()
     val hasNext: Boolean
         get() {
-            if (Looper.myLooper() != Looper.getMainLooper()) return false
-            if (exoPlayer.hasNextMediaItem()) return true
+            if (Looper.myLooper() == Looper.getMainLooper()) {
+                if (exoPlayer.repeatMode == Player.REPEAT_MODE_ONE || exoPlayer.repeatMode == Player.REPEAT_MODE_ALL) {
+                    val songs = if (activeQueue.isNotEmpty()) activeQueue else _allSongs.value
+                    return songs.isNotEmpty()
+                }
+                if (exoPlayer.hasNextMediaItem()) return true
+            }
             val songs = if (activeQueue.isNotEmpty()) activeQueue else _allSongs.value
             val current = _currentSong.value ?: return false
             val index = songs.indexOfFirst { it.id == current.id }
+            if (currentPlayer.repeatMode == Player.REPEAT_MODE_ALL || currentPlayer.repeatMode == Player.REPEAT_MODE_ONE) {
+                return songs.isNotEmpty()
+            }
+            if (_isShuffleEnabled.value && songs.size > 1) return true
             return index != -1 && index < songs.size - 1
         }
     val hasPrevious: Boolean
         get() {
-            if (Looper.myLooper() != Looper.getMainLooper()) return false
-            if (exoPlayer.hasPreviousMediaItem()) return true
+            if (Looper.myLooper() == Looper.getMainLooper()) {
+                if (exoPlayer.repeatMode == Player.REPEAT_MODE_ONE || exoPlayer.repeatMode == Player.REPEAT_MODE_ALL) {
+                    val songs = if (activeQueue.isNotEmpty()) activeQueue else _allSongs.value
+                    return songs.isNotEmpty()
+                }
+                if (exoPlayer.hasPreviousMediaItem()) return true
+            }
             val songs = if (activeQueue.isNotEmpty()) activeQueue else _allSongs.value
             val current = _currentSong.value ?: return false
             val index = songs.indexOfFirst { it.id == current.id }
+            if (currentPlayer.repeatMode == Player.REPEAT_MODE_ALL || currentPlayer.repeatMode == Player.REPEAT_MODE_ONE) {
+                return songs.isNotEmpty()
+            }
+            if (_isShuffleEnabled.value && songs.size > 1) return true
             return index > 0
         }
 
@@ -254,6 +272,8 @@ class PlayerManager @Inject constructor(
         val isShuffleState = _isShuffleEnabled.value || runCatching { exoPlayer.shuffleModeEnabled }.getOrDefault(false)
         val songIdLong = song.id.toLongOrNull() ?: -1L
         val durMs = if (song.durationInMs > 0L) song.durationInMs else runCatching { currentPlayer.duration }.getOrDefault(0L)
+        val hasNextState = hasNext
+        val hasPreviousState = hasPrevious
 
         playerScope.launch(Dispatchers.IO) {
             songPreferencesRepository.saveLastPlayedSong(
@@ -284,7 +304,9 @@ class PlayerManager @Inject constructor(
                     positionMs = positionMs,
                     durationMs = if (durMs > 0L) durMs else 1L,
                     isShuffle = isShuffleState,
-                    isFavorite = song.isFavorite
+                    isFavorite = song.isFavorite,
+                    hasNext = hasNextState,
+                    hasPrevious = hasPreviousState
                 )
             }
         }
@@ -839,6 +861,7 @@ class PlayerManager @Inject constructor(
 
     override fun playNext() {
         runOnMainThread {
+            if (!hasNext) return@runOnMainThread
             cancelCrossfade()
             if (exoPlayer.hasNextMediaItem()) {
                 exoPlayer.seekToNextMediaItem()
@@ -871,6 +894,7 @@ class PlayerManager @Inject constructor(
 
     override fun playPrevious() {
         runOnMainThread {
+            if (!hasPrevious) return@runOnMainThread
             cancelCrossfade()
             if (exoPlayer.hasPreviousMediaItem()) {
                 exoPlayer.seekToPreviousMediaItem()
