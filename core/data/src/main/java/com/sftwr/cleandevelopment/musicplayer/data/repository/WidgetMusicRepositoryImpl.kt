@@ -88,6 +88,8 @@ class WidgetMusicRepositoryImpl @Inject constructor(
             durationMs = 233000L,
             isShuffleEnabled = false,
             isFavorite = true,
+            hasNext = true,
+            hasPrevious = false,
             lyrics = null
         )
     )
@@ -120,16 +122,42 @@ class WidgetMusicRepositoryImpl @Inject constructor(
         }
     }
 
+    private val currentHasNext: Boolean
+        get() {
+            val state = _stateFlow.value
+            if (state.isShuffleEnabled && samplePlaylist.size > 1) return true
+            return currentPlaylistIndex < samplePlaylist.size - 1
+        }
+
+    private val currentHasPrevious: Boolean
+        get() {
+            val state = _stateFlow.value
+            if (state.isShuffleEnabled && samplePlaylist.size > 1) return true
+            return currentPlaylistIndex > 0
+        }
+
     override suspend fun skipToNext() {
-        currentPlaylistIndex = (currentPlaylistIndex + 1) % samplePlaylist.size
+        val currentState = _stateFlow.value
+        if (!currentState.hasNext) return
+
+        if (currentPlaylistIndex < samplePlaylist.size - 1) {
+            currentPlaylistIndex++
+        } else if (currentState.isShuffleEnabled && samplePlaylist.size > 1) {
+            currentPlaylistIndex = (currentPlaylistIndex + 1) % samplePlaylist.size
+        }
         val nextSong = samplePlaylist[currentPlaylistIndex]
-        val currentPlaying = _stateFlow.value.isPlaying
-        val newState = _stateFlow.value.copy(
+        val currentPlaying = currentState.isPlaying
+        val nextHasNext = currentHasNext
+        val nextHasPrev = currentHasPrevious
+
+        val newState = currentState.copy(
             currentSong = nextSong,
             currentPositionMs = 0L,
             durationMs = nextSong.duration.coerceAtLeast(1L),
             isPlaying = currentPlaying,
             isFavorite = nextSong.isFavorite,
+            hasNext = nextHasNext,
+            hasPrevious = nextHasPrev,
             lastUpdatedTimestamp = System.currentTimeMillis()
         )
         _stateFlow.value = newState
@@ -143,15 +171,27 @@ class WidgetMusicRepositoryImpl @Inject constructor(
     }
 
     override suspend fun skipToPrevious() {
-        currentPlaylistIndex = if (currentPlaylistIndex - 1 < 0) samplePlaylist.size - 1 else currentPlaylistIndex - 1
+        val currentState = _stateFlow.value
+        if (!currentState.hasPrevious) return
+
+        if (currentPlaylistIndex > 0) {
+            currentPlaylistIndex--
+        } else if (currentState.isShuffleEnabled && samplePlaylist.size > 1) {
+            currentPlaylistIndex = if (currentPlaylistIndex - 1 < 0) samplePlaylist.size - 1 else currentPlaylistIndex - 1
+        }
         val prevSong = samplePlaylist[currentPlaylistIndex]
-        val currentPlaying = _stateFlow.value.isPlaying
-        val newState = _stateFlow.value.copy(
+        val currentPlaying = currentState.isPlaying
+        val prevHasNext = currentHasNext
+        val prevHasPrev = currentHasPrevious
+
+        val newState = currentState.copy(
             currentSong = prevSong,
             currentPositionMs = 0L,
             durationMs = prevSong.duration.coerceAtLeast(1L),
             isPlaying = currentPlaying,
             isFavorite = prevSong.isFavorite,
+            hasNext = prevHasNext,
+            hasPrevious = prevHasPrev,
             lastUpdatedTimestamp = System.currentTimeMillis()
         )
         _stateFlow.value = newState
@@ -167,8 +207,12 @@ class WidgetMusicRepositoryImpl @Inject constructor(
     override suspend fun toggleShuffle() {
         val currentState = _stateFlow.value
         val newShuffle = !currentState.isShuffleEnabled
+        val newHasNext = if (newShuffle && samplePlaylist.size > 1) true else currentPlaylistIndex < samplePlaylist.size - 1
+        val newHasPrevious = if (newShuffle && samplePlaylist.size > 1) true else currentPlaylistIndex > 0
         val newState = currentState.copy(
             isShuffleEnabled = newShuffle,
+            hasNext = newHasNext,
+            hasPrevious = newHasPrevious,
             lastUpdatedTimestamp = System.currentTimeMillis()
         )
         _stateFlow.value = newState
@@ -232,7 +276,9 @@ class WidgetMusicRepositoryImpl @Inject constructor(
         positionMs: Long,
         durationMs: Long,
         isShuffle: Boolean,
-        isFavorite: Boolean
+        isFavorite: Boolean,
+        hasNext: Boolean,
+        hasPrevious: Boolean
     ) {
         val current = _stateFlow.value
         val currentSongId = current.currentSong?.id
@@ -268,6 +314,8 @@ class WidgetMusicRepositoryImpl @Inject constructor(
             durationMs = resolvedDuration,
             isShuffleEnabled = isShuffle,
             isFavorite = isFavorite,
+            hasNext = hasNext,
+            hasPrevious = hasPrevious,
             lastUpdatedTimestamp = System.currentTimeMillis()
         )
 
@@ -362,6 +410,8 @@ class WidgetMusicRepositoryImpl @Inject constructor(
                 prefs[WidgetPreferencesKeys.KEY_DURATION] = state.durationMs
                 prefs[WidgetPreferencesKeys.KEY_IS_SHUFFLE] = state.isShuffleEnabled
                 prefs[WidgetPreferencesKeys.KEY_IS_FAVORITE] = state.isFavorite
+                prefs[WidgetPreferencesKeys.KEY_HAS_NEXT] = state.hasNext
+                prefs[WidgetPreferencesKeys.KEY_HAS_PREVIOUS] = state.hasPrevious
                 prefs[WidgetPreferencesKeys.KEY_REVISION] = state.lastUpdatedTimestamp
             }
 
