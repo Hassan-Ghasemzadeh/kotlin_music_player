@@ -15,4 +15,22 @@
     <!-- Widgets -->
     <string name="widget_glassmorphism_player_description" translatable="false">Glassmorphism Music Player Widget</string>
     <string name="widget_lyric_ticker_description" translatable="false">Scrolling Synced Lyrics Widget</string>
+
+    <!-- Widget Previews -->
+    <string name="widget_preview_title_player" translatable="false">Midnight City</string>
+    <string name="widget_preview_artist_player" translatable="false">M83</string>
+    <string name="widget_preview_album_player" translatable="false">Hurry Up, We\'re Dreaming</string>
+    <string name="widget_preview_progress_player" translatable="false">65%</string>
+    <string name="widget_preview_title_lyrics" translatable="false">Starboy</string>
+    <string name="widget_preview_artist_lyrics" translatable="false">The Weeknd</string>
+    <string name="widget_preview_lyric_line1" translatable="false">I\'m tryna put you in the worst mood, ah</string>
+    <string name="widget_preview_lyric_line2" translatable="false">P1 cleaner than your church shoes, ah</string>
+    <string name="widget_preview_lyric_line3" translatable="false">Milli main in walk, talking to the rain</string>
+    <string name="widget_preview_lyric_line4" translatable="false">Talkin\' to the ceiling, talkin\' to the pain</string>
+    <string name="widget_cd_previous" translatable="false">Previous Track</string>
+    <string name="widget_cd_pause" translatable="false">Pause</string>
+    <string name="widget_cd_next" translatable="false">Next Track</string>
+    <string name="widget_cd_shuffle" translatable="false">Shuffle</string>
+    <string name="widget_cd_like" translatable="false">Like Track</string>
+    <string name="widget_cd_album_art" translatable="false">Album Art</string>
 </resources>
