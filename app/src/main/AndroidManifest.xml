@@ -18,6 +18,13 @@
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="com.google.android.gms.permission.AD_ID"/>
 
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.HOME" />
+        </intent>
+    </queries>
+
     <application
         android:name=".MusicPlayerApplication"
         android:allowBackup="true"
@@ -64,6 +71,32 @@
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
             </intent-filter>
         </service>
+
+        <!-- Widget 1: Glassmorphism Music Player Widget -->
+        <receiver
+            android:name=".widget.player.GlassmorphismWidgetReceiver"
+            android:exported="true"
+            android:label="Glassmorphism Music Player">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/glassmorphism_player_widget_info" />
+        </receiver>
+
+        <!-- Widget 2: Scrolling Lyric Ticker Widget -->
+        <receiver
+            android:name=".widget.lyrics.LyricTickerWidgetReceiver"
+            android:exported="true"
+            android:label="Scrolling Lyric Ticker">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/lyric_ticker_widget_info" />
+        </receiver>
     </application>
 
 </manifest>

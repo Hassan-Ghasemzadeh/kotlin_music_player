@@ -59,3 +59,12 @@
 # ====================================================================
 -keep class org.jaudiotagger.** { *; }
 -dontwarn org.jaudiotagger.**
+
+# ====================================================================
+# Jetpack Glance Widgets & ActionCallbacks
+# ====================================================================
+-keep class * implements androidx.glance.appwidget.action.ActionCallback {
+    public <init>();
+}
+-keep class androidx.glance.appwidget.** { *; }
+

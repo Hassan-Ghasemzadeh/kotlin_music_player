@@ -11,4 +11,8 @@
     <string name="shortcut_favorites_long">Open Favorites Library</string>
     <string name="shortcut_search">Search</string>
     <string name="shortcut_search_long">Search Tracks, Artists &amp; Albums</string>
+
+    <!-- Widgets -->
+    <string name="widget_glassmorphism_player_description" translatable="false">Glassmorphism Music Player Widget</string>
+    <string name="widget_lyric_ticker_description" translatable="false">Scrolling Synced Lyrics Widget</string>
 </resources>
