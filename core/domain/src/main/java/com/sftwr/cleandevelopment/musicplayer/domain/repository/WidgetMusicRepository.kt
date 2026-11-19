@@ -72,6 +72,8 @@ interface WidgetMusicRepository {
         positionMs: Long,
         durationMs: Long,
         isShuffle: Boolean,
-        isFavorite: Boolean
+        isFavorite: Boolean,
+        hasNext: Boolean = true,
+        hasPrevious: Boolean = true
     )
 }
