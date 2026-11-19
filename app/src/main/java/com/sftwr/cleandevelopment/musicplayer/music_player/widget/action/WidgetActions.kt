@@ -31,10 +31,14 @@ class SkipNextAction : ActionCallback {
             context.applicationContext,
             WidgetEntryPoint::class.java
         )
-        entryPoint.skipToNextUseCase().invoke()
+        val currentState = entryPoint.getCurrentlyPlayingUseCase().getDirect()
+        if (currentState.hasNext) {
+            entryPoint.skipToNextUseCase().invoke()
+        }
         WidgetStateUpdater.updateAllWidgets(context)
     }
 }
+typealias NextActionCallback = SkipNextAction
 
 /**
  * ActionCallback to skip to the previous track.
@@ -45,10 +49,14 @@ class SkipPreviousAction : ActionCallback {
             context.applicationContext,
             WidgetEntryPoint::class.java
         )
-        entryPoint.skipToPreviousUseCase().invoke()
+        val currentState = entryPoint.getCurrentlyPlayingUseCase().getDirect()
+        if (currentState.hasPrevious) {
+            entryPoint.skipToPreviousUseCase().invoke()
+        }
         WidgetStateUpdater.updateAllWidgets(context)
     }
 }
+typealias PreviousActionCallback = SkipPreviousAction
 
 /**
  * ActionCallback to toggle Shuffle mode.
