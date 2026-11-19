@@ -462,6 +462,7 @@ class PlayerManager @Inject constructor(
 
             override fun onIsPlayingChanged(isPlayingState: Boolean) {
                 updateIsPlayingState()
+                saveCurrentPlaybackState()
                 if (isPlayingState) {
                     val sessionId = exoPlayer.audioSessionId
                     if (sessionId > 0) {
@@ -478,8 +479,6 @@ class PlayerManager @Inject constructor(
                             }
                         }
                     }
-                } else {
-                    saveCurrentPlaybackState()
                 }
             }
 
@@ -1050,6 +1049,7 @@ class PlayerManager @Inject constructor(
             }
             startPlaybackService()
             loadArtworkForIndex(startIndex)
+            saveCurrentPlaybackState()
         }
     }
 
@@ -1083,6 +1083,7 @@ class PlayerManager @Inject constructor(
             currentPlayer.setMediaItem(mediaItem)
             currentPlayer.prepare()
             currentPlayer.play()
+            saveCurrentPlaybackState()
         }
     }
 
