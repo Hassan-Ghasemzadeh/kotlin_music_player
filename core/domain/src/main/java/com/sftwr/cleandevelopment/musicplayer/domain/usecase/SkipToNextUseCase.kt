@@ -10,6 +10,9 @@ class SkipToNextUseCase @Inject constructor(
     private val repository: WidgetMusicRepository
 ) {
     suspend operator fun invoke() {
-        repository.skipToNext()
+        val currentState = repository.getWidgetPlaybackStateDirect()
+        if (currentState.hasNext) {
+            repository.skipToNext()
+        }
     }
 }
