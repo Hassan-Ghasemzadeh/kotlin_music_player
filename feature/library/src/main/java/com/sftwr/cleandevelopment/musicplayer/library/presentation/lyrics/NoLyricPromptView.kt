@@ -11,16 +11,20 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -41,7 +45,8 @@ import com.sftwr.cleandevelopment.musicplayer.home.R
 @Composable
 fun NoLyricPromptView(
     onClick: () -> Unit,
-    modifier: Modifier = Modifier
+    onCloseClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val accent = LocalColorPalette.current.accent
 
@@ -51,67 +56,118 @@ fun NoLyricPromptView(
         targetValue = 1.05f,
         animationSpec = infiniteRepeatable(
             animation = tween(1200, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
+            repeatMode = RepeatMode.Reverse,
         ),
-        label = "pulseScale"
+        label = "pulseScale",
     )
 
     Surface(
         modifier = modifier
             .fillMaxSize()
-            .clip(RoundedCornerShape(24.dp))
-            .clickable(onClick = onClick),
-        color = Color.Black.copy(alpha = 0.5f)
+            .clip(RoundedCornerShape(24.dp)),
+        color = Color.Black.copy(alpha = 0.5f),
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(16.dp),
         ) {
-            Box(
+            // Header with title and close button
+            Row(
                 modifier = Modifier
-                    .size(90.dp)
-                    .scale(pulseScale)
-                    .background(accent.copy(alpha = 0.2f), CircleShape),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .padding(bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
-                Box(
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = stringResource(R.string.lyric_title),
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                        ),
+                    )
+                    Text(
+                        text = stringResource(R.string.lyric_not_found),
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = Color.White.copy(alpha = 0.6f),
+                        ),
+                    )
+                }
+
+                IconButton(
+                    onClick = onCloseClick,
                     modifier = Modifier
-                        .size(68.dp)
-                        .background(accent.copy(alpha = 0.35f), CircleShape),
-                    contentAlignment = Alignment.Center
+                        .size(36.dp)
+                        .background(Color.White.copy(alpha = 0.12f), CircleShape),
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Search,
-                        contentDescription = stringResource(R.string.lyric_click_to_find),
+                        imageVector = Icons.Default.Close,
+                        contentDescription = stringResource(R.string.close),
                         tint = Color.White,
-                        modifier = Modifier.size(36.dp)
+                        modifier = Modifier.size(20.dp),
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+            // Interactive prompt body to search for lyrics
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(16.dp))
+                    .clickable(onClick = onClick),
+                contentAlignment = Alignment.Center,
+            ) {
+                Column(
+                    modifier = Modifier.padding(24.dp),
+                    verticalArrangement = Arrangement.Center,
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(90.dp)
+                            .scale(pulseScale)
+                            .background(accent.copy(alpha = 0.2f), CircleShape),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(68.dp)
+                                .background(accent.copy(alpha = 0.35f), CircleShape),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Search,
+                                contentDescription = stringResource(R.string.lyric_click_to_find),
+                                tint = Color.White,
+                                modifier = Modifier.size(36.dp),
+                            )
+                        }
+                    }
 
-            Text(
-                text = stringResource(R.string.lyric_click_to_find),
-                style = MaterialTheme.typography.titleLarge.copy(
-                    fontWeight = FontWeight.Bold,
-                    color = Color.White,
-                    textAlign = TextAlign.Center
-                )
-            )
+                    Spacer(modifier = Modifier.height(20.dp))
 
-            Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = stringResource(R.string.lyric_click_to_find),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = Color.White,
+                            textAlign = TextAlign.Center,
+                        ),
+                    )
 
-            Text(
-                text = stringResource(R.string.lyric_source_dialog_title),
-                style = MaterialTheme.typography.bodyMedium.copy(
-                    color = Color.White.copy(alpha = 0.7f),
-                    textAlign = TextAlign.Center
-                )
-            )
+                    Spacer(modifier = Modifier.height(8.dp))
+
+                    Text(
+                        text = stringResource(R.string.lyric_source_dialog_title),
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            color = Color.White.copy(alpha = 0.7f),
+                            textAlign = TextAlign.Center,
+                        ),
+                    )
+                }
+            }
         }
     }
 }
