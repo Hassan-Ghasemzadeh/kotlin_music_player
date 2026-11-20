@@ -441,12 +441,13 @@ class WidgetMusicRepositoryImpl @Inject constructor(
 
                 val newPos = current.currentPositionMs + 1000L
                 if (newPos >= current.durationMs && current.durationMs > 0L) {
-                    _stateFlow.value = current.copy(
+                    val endedState = current.copy(
                         currentPositionMs = current.durationMs,
                         isPlaying = false,
                         lastUpdatedTimestamp = System.currentTimeMillis()
                     )
-                    persistStateToDataStore(_stateFlow.value)
+                    _stateFlow.value = endedState
+                    persistStateToDataStore(endedState)
                     break
                 } else {
                     val updated = current.copy(
@@ -454,7 +455,6 @@ class WidgetMusicRepositoryImpl @Inject constructor(
                         lastUpdatedTimestamp = System.currentTimeMillis()
                     )
                     _stateFlow.value = updated
-                    persistStateToDataStore(updated)
                 }
             }
         }
