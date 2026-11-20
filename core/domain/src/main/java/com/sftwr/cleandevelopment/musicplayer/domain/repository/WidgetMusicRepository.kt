@@ -76,4 +76,9 @@ interface WidgetMusicRepository {
         hasNext: Boolean = true,
         hasPrevious: Boolean = true
     )
+
+    /**
+     * Triggers lyric re-fetching and widget state refresh for the specified song ID.
+     */
+    suspend fun refreshLyricsForSong(songId: Long)
 }
