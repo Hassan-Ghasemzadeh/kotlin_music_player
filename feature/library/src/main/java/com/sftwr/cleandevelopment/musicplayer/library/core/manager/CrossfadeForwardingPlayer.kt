@@ -38,9 +38,13 @@ class CrossfadeForwardingPlayer(
 
         val currentItem = newPlayer.currentMediaItem
         val isPlayingState = newPlayer.isPlaying
+        val playbackState = newPlayer.playbackState
+        val playWhenReady = newPlayer.playWhenReady
         listeners.forEach { listener ->
             runCatching { listener.onMediaItemTransition(currentItem, MEDIA_ITEM_TRANSITION_REASON_AUTO) }
             runCatching { listener.onIsPlayingChanged(isPlayingState) }
+            runCatching { listener.onPlaybackStateChanged(playbackState) }
+            runCatching { listener.onPlayWhenReadyChanged(playWhenReady, PLAY_WHEN_READY_CHANGE_REASON_USER_REQUEST) }
         }
     }
 
@@ -73,7 +77,14 @@ class CrossfadeForwardingPlayer(
     override fun pause() = activePlayer.pause()
     override fun prepare() = activePlayer.prepare()
     override fun stop() = activePlayer.stop()
-    override fun release() = activePlayer.release()
+
+    /**
+     * The standard [release] method is intentionally guarded to protect application-scoped
+     * singleton player instances from accidental disposal by external components (e.g. MediaSession).
+     */
+    override fun release() {
+        // No-op to protect singleton player instances.
+    }
 
     override fun isPlaying(): Boolean = activePlayer.isPlaying
     override fun getPlayWhenReady(): Boolean = activePlayer.playWhenReady
