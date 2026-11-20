@@ -24,7 +24,6 @@ import javax.inject.Inject
  * ViewModel responsible for managing search query inputs reactively, executing song search,
  * handling audio track deletions, playlists, favorites, and mapping query result sets to UI models.
  */
-@RequiresApi(Build.VERSION_CODES.S)
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val getDeviceSongsUseCase: GetDeviceSongsUseCase,
@@ -142,7 +141,6 @@ class SearchViewModel @Inject constructor(
     /**
      * Refreshes search cache and re-fetches device tracks list asynchronously.
      */
-    @RequiresApi(Build.VERSION_CODES.S)
     fun refreshSearch() {
         // Handled reactively by getDeviceSongsUseCase flow collection
     }
