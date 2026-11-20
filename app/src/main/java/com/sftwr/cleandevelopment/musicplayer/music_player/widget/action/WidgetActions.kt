@@ -13,12 +13,14 @@ import dagger.hilt.android.EntryPointAccessors
  */
 class TogglePlayPauseAction : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        val entryPoint = EntryPointAccessors.fromApplication(
-            context.applicationContext,
-            WidgetEntryPoint::class.java
-        )
-        entryPoint.togglePlayPauseUseCase().invoke()
-        WidgetStateUpdater.updateAllWidgets(context)
+        runCatching {
+            val entryPoint = EntryPointAccessors.fromApplication(
+                context.applicationContext,
+                WidgetEntryPoint::class.java
+            )
+            entryPoint.togglePlayPauseUseCase().invoke()
+            WidgetStateUpdater.updateAllWidgets(context)
+        }
     }
 }
 
@@ -27,15 +29,17 @@ class TogglePlayPauseAction : ActionCallback {
  */
 class SkipNextAction : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        val entryPoint = EntryPointAccessors.fromApplication(
-            context.applicationContext,
-            WidgetEntryPoint::class.java
-        )
-        val currentState = entryPoint.getCurrentlyPlayingUseCase().getDirect()
-        if (currentState.hasNext) {
-            entryPoint.skipToNextUseCase().invoke()
+        runCatching {
+            val entryPoint = EntryPointAccessors.fromApplication(
+                context.applicationContext,
+                WidgetEntryPoint::class.java
+            )
+            val currentState = entryPoint.getCurrentlyPlayingUseCase().getDirect()
+            if (currentState.hasNext) {
+                entryPoint.skipToNextUseCase().invoke()
+            }
+            WidgetStateUpdater.updateAllWidgets(context)
         }
-        WidgetStateUpdater.updateAllWidgets(context)
     }
 }
 typealias NextActionCallback = SkipNextAction
@@ -45,15 +49,17 @@ typealias NextActionCallback = SkipNextAction
  */
 class SkipPreviousAction : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        val entryPoint = EntryPointAccessors.fromApplication(
-            context.applicationContext,
-            WidgetEntryPoint::class.java
-        )
-        val currentState = entryPoint.getCurrentlyPlayingUseCase().getDirect()
-        if (currentState.hasPrevious) {
-            entryPoint.skipToPreviousUseCase().invoke()
+        runCatching {
+            val entryPoint = EntryPointAccessors.fromApplication(
+                context.applicationContext,
+                WidgetEntryPoint::class.java
+            )
+            val currentState = entryPoint.getCurrentlyPlayingUseCase().getDirect()
+            if (currentState.hasPrevious) {
+                entryPoint.skipToPreviousUseCase().invoke()
+            }
+            WidgetStateUpdater.updateAllWidgets(context)
         }
-        WidgetStateUpdater.updateAllWidgets(context)
     }
 }
 typealias PreviousActionCallback = SkipPreviousAction
@@ -63,12 +69,14 @@ typealias PreviousActionCallback = SkipPreviousAction
  */
 class ToggleShuffleAction : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        val entryPoint = EntryPointAccessors.fromApplication(
-            context.applicationContext,
-            WidgetEntryPoint::class.java
-        )
-        entryPoint.toggleShuffleUseCase().invoke()
-        WidgetStateUpdater.updateAllWidgets(context)
+        runCatching {
+            val entryPoint = EntryPointAccessors.fromApplication(
+                context.applicationContext,
+                WidgetEntryPoint::class.java
+            )
+            entryPoint.toggleShuffleUseCase().invoke()
+            WidgetStateUpdater.updateAllWidgets(context)
+        }
     }
 }
 
@@ -77,12 +85,14 @@ class ToggleShuffleAction : ActionCallback {
  */
 class ToggleLikeAction : ActionCallback {
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        val entryPoint = EntryPointAccessors.fromApplication(
-            context.applicationContext,
-            WidgetEntryPoint::class.java
-        )
-        entryPoint.toggleLikeUseCase().invoke()
-        WidgetStateUpdater.updateAllWidgets(context)
+        runCatching {
+            val entryPoint = EntryPointAccessors.fromApplication(
+                context.applicationContext,
+                WidgetEntryPoint::class.java
+            )
+            entryPoint.toggleLikeUseCase().invoke()
+            WidgetStateUpdater.updateAllWidgets(context)
+        }
     }
 }
 
@@ -95,12 +105,14 @@ class SeekToPositionAction : ActionCallback {
     }
 
     override suspend fun onAction(context: Context, glanceId: GlanceId, parameters: ActionParameters) {
-        val positionMs = parameters[KEY_POSITION_MS] ?: return
-        val entryPoint = EntryPointAccessors.fromApplication(
-            context.applicationContext,
-            WidgetEntryPoint::class.java
-        )
-        entryPoint.seekToUseCase().invoke(positionMs)
-        WidgetStateUpdater.updateAllWidgets(context)
+        runCatching {
+            val positionMs = parameters[KEY_POSITION_MS] ?: return
+            val entryPoint = EntryPointAccessors.fromApplication(
+                context.applicationContext,
+                WidgetEntryPoint::class.java
+            )
+            entryPoint.seekToUseCase().invoke(positionMs)
+            WidgetStateUpdater.updateAllWidgets(context)
+        }
     }
 }
