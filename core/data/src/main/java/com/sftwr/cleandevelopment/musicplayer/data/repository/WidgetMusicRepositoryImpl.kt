@@ -6,6 +6,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
+import com.sftwr.cleandevelopment.musicplayer.data.util.LrcParser
 import com.sftwr.cleandevelopment.musicplayer.domain.model.Song
 import com.sftwr.cleandevelopment.musicplayer.domain.model.WidgetPlaybackState
 import com.sftwr.cleandevelopment.musicplayer.domain.player.PlayerControlBridge
@@ -26,7 +27,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Provider
@@ -44,6 +44,8 @@ class WidgetMusicRepositoryImpl @Inject constructor(
 
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var tickerJob: Job? = null
+    private var lyricsObserverJob: Job? = null
+    private var currentObservedSongId: Long? = null
     private val lyricsCache = ConcurrentHashMap<Long, Lyric>()
 
     private val samplePlaylist = listOf(
@@ -138,12 +140,13 @@ class WidgetMusicRepositoryImpl @Inject constructor(
                         lastUpdatedTimestamp = revision
                     )
                     _stateFlow.value = restoredState
-                    loadLyricsForCurrentSong(songId)
+                    observeLyricsForCurrentSong(songId)
                     startPositionTickerIfNeeded(isPlaying)
                     return@launch
                 }
             }
-            loadLyricsForCurrentSong(_stateFlow.value.currentSong?.id ?: 101L)
+            val initialSongId = _stateFlow.value.currentSong?.id ?: 101L
+            observeLyricsForCurrentSong(initialSongId)
             persistStateToDataStore(_stateFlow.value)
             startPositionTickerIfNeeded(_stateFlow.value.isPlaying)
         }
@@ -208,7 +211,7 @@ class WidgetMusicRepositoryImpl @Inject constructor(
             lastUpdatedTimestamp = System.currentTimeMillis()
         )
         _stateFlow.value = newState
-        loadLyricsForCurrentSong(nextSong.id)
+        observeLyricsForCurrentSong(nextSong.id)
         persistStateToDataStore(_stateFlow.value)
         startPositionTickerIfNeeded(currentPlaying)
 
@@ -242,7 +245,7 @@ class WidgetMusicRepositoryImpl @Inject constructor(
             lastUpdatedTimestamp = System.currentTimeMillis()
         )
         _stateFlow.value = newState
-        loadLyricsForCurrentSong(prevSong.id)
+        observeLyricsForCurrentSong(prevSong.id)
         persistStateToDataStore(_stateFlow.value)
         startPositionTickerIfNeeded(currentPlaying)
 
@@ -309,6 +312,7 @@ class WidgetMusicRepositoryImpl @Inject constructor(
 
     override suspend fun updateWidgetState(state: WidgetPlaybackState) {
         _stateFlow.value = state
+        state.currentSong?.id?.let { observeLyricsForCurrentSong(it) }
         persistStateToDataStore(state)
         startPositionTickerIfNeeded(state.isPlaying)
     }
@@ -328,9 +332,6 @@ class WidgetMusicRepositoryImpl @Inject constructor(
         hasPrevious: Boolean
     ) {
         val current = _stateFlow.value
-        val currentSongId = current.currentSong?.id
-        val isNewTrack = songId != null && songId != currentSongId
-
         val curSong = current.currentSong
         val resolvedDuration = when {
             durationMs > 0L -> durationMs
@@ -367,46 +368,63 @@ class WidgetMusicRepositoryImpl @Inject constructor(
         )
 
         _stateFlow.value = newState
-        if (isNewTrack && songId != null) {
-            loadLyricsForCurrentSong(songId)
+        if (songId != null) {
+            observeLyricsForCurrentSong(songId)
         }
         persistStateToDataStore(_stateFlow.value)
         startPositionTickerIfNeeded(isPlaying)
     }
 
-    private fun loadLyricsForCurrentSong(songId: Long) {
-        lyricsCache[songId]?.let { cached ->
-            _stateFlow.value = _stateFlow.value.copy(lyrics = cached)
+    override suspend fun refreshLyricsForSong(songId: Long) {
+        lyricsCache.remove(songId)
+        val currentSongId = _stateFlow.value.currentSong?.id
+        if (currentSongId == songId) {
+            currentObservedSongId = null
+            observeLyricsForCurrentSong(songId)
+        }
+    }
+
+    private fun observeLyricsForCurrentSong(songId: Long) {
+        if (currentObservedSongId == songId && lyricsObserverJob?.isActive == true) {
             return
         }
-
-        scope.launch(Dispatchers.IO) {
-            runCatching {
-                val fetchedLyric = lyricRepository.getLyricForSongDirect(songId)
+        currentObservedSongId = songId
+        lyricsObserverJob?.cancel()
+        lyricsObserverJob = scope.launch(Dispatchers.IO) {
+            lyricRepository.getLyricForSong(songId).collect { fetchedLyric ->
                 val mappedLyric = if (fetchedLyric != null && fetchedLyric.content.isNotBlank()) {
                     if (fetchedLyric.lines.isNotEmpty()) {
                         fetchedLyric
                     } else {
-                        val plainLines = fetchedLyric.content
-                            .lines()
-                            .map { it.trim() }
-                            .filter { it.isNotEmpty() }
-                            .mapIndexed { index, lineText ->
-                                LyricLine(timeMs = index * 4000L, text = lineText)
-                            }
-                        fetchedLyric.copy(lines = plainLines)
+                        val parsed = LrcParser.parse(fetchedLyric.content)
+                        if (parsed.lines.isNotEmpty()) {
+                            fetchedLyric.copy(lines = parsed.lines, isSynced = parsed.isSynced)
+                        } else {
+                            val plainLines = fetchedLyric.content
+                                .lines()
+                                .map { it.trim() }
+                                .filter { it.isNotEmpty() }
+                                .mapIndexed { index, lineText ->
+                                    LyricLine(timeMs = index * 4000L, text = lineText)
+                                }
+                            fetchedLyric.copy(lines = plainLines)
+                        }
                     }
                 } else null
 
                 if (mappedLyric != null) {
                     lyricsCache[songId] = mappedLyric
+                } else {
+                    lyricsCache.remove(songId)
                 }
-                withContext(Dispatchers.Main) {
-                    _stateFlow.value = _stateFlow.value.copy(lyrics = mappedLyric)
-                    persistStateToDataStore(_stateFlow.value)
-                }
-            }.onFailure {
-                _stateFlow.value = _stateFlow.value.copy(lyrics = null)
+
+                val timestamp = System.currentTimeMillis()
+                val updatedState = _stateFlow.value.copy(
+                    lyrics = mappedLyric,
+                    lastUpdatedTimestamp = timestamp
+                )
+                _stateFlow.value = updatedState
+                persistStateToDataStore(updatedState)
             }
         }
     }
