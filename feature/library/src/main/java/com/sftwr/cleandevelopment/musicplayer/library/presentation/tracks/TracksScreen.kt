@@ -590,7 +590,6 @@ fun TrackItem(
     }
 }
 
-@RequiresApi(Build.VERSION_CODES.S)
 @Preview(showBackground = true)
 @Composable
 fun TracksScreenPreview() {
