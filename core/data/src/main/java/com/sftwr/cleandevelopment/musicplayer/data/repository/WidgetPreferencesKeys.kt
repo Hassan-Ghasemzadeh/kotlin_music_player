@@ -1,6 +1,7 @@
 package com.sftwr.cleandevelopment.musicplayer.data.repository
 
 import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
 
@@ -22,4 +23,5 @@ object WidgetPreferencesKeys {
     val KEY_HAS_PREVIOUS = booleanPreferencesKey("widget_has_previous")
     val KEY_LYRICS_JSON = stringPreferencesKey("widget_lyrics_json")
     val KEY_REVISION = longPreferencesKey("widget_revision")
+    val KEY_ACTIVE_LYRIC_INDEX = intPreferencesKey("widget_active_lyric_index")
 }
