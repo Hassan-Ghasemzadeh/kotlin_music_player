@@ -64,4 +64,32 @@ class CrossfadeForwardingPlayerTest {
         assertFalse(listenersA.contains(testListener))
         assertTrue(listenersB.contains(testListener))
     }
+
+    @Test
+    fun `calling release on forwarding player does not release underlying delegate`() {
+        var releaseCalled = false
+        val listeners = mutableSetOf<Player.Listener>()
+        val fakePlayer = Proxy.newProxyInstance(
+            ExoPlayer::class.java.classLoader,
+            arrayOf(ExoPlayer::class.java)
+        ) { _, method, args ->
+            if (method.name == "release") {
+                releaseCalled = true
+                null
+            } else {
+                when (method.returnType) {
+                    Boolean::class.javaPrimitiveType -> false
+                    Int::class.javaPrimitiveType -> 0
+                    Long::class.javaPrimitiveType -> 0L
+                    Float::class.javaPrimitiveType -> 0f
+                    else -> null
+                }
+            }
+        } as ExoPlayer
+
+        val forwardingPlayer = CrossfadeForwardingPlayer(fakePlayer)
+        forwardingPlayer.release()
+
+        assertFalse("Underlying ExoPlayer should not be released by forwarding player release call", releaseCalled)
+    }
 }
