@@ -38,7 +38,6 @@ import com.sftwr.cleandevelopment.musicplayer.model.Screen
  * Main application navigation graph hosting all top-level destinations, feature graphs,
  * and type-safe screen routes using Jetpack Compose Navigation.
  */
-@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun AppNavGraph(
     navController: NavHostController,
