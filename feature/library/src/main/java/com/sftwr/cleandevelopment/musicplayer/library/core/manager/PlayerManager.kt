@@ -275,48 +275,50 @@ class PlayerManager @Inject constructor(
     private var isSettingQueue = false
 
     fun saveCurrentPlaybackState() {
-        val song = _currentSong.value ?: return
-        val positionMs = runCatching { currentPlayer.currentPosition }.getOrDefault(0L).coerceAtLeast(0L)
-        val isPlayingState = _isPlaying.value
-        val isShuffleState = _isShuffleEnabled.value || runCatching { exoPlayer.shuffleModeEnabled }.getOrDefault(false)
-        val songIdLong = song.id.toLongOrNull() ?: -1L
-        val durMs = if (song.durationInMs > 0L) song.durationInMs else runCatching { currentPlayer.duration }.getOrDefault(0L)
-        val hasNextState = hasNext
-        val hasPreviousState = hasPrevious
+        runOnMainThread {
+            val song = _currentSong.value ?: return@runOnMainThread
+            val positionMs = runCatching { currentPlayer.currentPosition }.getOrDefault(0L).coerceAtLeast(0L)
+            val isPlayingState = _isPlaying.value
+            val isShuffleState = _isShuffleEnabled.value || runCatching { exoPlayer.shuffleModeEnabled }.getOrDefault(false)
+            val songIdLong = song.id.toLongOrNull() ?: -1L
+            val durMs = if (song.durationInMs > 0L) song.durationInMs else runCatching { currentPlayer.duration }.getOrDefault(0L)
+            val hasNextState = hasNext
+            val hasPreviousState = hasPrevious
 
-        playerScope.launch(Dispatchers.IO) {
-            songPreferencesRepository.saveLastPlayedSong(
-                LastPlayedSongState(
-                    songId = song.id,
-                    title = song.title,
-                    artist = song.artist,
-                    uri = song.uri,
-                    duration = song.duration,
-                    durationInMs = song.durationInMs,
-                    positionMs = positionMs,
-                    album = song.album,
-                    albumId = song.albumId,
-                    albumArtUri = song.albumArtUri.orEmpty(),
-                    year = song.year,
-                    genre = song.genre
+            playerScope.launch(Dispatchers.IO) {
+                songPreferencesRepository.saveLastPlayedSong(
+                    LastPlayedSongState(
+                        songId = song.id,
+                        title = song.title,
+                        artist = song.artist,
+                        uri = song.uri,
+                        duration = song.duration,
+                        durationInMs = song.durationInMs,
+                        positionMs = positionMs,
+                        album = song.album,
+                        albumId = song.albumId,
+                        albumArtUri = song.albumArtUri.orEmpty(),
+                        year = song.year,
+                        genre = song.genre
+                    )
                 )
-            )
 
-            runCatching {
-                widgetMusicRepository.syncPlaybackState(
-                    songId = songIdLong,
-                    title = song.title,
-                    artist = song.artist,
-                    album = song.album,
-                    albumArtUri = song.albumArtUri,
-                    isPlaying = isPlayingState,
-                    positionMs = positionMs,
-                    durationMs = if (durMs > 0L) durMs else 1L,
-                    isShuffle = isShuffleState,
-                    isFavorite = song.isFavorite,
-                    hasNext = hasNextState,
-                    hasPrevious = hasPreviousState
-                )
+                runCatching {
+                    widgetMusicRepository.syncPlaybackState(
+                        songId = songIdLong,
+                        title = song.title,
+                        artist = song.artist,
+                        album = song.album,
+                        albumArtUri = song.albumArtUri,
+                        isPlaying = isPlayingState,
+                        positionMs = positionMs,
+                        durationMs = if (durMs > 0L) durMs else 1L,
+                        isShuffle = isShuffleState,
+                        isFavorite = song.isFavorite,
+                        hasNext = hasNextState,
+                        hasPrevious = hasPreviousState
+                    )
+                }
             }
         }
     }
@@ -531,9 +533,34 @@ class PlayerManager @Inject constructor(
     }
 
     override fun toggleFavorite(songId: Long, isFavorite: Boolean) {
-        playerScope.launch(Dispatchers.IO) {
-            playlistRepository.toggleFavorite(songId, isFavorite)
+        runOnMainThread {
+            updateSongFavoriteState(songId, isFavorite)
             saveCurrentPlaybackState()
+            playerScope.launch(Dispatchers.IO) {
+                runCatching {
+                    playlistRepository.toggleFavorite(songId, isFavorite)
+                }
+            }
+        }
+    }
+
+    private fun updateSongFavoriteState(songIdLong: Long, isFavorite: Boolean) {
+        val songIdStr = songIdLong.toString()
+        _currentSong.value?.let { current ->
+            if (current.id == songIdStr || current.id.toLongOrNull() == songIdLong) {
+                _currentSong.value = current.copy(isFavorite = isFavorite)
+            }
+        }
+        activeQueue = activeQueue.map { song ->
+            if (song.id == songIdStr || song.id.toLongOrNull() == songIdLong) {
+                song.copy(isFavorite = isFavorite)
+            } else song
+        }
+        _queue.value = activeQueue
+        _allSongs.value = _allSongs.value.map { song ->
+            if (song.id == songIdStr || song.id.toLongOrNull() == songIdLong) {
+                song.copy(isFavorite = isFavorite)
+            } else song
         }
     }
 
