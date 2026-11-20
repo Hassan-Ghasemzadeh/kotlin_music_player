@@ -94,6 +94,7 @@ class LyricTickerWidget : GlanceAppWidget() {
             val artist = prefs[WidgetPreferencesKeys.KEY_ARTIST_NAME] ?: directState.currentSong?.artist ?: "Unknown Artist"
             val songId = prefs[WidgetPreferencesKeys.KEY_SONG_ID] ?: directState.currentSong?.id ?: -1L
             val rawLyrics = prefs[WidgetPreferencesKeys.KEY_LYRICS_JSON]
+            val revision = prefs[WidgetPreferencesKeys.KEY_REVISION] ?: directState.lastUpdatedTimestamp
 
             val activeLyrics = when {
                 !rawLyrics.isNullOrBlank() -> {
@@ -127,6 +128,7 @@ class LyricTickerWidget : GlanceAppWidget() {
                 hasNext = hasNext,
                 hasPrevious = hasPrevious,
                 lyrics = activeLyrics,
+                lastUpdatedTimestamp = revision,
                 currentSong = directState.currentSong?.copy(
                     id = songId,
                     title = title,
@@ -137,6 +139,7 @@ class LyricTickerWidget : GlanceAppWidget() {
 
             val progressPercent = (activeState.progressRatio * 100).toInt()
             val positionBucket = activeState.currentPositionMs / 1000
+            val hasLyrics = activeLyrics != null && activeLyrics.lines.isNotEmpty()
 
             key(
                 songId,
@@ -147,8 +150,10 @@ class LyricTickerWidget : GlanceAppWidget() {
                 isFav,
                 hasNext,
                 hasPrevious,
+                hasLyrics,
                 activeLyrics?.lines?.size,
-                activeState.lastUpdatedTimestamp
+                rawLyrics?.hashCode(),
+                revision
             ) {
                 LyricTickerContent(state = activeState)
             }
