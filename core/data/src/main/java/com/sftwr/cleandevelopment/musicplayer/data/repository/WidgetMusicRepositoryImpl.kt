@@ -48,6 +48,11 @@ class WidgetMusicRepositoryImpl @Inject constructor(
     private var currentObservedSongId: Long? = null
     private val lyricsCache = ConcurrentHashMap<Long, Lyric>()
 
+    @Volatile
+    private var basePositionMs: Long = 0L
+    @Volatile
+    private var lastPositionSystemTime: Long = System.currentTimeMillis()
+
     private val samplePlaylist = listOf(
         Song(
             id = 101L,
@@ -140,16 +145,36 @@ class WidgetMusicRepositoryImpl @Inject constructor(
                         lastUpdatedTimestamp = revision
                     )
                     _stateFlow.value = restoredState
+                    updateBasePosition(position)
                     observeLyricsForCurrentSong(songId)
                     startPositionTickerIfNeeded(isPlaying)
                     return@launch
                 }
             }
             val initialSongId = _stateFlow.value.currentSong?.id ?: 101L
+            updateBasePosition(0L)
             observeLyricsForCurrentSong(initialSongId)
             persistStateToDataStore(_stateFlow.value)
             startPositionTickerIfNeeded(_stateFlow.value.isPlaying)
         }
+    }
+
+    private fun updateBasePosition(positionMs: Long) {
+        basePositionMs = positionMs.coerceAtLeast(0L)
+        lastPositionSystemTime = System.currentTimeMillis()
+    }
+
+    private fun calculateCurrentPositionMs(state: WidgetPlaybackState): Long {
+        if (!state.isPlaying) return state.currentPositionMs
+        val elapsed = System.currentTimeMillis() - lastPositionSystemTime
+        return (basePositionMs + elapsed).coerceIn(0L, state.durationMs.coerceAtLeast(0L))
+    }
+
+    private fun calculateLyricIndex(lyrics: Lyric?, positionMs: Long): Int {
+        val lines = lyrics?.lines ?: return -1
+        if (lines.isEmpty()) return -1
+        val index = lines.indexOfLast { it.timeMs <= positionMs }
+        return if (index >= 0) index else 0
     }
 
     override fun getWidgetPlaybackState(): Flow<WidgetPlaybackState> = _stateFlow.asStateFlow()
@@ -158,12 +183,15 @@ class WidgetMusicRepositoryImpl @Inject constructor(
 
     override suspend fun togglePlayPause() {
         val currentState = _stateFlow.value
+        val curPos = calculateCurrentPositionMs(currentState)
         val newIsPlaying = !currentState.isPlaying
         val newState = currentState.copy(
+            currentPositionMs = curPos,
             isPlaying = newIsPlaying,
             lastUpdatedTimestamp = System.currentTimeMillis()
         )
         _stateFlow.value = newState
+        updateBasePosition(curPos)
         persistStateToDataStore(newState)
         startPositionTickerIfNeeded(newIsPlaying)
 
@@ -211,6 +239,7 @@ class WidgetMusicRepositoryImpl @Inject constructor(
             lastUpdatedTimestamp = System.currentTimeMillis()
         )
         _stateFlow.value = newState
+        updateBasePosition(0L)
         observeLyricsForCurrentSong(nextSong.id)
         persistStateToDataStore(_stateFlow.value)
         startPositionTickerIfNeeded(currentPlaying)
@@ -245,6 +274,7 @@ class WidgetMusicRepositoryImpl @Inject constructor(
             lastUpdatedTimestamp = System.currentTimeMillis()
         )
         _stateFlow.value = newState
+        updateBasePosition(0L)
         observeLyricsForCurrentSong(prevSong.id)
         persistStateToDataStore(_stateFlow.value)
         startPositionTickerIfNeeded(currentPlaying)
@@ -256,16 +286,19 @@ class WidgetMusicRepositoryImpl @Inject constructor(
 
     override suspend fun toggleShuffle() {
         val currentState = _stateFlow.value
+        val curPos = calculateCurrentPositionMs(currentState)
         val newShuffle = !currentState.isShuffleEnabled
         val newHasNext = if (newShuffle && samplePlaylist.size > 1) true else currentPlaylistIndex < samplePlaylist.size - 1
         val newHasPrevious = if (newShuffle && samplePlaylist.size > 1) true else currentPlaylistIndex > 0
         val newState = currentState.copy(
+            currentPositionMs = curPos,
             isShuffleEnabled = newShuffle,
             hasNext = newHasNext,
             hasPrevious = newHasPrevious,
             lastUpdatedTimestamp = System.currentTimeMillis()
         )
         _stateFlow.value = newState
+        updateBasePosition(curPos)
         persistStateToDataStore(newState)
 
         runCatching {
@@ -275,13 +308,16 @@ class WidgetMusicRepositoryImpl @Inject constructor(
 
     override suspend fun toggleLike() {
         val currentState = _stateFlow.value
+        val curPos = calculateCurrentPositionMs(currentState)
         val newFav = !currentState.isFavorite
         val newState = currentState.copy(
+            currentPositionMs = curPos,
             isFavorite = newFav,
             currentSong = currentState.currentSong?.copy(isFavorite = newFav),
             lastUpdatedTimestamp = System.currentTimeMillis()
         )
         _stateFlow.value = newState
+        updateBasePosition(curPos)
         persistStateToDataStore(newState)
 
         runCatching {
@@ -299,7 +335,9 @@ class WidgetMusicRepositoryImpl @Inject constructor(
             lastUpdatedTimestamp = System.currentTimeMillis()
         )
         _stateFlow.value = newState
+        updateBasePosition(newPos)
         persistStateToDataStore(newState)
+        startPositionTickerIfNeeded(currentState.isPlaying)
 
         runCatching {
             playerControlBridgeProvider.get()?.seekTo(newPos)
@@ -312,6 +350,7 @@ class WidgetMusicRepositoryImpl @Inject constructor(
 
     override suspend fun updateWidgetState(state: WidgetPlaybackState) {
         _stateFlow.value = state
+        updateBasePosition(state.currentPositionMs)
         state.currentSong?.id?.let { observeLyricsForCurrentSong(it) }
         persistStateToDataStore(state)
         startPositionTickerIfNeeded(state.isPlaying)
@@ -368,6 +407,7 @@ class WidgetMusicRepositoryImpl @Inject constructor(
         )
 
         _stateFlow.value = newState
+        updateBasePosition(positionMs.coerceAtLeast(0L))
         if (songId != null) {
             observeLyricsForCurrentSong(songId)
         }
@@ -393,23 +433,24 @@ class WidgetMusicRepositoryImpl @Inject constructor(
         lyricsObserverJob = scope.launch(Dispatchers.IO) {
             lyricRepository.getLyricForSong(songId).collect { fetchedLyric ->
                 val mappedLyric = if (fetchedLyric != null && fetchedLyric.content.isNotBlank()) {
-                    if (fetchedLyric.lines.isNotEmpty()) {
-                        fetchedLyric
+                    val linesToUse = if (fetchedLyric.lines.isNotEmpty()) {
+                        fetchedLyric.lines
                     } else {
                         val parsed = LrcParser.parse(fetchedLyric.content)
                         if (parsed.lines.isNotEmpty()) {
-                            fetchedLyric.copy(lines = parsed.lines, isSynced = parsed.isSynced)
+                            parsed.lines
                         } else {
-                            val plainLines = fetchedLyric.content
+                            fetchedLyric.content
                                 .lines()
                                 .map { it.trim() }
                                 .filter { it.isNotEmpty() }
                                 .mapIndexed { index, lineText ->
                                     LyricLine(timeMs = index * 4000L, text = lineText)
                                 }
-                            fetchedLyric.copy(lines = plainLines)
                         }
                     }
+                    val sortedLines = linesToUse.sortedBy { it.timeMs }
+                    fetchedLyric.copy(lines = sortedLines, isSynced = sortedLines.any { it.timeMs > 0L })
                 } else null
 
                 if (mappedLyric != null) {
@@ -419,7 +460,9 @@ class WidgetMusicRepositoryImpl @Inject constructor(
                 }
 
                 val timestamp = System.currentTimeMillis()
+                val curPos = calculateCurrentPositionMs(_stateFlow.value)
                 val updatedState = _stateFlow.value.copy(
+                    currentPositionMs = curPos,
                     lyrics = mappedLyric,
                     lastUpdatedTimestamp = timestamp
                 )
@@ -433,29 +476,45 @@ class WidgetMusicRepositoryImpl @Inject constructor(
         tickerJob?.cancel()
         if (!isPlaying) return
 
-        tickerJob = scope.launch {
+        tickerJob = scope.launch(Dispatchers.Default) {
+            var lastPublishedLyricIndex: Int? = null
+            var lastPublishedPosBucket: Long? = null
+
             while (isActive) {
-                delay(1000L)
                 val current = _stateFlow.value
                 if (!current.isPlaying) break
 
-                val newPos = current.currentPositionMs + 1000L
-                if (newPos >= current.durationMs && current.durationMs > 0L) {
+                val currentPos = calculateCurrentPositionMs(current)
+                val newLyricIndex = calculateLyricIndex(current.lyrics, currentPos)
+                val newPosBucket = currentPos / 1000L
+
+                val hasEnded = currentPos >= current.durationMs && current.durationMs > 0L
+                val lineChanged = lastPublishedLyricIndex == null || lastPublishedLyricIndex != newLyricIndex
+                val bucketChanged = lastPublishedPosBucket == null || lastPublishedPosBucket != newPosBucket
+
+                if (hasEnded) {
                     val endedState = current.copy(
                         currentPositionMs = current.durationMs,
                         isPlaying = false,
                         lastUpdatedTimestamp = System.currentTimeMillis()
                     )
+                    updateBasePosition(current.durationMs)
                     _stateFlow.value = endedState
                     persistStateToDataStore(endedState)
                     break
-                } else {
-                    val updated = current.copy(
-                        currentPositionMs = newPos,
+                } else if (lineChanged || bucketChanged) {
+                    lastPublishedLyricIndex = newLyricIndex
+                    lastPublishedPosBucket = newPosBucket
+
+                    val updatedState = current.copy(
+                        currentPositionMs = currentPos,
                         lastUpdatedTimestamp = System.currentTimeMillis()
                     )
-                    _stateFlow.value = updated
+                    _stateFlow.value = updatedState
+                    persistStateToDataStore(updatedState)
                 }
+
+                delay(200L)
             }
         }
     }
@@ -478,6 +537,7 @@ class WidgetMusicRepositoryImpl @Inject constructor(
                 prefs[WidgetPreferencesKeys.KEY_HAS_NEXT] = state.hasNext
                 prefs[WidgetPreferencesKeys.KEY_HAS_PREVIOUS] = state.hasPrevious
                 prefs[WidgetPreferencesKeys.KEY_REVISION] = state.lastUpdatedTimestamp
+                prefs[WidgetPreferencesKeys.KEY_ACTIVE_LYRIC_INDEX] = state.currentLyricIndex
             }
 
             widgetStateNotifierProvider.get()?.updateAllWidgets(state)
