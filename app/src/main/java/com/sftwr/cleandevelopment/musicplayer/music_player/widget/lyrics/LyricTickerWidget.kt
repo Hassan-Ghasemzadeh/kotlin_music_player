@@ -100,11 +100,11 @@ class LyricTickerWidget : GlanceAppWidget() {
                 !rawLyrics.isNullOrBlank() -> {
                     val parsed = LrcParser.parse(rawLyrics)
                     val mappedLines = if (parsed.isSynced) {
-                        parsed.lines
+                        parsed.lines.sortedBy { it.timeMs }
                     } else {
                         parsed.lines.mapIndexed { index, line ->
                             LyricLine(timeMs = index * 4000L, text = line.text)
-                        }
+                        }.sortedBy { it.timeMs }
                     }
                     Lyric(
                         songId = songId,
@@ -139,11 +139,17 @@ class LyricTickerWidget : GlanceAppWidget() {
 
             val progressPercent = (activeState.progressRatio * 100).toInt()
             val positionBucket = activeState.currentPositionMs / 1000
+            val activeIndex = activeState.currentLyricIndex
+            val activeLineText = activeLyrics?.lines?.getOrNull(
+                activeIndex.coerceIn(0, (activeLyrics.lines.size - 1).coerceAtLeast(0))
+            )?.text
             val hasLyrics = activeLyrics != null && activeLyrics.lines.isNotEmpty()
 
             key(
                 songId,
                 isPlaying,
+                activeIndex,
+                activeLineText,
                 progressPercent,
                 positionBucket,
                 isShuffle,
@@ -228,7 +234,7 @@ class LyricTickerWidget : GlanceAppWidget() {
                         ) {
                             itemsIndexed(
                                 items = visibleLines,
-                                itemId = { _, line -> line.timeMs }
+                                itemId = { idx, line -> line.timeMs * 31L + idx }
                             ) { _, line ->
                                 val isActive = line.timeMs == activeLineMs
                                 LyricLineItem(
