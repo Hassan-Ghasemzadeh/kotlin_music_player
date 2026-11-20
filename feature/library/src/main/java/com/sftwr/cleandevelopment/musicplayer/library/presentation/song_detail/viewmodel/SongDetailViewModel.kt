@@ -29,7 +29,6 @@ import javax.inject.Inject
  * ViewModel responsible for managing song detail states, extracting extended audio file metadata,
  * and parsing track attributes asynchronously on background thread pools.
  */
-@RequiresApi(Build.VERSION_CODES.S)
 @HiltViewModel
 class SongDetailViewModel @Inject constructor(
     private val getDeviceSongsUseCase: GetDeviceSongsUseCase,
@@ -54,7 +53,6 @@ class SongDetailViewModel @Inject constructor(
     /**
      * Fetches device audio files, locates the matching song by ID, and extracts its extended metadata and album art.
      */
-    @RequiresApi(Build.VERSION_CODES.S)
     private fun loadSongDetail() {
         if (songId == -1L) {
             _uiState.update { it.copy(isLoading = false, error = "شناسه آهنگ نامعتبر است") }
