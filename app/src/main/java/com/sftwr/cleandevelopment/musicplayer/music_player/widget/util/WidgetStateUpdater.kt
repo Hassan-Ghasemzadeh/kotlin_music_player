@@ -58,6 +58,7 @@ object WidgetStateUpdater {
         prefs[WidgetPreferencesKeys.KEY_HAS_NEXT] = state.hasNext
         prefs[WidgetPreferencesKeys.KEY_HAS_PREVIOUS] = state.hasPrevious
         prefs[WidgetPreferencesKeys.KEY_REVISION] = state.lastUpdatedTimestamp
+        prefs[WidgetPreferencesKeys.KEY_ACTIVE_LYRIC_INDEX] = state.currentLyricIndex
 
         val lyricContent = state.lyrics?.content
         if (!lyricContent.isNullOrBlank()) {
