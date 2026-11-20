@@ -1,7 +1,5 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.song_detail
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -12,7 +10,6 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.song_detail.v
  * Stateful route wrapper composable for the Song Detail feature, responsible for collecting
  * UI states reactively from [SongDetailViewModel] and delegating rendering to [SongDetailScreen].
  */
-@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun SongDetailRoute(
     onBackClick: () -> Unit,
