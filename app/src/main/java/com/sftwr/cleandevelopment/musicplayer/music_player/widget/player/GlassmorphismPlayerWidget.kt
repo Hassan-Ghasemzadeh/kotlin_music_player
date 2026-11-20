@@ -95,6 +95,7 @@ class GlassmorphismPlayerWidget : GlanceAppWidget() {
             val album = prefs[WidgetPreferencesKeys.KEY_ALBUM_NAME] ?: directState.currentSong?.album ?: "Music Library"
             val artUri = prefs[WidgetPreferencesKeys.KEY_ALBUM_ART_URI] ?: directState.currentSong?.albumArtUri
             val songId = prefs[WidgetPreferencesKeys.KEY_SONG_ID] ?: directState.currentSong?.id ?: -1L
+            val revision = prefs[WidgetPreferencesKeys.KEY_REVISION] ?: directState.lastUpdatedTimestamp
 
             val activeState = directState.copy(
                 isPlaying = isPlaying,
@@ -104,6 +105,7 @@ class GlassmorphismPlayerWidget : GlanceAppWidget() {
                 isFavorite = isFav,
                 hasNext = hasNext,
                 hasPrevious = hasPrevious,
+                lastUpdatedTimestamp = revision,
                 currentSong = directState.currentSong?.copy(
                     id = songId,
                     title = title,
@@ -135,7 +137,7 @@ class GlassmorphismPlayerWidget : GlanceAppWidget() {
                 isFav,
                 hasNext,
                 hasPrevious,
-                activeState.lastUpdatedTimestamp
+                revision
             ) {
                 GlassmorphismPlayerContent(
                     state = activeState,
