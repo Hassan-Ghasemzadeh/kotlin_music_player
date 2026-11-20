@@ -165,9 +165,18 @@ class PlayerManager @Inject constructor(
         return result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
     }
 
+    private fun isPlayerActive(player: ExoPlayer): Boolean {
+        val state = player.playbackState
+        return player.playWhenReady && state != Player.STATE_ENDED && state != Player.STATE_IDLE
+    }
+
     private fun updateIsPlayingState() {
-        val playing = currentPlayer.isPlaying || (isCrossfading && nextPlayer.isPlaying)
-        _isPlaying.value = playing
+        runOnMainThread {
+            val playing = isPlayerActive(currentPlayer) || (isCrossfading && isPlayerActive(nextPlayer))
+            if (_isPlaying.value != playing) {
+                _isPlaying.value = playing
+            }
+        }
     }
 
     init {
@@ -506,7 +515,13 @@ class PlayerManager @Inject constructor(
                 }
             }
 
+            override fun onPlayWhenReadyChanged(playWhenReady: Boolean, reason: Int) {
+                updateIsPlayingState()
+                saveCurrentPlaybackState()
+            }
+
             override fun onPlaybackStateChanged(playbackState: Int) {
+                updateIsPlayingState()
                 saveCurrentPlaybackState()
                 if (playbackState == Player.STATE_ENDED && !isCrossfading) {
                     checkAndPlayNextOrStop()
@@ -1187,14 +1202,22 @@ class PlayerManager @Inject constructor(
 
     override fun togglePlayPause() {
         runOnMainThread {
-            if (exoPlayer.isPlaying) {
+            val currentlyPlaying = isPlayerActive(currentPlayer) || (isCrossfading && isPlayerActive(nextPlayer))
+            if (currentlyPlaying) {
                 currentPlayer.pause()
                 if (isCrossfading) {
                     nextPlayer.pause()
                 }
+                updateIsPlayingState()
             } else {
                 requestAudioFocus()
-                if (currentPlayer.currentMediaItem == null && _currentSong.value != null) {
+                val state = currentPlayer.playbackState
+                if (state == Player.STATE_ENDED) {
+                    val index = currentPlayer.currentMediaItemIndex.coerceAtLeast(0)
+                    currentPlayer.seekTo(index, 0L)
+                    currentPlayer.prepare()
+                    currentPlayer.play()
+                } else if (currentPlayer.currentMediaItem == null && _currentSong.value != null) {
                     val song = _currentSong.value!!
                     val targetQueue =
                         if (activeQueue.isNotEmpty()) activeQueue else if (_allSongs.value.isNotEmpty()) _allSongs.value else listOf(
@@ -1202,25 +1225,32 @@ class PlayerManager @Inject constructor(
                         )
                     val index = targetQueue.indexOfFirst { it.id == song.id }.coerceAtLeast(0)
                     activeQueue = targetQueue
+                    _queue.value = targetQueue
                     val mediaItems =
                         targetQueue.map { artworkCache[it.id].let { art -> it.toMediaItem(art) } }
-                    currentPlayer.setMediaItems(mediaItems, index, 0L)
+                    val pos = if (restoredPositionMs > 0L) restoredPositionMs else 0L
+                    currentPlayer.setMediaItems(mediaItems, index, pos)
+                    restoredPositionMs = 0L
                     currentPlayer.prepare()
                     currentPlayer.play()
                 } else {
+                    if (state == Player.STATE_IDLE) {
+                        currentPlayer.prepare()
+                    }
                     currentPlayer.play()
                     if (isCrossfading) {
                         nextPlayer.play()
                     }
                 }
                 startPlaybackService()
+                updateIsPlayingState()
             }
         }
     }
 
     fun resumePlayback() {
         runOnMainThread {
-            if (!exoPlayer.isPlaying) {
+            if (!isPlayerActive(currentPlayer)) {
                 togglePlayPause()
             }
         }
