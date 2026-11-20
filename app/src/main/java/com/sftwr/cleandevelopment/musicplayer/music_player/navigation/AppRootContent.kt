@@ -63,7 +63,6 @@ import java.util.Locale
  * bidirectional layout direction (RTL/LTR), locale reconfiguration,
  * and standard persistent bottom mini-player bar and slanted drawer.
  */
-@RequiresApi(Build.VERSION_CODES.S)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AppRootContent(
