@@ -39,4 +39,14 @@ data class WidgetPlaybackState(
             val index = lines.indexOfLast { it.timeMs <= currentPositionMs }
             return if (index >= 0) index else 0
         }
+
+    /**
+     * Gets the currently active lyric line based on [currentLyricIndex].
+     */
+    val activeLyricLine: com.sftwr.cleandevelopment.musicplayer.model.LyricLine?
+        get() {
+            val idx = currentLyricIndex
+            val lines = lyrics?.lines ?: return null
+            return lines.getOrNull(idx)
+        }
 }
