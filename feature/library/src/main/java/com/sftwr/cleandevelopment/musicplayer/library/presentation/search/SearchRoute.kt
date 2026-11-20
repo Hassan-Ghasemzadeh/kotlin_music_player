@@ -18,7 +18,6 @@ import com.sftwr.cleandevelopment.musicplayer.library.core.util.ShareUtils
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.viewModel.SearchPlayerUiEvent
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.search.viewModel.SearchViewModel
 
-@RequiresApi(Build.VERSION_CODES.S)
 @Composable
 fun SearchRoute(
     onNavigateBack: () -> Unit,
