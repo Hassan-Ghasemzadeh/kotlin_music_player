@@ -49,7 +49,6 @@ import kotlinx.coroutines.flow.flowOf
 class PlayerViewModel @Inject constructor(
     private val playerManager: PlayerManager,
     private val getDeviceSongsUseCase: GetDeviceSongsUseCase,
-    private val playlistRepository: PlaylistRepository,
     getPlaylistsUseCase: GetPlaylistsUseCase,
     private val addSongToPlaylistUseCase: AddSongToPlaylistUseCase,
     getSettingsUseCase: GetSettingsUseCase,
@@ -316,9 +315,9 @@ class PlayerViewModel @Inject constructor(
     fun toggleFavorite() {
         currentSong.value?.let { song ->
             song.id.toLongOrNull()?.let { songId ->
+                val newFavoriteState = !song.isFavorite
+                playerManager.toggleFavorite(songId, newFavoriteState)
                 viewModelScope.launch {
-                    val newFavoriteState = !song.isFavorite
-                    playlistRepository.toggleFavorite(songId, newFavoriteState)
                     val msg = if (newFavoriteState) "به لیست دلخواه اضافه شد" else "از لیست دلخواه حذف شد"
                     _toastChannel.send(msg)
                 }
