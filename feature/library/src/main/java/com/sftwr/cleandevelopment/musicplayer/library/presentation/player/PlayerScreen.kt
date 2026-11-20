@@ -67,6 +67,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -531,13 +532,20 @@ fun PlayerScreen(
                             alpha = ((sheetProgress - 0.2f) / 0.8f).coerceIn(0f, 1f)
                         }
                 ) {
+                    val durationMs = songState?.durationInMs?.toFloat() ?: 0f
+                    val maxDuration = if (durationMs > 0f) durationMs else 1f
+                    var isDragging by remember { mutableStateOf(false) }
+                    var dragPosition by remember { mutableFloatStateOf(0f) }
+                    val sliderValue = if (isDragging) dragPosition else currentPosition.toFloat().coerceIn(0f, maxDuration)
+                    val displayPosition = if (isDragging) dragPosition.toLong() else currentPosition
+
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = currentPosition.formatTime(),
+                            text = displayPosition.formatTime(),
                             style = MaterialTheme.typography.labelSmall.copy(
                                 color = Color.White.copy(
                                     alpha = 0.6f
@@ -554,13 +562,15 @@ fun PlayerScreen(
                         )
                     }
 
-                    // Custom modern slim playback progress slider
-                    val durationMs = songState?.durationInMs?.toFloat() ?: 0f
-                    val maxDuration = if (durationMs > 0f) durationMs else 1f
                     Slider(
-                        value = currentPosition.toFloat().coerceIn(0f, maxDuration),
-                        onValueChange = {
-                            viewModel.seekTo(it.toLong())
+                        value = sliderValue.coerceIn(0f, maxDuration),
+                        onValueChange = { newValue ->
+                            isDragging = true
+                            dragPosition = newValue
+                        },
+                        onValueChangeFinished = {
+                            viewModel.seekTo(dragPosition.toLong())
+                            isDragging = false
                         },
                         valueRange = 0f..maxDuration,
                         thumb = {
