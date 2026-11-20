@@ -1,3 +1,5 @@
+import java.io.FileInputStream
+import java.util.Properties
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -8,22 +10,45 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val localPropertiesFile = rootProject.file("local.properties")
+val keystoreProperties = Properties()
+if (keystorePropertiesFile.exists()) {
+    FileInputStream(keystorePropertiesFile).use { keystoreProperties.load(it) }
+} else if (localPropertiesFile.exists()) {
+    FileInputStream(localPropertiesFile).use { keystoreProperties.load(it) }
+}
+
 android {
     namespace = "com.sftwr.cleandevelopment.musicplayer.music_player"
-    compileSdk {
-        version = release(37)
-    }
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.sftwr.cleandevelopment.musicplayer.music_player"
         minSdk = 24
         targetSdk = 37
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "3.0.4"
         addManifestPlaceholders(
             mapOf("TapsellMediationAppKey" to "bkmtlebgltcebmnpnlcoqrcraorfjjdjffqefsmrtebidmqakgicbddqojdalabtmeegmr")
         )
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+    }
+
+    signingConfigs {
+        create("release") {
+            val storeFilePath = keystoreProperties.getProperty("storeFile")
+            val storePass = keystoreProperties.getProperty("storePassword")
+            val alias = keystoreProperties.getProperty("keyAlias") ?: "musicplayer"
+            val keyPass = keystoreProperties.getProperty("keyPassword")
+
+            if (storeFilePath != null && storePass != null && keyPass != null) {
+                storeFile = file(storeFilePath)
+                storePassword = storePass
+                keyAlias = alias
+                keyPassword = keyPass
+            }
+        }
     }
 
     buildTypes {
@@ -34,7 +59,23 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = signingConfigs.getByName("release")
+        }
+    }
+
+    androidResources {
+        localeFilters += setOf("en", "fa", "de", "tr")
+    }
+
+    bundle {
+        language {
+            enableSplit = true
+        }
+        density {
+            enableSplit = true
+        }
+        abi {
+            enableSplit = true
         }
     }
 
