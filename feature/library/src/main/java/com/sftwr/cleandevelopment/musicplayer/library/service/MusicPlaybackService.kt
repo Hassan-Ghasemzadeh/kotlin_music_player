@@ -254,7 +254,6 @@ class MusicPlaybackService : MediaSessionService() {
             bluetoothReceiver = null
         }
         mediaSession?.run {
-            player.release()
             release()
             mediaSession = null
         }
