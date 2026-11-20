@@ -1,7 +1,5 @@
 package com.sftwr.cleandevelopment.musicplayer.library.presentation.tracks
 
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import kotlinx.serialization.Serializable
@@ -14,7 +12,6 @@ data object TracksRouteKey
  * Extension function to register the tracks screen and its navigation graph
  * without exposing internal ViewModels or UI components to the :app module.
  */
-@RequiresApi(Build.VERSION_CODES.S)
 fun NavGraphBuilder.tracksGraph(
     onNavigateToSearch: () -> Unit,
     onBackClick: () -> Unit,
