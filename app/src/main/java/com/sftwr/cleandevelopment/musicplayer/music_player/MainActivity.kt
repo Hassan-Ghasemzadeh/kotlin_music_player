@@ -16,6 +16,9 @@ import com.sftwr.cleandevelopment.musicplayer.music_player.ui.theme.Music_player
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
+import androidx.compose.runtime.getValue
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+
 /**
  * Main entry point activity annotated with @AndroidEntryPoint
  * to enable Hilt dependency injection across Compose UI components and ViewModels.
@@ -47,8 +50,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         setContent {
-            // Apply application custom theme
-            Music_playerTheme {
+            val settings by mainViewModel.settingsState.collectAsStateWithLifecycle()
+
+            // Apply application custom theme with active settings
+            Music_playerTheme(palette = settings.colorPalette) {
                 // Initialize top-level navigation controller for Compose navigation graph
                 val navController = rememberNavController()
 
