@@ -31,6 +31,10 @@ class SaveEqualizerSettingsUseCase @Inject constructor(
         }
     }
 
+    suspend fun unlockPreset(presetId: Short) {
+        equalizerRepository.unlockPreset(presetId)
+    }
+
     suspend fun setBandLevel(bandIndex: Short, levelMb: Short) {
         equalizerRepository.setBandLevel(bandIndex, levelMb)
     }
