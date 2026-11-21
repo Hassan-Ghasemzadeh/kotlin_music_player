@@ -13,4 +13,6 @@ interface SoundEffectRepository {
     suspend fun setEnabled(enabled: Boolean)
     suspend fun setCurrentEffect(effect: SoundEffect)
     suspend fun setVolumeOrBoost(value: Float)
+    suspend fun unlockEffect(effectId: String)
+    suspend fun lockEffects()
 }
