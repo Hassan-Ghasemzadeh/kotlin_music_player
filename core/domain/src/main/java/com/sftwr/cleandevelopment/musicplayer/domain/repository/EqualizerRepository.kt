@@ -42,4 +42,14 @@ interface EqualizerRepository {
      * Updates and saves the Virtualizer strength (0..1000).
      */
     suspend fun setVirtualizerStrength(strength: Short)
+
+    /**
+     * Unlocks a specific preset ID persistently after rewarded ad completion, locking any previous preset.
+     */
+    suspend fun unlockPreset(presetId: Short)
+
+    /**
+     * Locks/re-locks active paid presets when switching to a free preset or custom mode.
+     */
+    suspend fun lockPresets()
 }
