@@ -116,6 +116,22 @@ class EqualizerViewModelTest {
         assertEquals(750.toShort(), viewModel.uiState.value.bassBoostStrength)
         assertEquals(900.toShort(), viewModel.uiState.value.virtualizerStrength)
     }
+
+    @Test
+    fun unlockAndSelectPreset_unlocksAndSelectsPreset() = runTest {
+        val fxManager = EqualizerAudioFxManager(getUseCase)
+        val viewModel = EqualizerViewModel(getUseCase, saveUseCase, fxManager, fakePlayerController, fakeAdManager)
+
+        backgroundScope.launch { viewModel.uiState.collect {} }
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        val rockPreset = EqualizerPreset.DEFAULT_PRESETS.first { it.displayName == "Rock" }
+        viewModel.unlockAndSelectPreset(rockPreset)
+        testDispatcher.scheduler.advanceUntilIdle()
+
+        assertEquals(rockPreset.id, viewModel.uiState.value.unlockedPresetId)
+        assertEquals(rockPreset.id, viewModel.uiState.value.currentPresetId)
+    }
 }
 
 private class FakePlayerController : PlayerController {
@@ -203,6 +219,14 @@ private class FakeEqualizerRepository : EqualizerRepository {
 
     override suspend fun setVirtualizerStrength(strength: Short) {
         stateFlow.value = stateFlow.value.copy(virtualizerStrength = strength)
+    }
+
+    override suspend fun unlockPreset(presetId: Short) {
+        stateFlow.value = stateFlow.value.copy(unlockedPresetId = presetId)
+    }
+
+    override suspend fun lockPresets() {
+        stateFlow.value = stateFlow.value.copy(unlockedPresetId = null)
     }
 }
 
