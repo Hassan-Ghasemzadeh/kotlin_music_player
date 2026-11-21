@@ -2,6 +2,7 @@ package com.sftwr.cleandevelopment.musicplayer.library.core.equalizer
 
 import android.media.audiofx.BassBoost
 import android.media.audiofx.Equalizer
+import android.media.audiofx.Virtualizer
 import android.util.Log
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerBand
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerPreset
@@ -17,7 +18,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * Audio Engine Manager managing native Android [Equalizer] and [BassBoost] effects.
+ * Audio Engine Manager managing native Android [Equalizer], [BassBoost], and [Virtualizer] effects.
  * Handles lifecycle, hardware capabilities discovery, state restoration, and safe resource releases.
  */
 @Singleton
@@ -31,6 +32,7 @@ class EqualizerAudioFxManager @Inject constructor(
     private var currentSessionId: Int = -1
     private var equalizerEffect: Equalizer? = null
     private var bassBoostEffect: BassBoost? = null
+    private var virtualizerEffect: Virtualizer? = null
 
     private var activeState: EqualizerState = EqualizerState()
 
@@ -48,7 +50,7 @@ class EqualizerAudioFxManager @Inject constructor(
      */
     @Synchronized
     fun attachAudioSession(audioSessionId: Int) {
-        if (audioSessionId <= 0 || audioSessionId == currentSessionId) return
+        if (audioSessionId <= 0 || (audioSessionId == currentSessionId && equalizerEffect != null)) return
 
         releaseEffects()
         currentSessionId = audioSessionId
@@ -78,12 +80,26 @@ class EqualizerAudioFxManager @Inject constructor(
             bassBoostEffect = null
         }
 
+        // Initialize Virtualizer
+        runCatching {
+            val virt = Virtualizer(0, audioSessionId)
+            virt.enabled = activeState.isEnabled && activeState.virtualizerStrength > 0
+            if (virt.strengthSupported) {
+                virt.setStrength(activeState.virtualizerStrength.coerceIn(0, 1000))
+            }
+            virtualizerEffect = virt
+            Log.d(tag, "Virtualizer initialized for session $audioSessionId")
+        }.onFailure { e ->
+            Log.e(tag, "Failed to initialize native Virtualizer: ${e.message}")
+            virtualizerEffect = null
+        }
+
         applyCurrentStateToHardware()
     }
 
     override fun applyEqualizerSettings(audioSessionId: Int, state: EqualizerState) {
         activeState = state
-        if (audioSessionId != currentSessionId) {
+        if (audioSessionId != currentSessionId || equalizerEffect == null) {
             attachAudioSession(audioSessionId)
         } else {
             applyCurrentStateToHardware()
@@ -95,7 +111,7 @@ class EqualizerAudioFxManager @Inject constructor(
      */
     private fun applyCurrentStateToHardware() {
         val state = activeState
-        val preset = EqualizerPreset.fromName(state.currentPresetName)
+        val preset = EqualizerPreset.fromId(state.currentPresetId)
 
         // Apply to Equalizer
         equalizerEffect?.let { eq ->
@@ -103,26 +119,38 @@ class EqualizerAudioFxManager @Inject constructor(
                 val shouldEnable = state.isEnabled && preset != EqualizerPreset.OFF
                 eq.enabled = shouldEnable
                 if (shouldEnable) {
-                    val minMb = eq.bandLevelRange?.get(0) ?: -1500
-                    val maxMb = eq.bandLevelRange?.get(1) ?: 1500
+                    val range = eq.bandLevelRange
+                    val minMb = range?.get(0)?.toInt() ?: -1500
+                    val maxMb = range?.get(1)?.toInt() ?: 1500
 
-                    if (preset == EqualizerPreset.NORMAL) {
-                        for (bandIdx in 0 until eq.numberOfBands) {
-                            eq.setBandLevel(bandIdx.toShort(), 0.toShort().coerceIn(minMb, maxMb))
+                    if (preset == EqualizerPreset.CUSTOM) {
+                        state.bands.forEach { band ->
+                            if (band.index in 0 until eq.numberOfBands) {
+                                val clampedLevel = band.currentLevelMb.toInt().coerceIn(minMb, maxMb).toShort()
+                                eq.setBandLevel(band.index, clampedLevel)
+                            }
                         }
-                    } else if (state.currentPresetId >= 0 && state.currentPresetId < eq.numberOfPresets) {
-                        runCatching { eq.usePreset(state.currentPresetId) }
+                    } else if (preset.id >= 0 && preset.id < eq.numberOfPresets) {
+                        val hwResult = runCatching { eq.usePreset(preset.id) }
+                        if (hwResult.isFailure && preset.bandLevels.isNotEmpty()) {
+                            preset.bandLevels.forEach { (bandIdx, level) ->
+                                if (bandIdx in 0 until eq.numberOfBands) {
+                                    val clampedLevel = level.toInt().coerceIn(minMb, maxMb).toShort()
+                                    eq.setBandLevel(bandIdx, clampedLevel)
+                                }
+                            }
+                        }
                     } else if (preset.bandLevels.isNotEmpty()) {
                         preset.bandLevels.forEach { (bandIdx, level) ->
                             if (bandIdx in 0 until eq.numberOfBands) {
-                                val clampedLevel = level.coerceIn(minMb, maxMb)
+                                val clampedLevel = level.toInt().coerceIn(minMb, maxMb).toShort()
                                 eq.setBandLevel(bandIdx, clampedLevel)
                             }
                         }
                     } else {
                         state.bands.forEach { band ->
                             if (band.index in 0 until eq.numberOfBands) {
-                                val clampedLevel = band.currentLevelMb.coerceIn(minMb, maxMb)
+                                val clampedLevel = band.currentLevelMb.toInt().coerceIn(minMb, maxMb).toShort()
                                 eq.setBandLevel(band.index, clampedLevel)
                             }
                         }
@@ -145,6 +173,19 @@ class EqualizerAudioFxManager @Inject constructor(
                 Log.e(tag, "Error applying BassBoost hardware settings: ${e.message}")
             }
         }
+
+        // Apply to Virtualizer
+        virtualizerEffect?.let { virt ->
+            runCatching {
+                val shouldEnable = state.isEnabled && state.virtualizerStrength > 0
+                virt.enabled = shouldEnable
+                if (shouldEnable && virt.strengthSupported) {
+                    virt.setStrength(state.virtualizerStrength.coerceIn(0, 1000))
+                }
+            }.onFailure { e ->
+                Log.e(tag, "Error applying Virtualizer hardware settings: ${e.message}")
+            }
+        }
     }
 
     /**
@@ -155,8 +196,8 @@ class EqualizerAudioFxManager @Inject constructor(
         return runCatching {
             val bandCount = eq.numberOfBands
             val range = eq.bandLevelRange
-            val minMb = if (range != null && range.size >= 2) range[0] else -1500
-            val maxMb = if (range != null && range.size >= 2) range[1] else 1500
+            val minMb: Short = if (range != null && range.size >= 2) range[0] else (-1500).toShort()
+            val maxMb: Short = if (range != null && range.size >= 2) range[1] else 1500.toShort()
 
             (0 until bandCount).map { bandIdx ->
                 val shortIdx = bandIdx.toShort()
@@ -217,6 +258,12 @@ class EqualizerAudioFxManager @Inject constructor(
             bassBoostEffect?.release()
         }
         bassBoostEffect = null
+
+        runCatching {
+            virtualizerEffect?.enabled = false
+            virtualizerEffect?.release()
+        }
+        virtualizerEffect = null
 
         currentSessionId = -1
         Log.d(tag, "Audio effects cleanly released")
