@@ -13,7 +13,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import com.sftwr.cleandevelopment.musicplayer.domain.model.isFree
+import com.sftwr.cleandevelopment.musicplayer.domain.model.isPresetUnlocked
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
@@ -83,6 +87,17 @@ class EqualizerUseCaseTest {
             val state = getUseCase().first()
             assertEquals(600.toShort(), state.bassBoostStrength)
             assertEquals(800.toShort(), state.virtualizerStrength)
+        }
+    }
+
+    @Test
+    fun unlockPreset_setsSingleActiveUnlockedPreset() {
+        runTest {
+            saveUseCase.unlockPreset(EqualizerPreset.ROCK.id)
+            val state = getUseCase().first()
+            assertEquals(EqualizerPreset.ROCK.id, state.unlockedPresetId)
+            assertTrue(state.isPresetUnlocked(EqualizerPreset.ROCK, isAdFree = false))
+            assertFalse(state.isPresetUnlocked(EqualizerPreset.POP, isAdFree = false))
         }
     }
 
@@ -208,5 +223,13 @@ private class FakeEqualizerRepository : EqualizerRepository {
 
     override suspend fun setVirtualizerStrength(strength: Short) {
         stateFlow.value = stateFlow.value.copy(virtualizerStrength = strength)
+    }
+
+    override suspend fun unlockPreset(presetId: Short) {
+        stateFlow.value = stateFlow.value.copy(unlockedPresetId = presetId)
+    }
+
+    override suspend fun lockPresets() {
+        stateFlow.value = stateFlow.value.copy(unlockedPresetId = null)
     }
 }
