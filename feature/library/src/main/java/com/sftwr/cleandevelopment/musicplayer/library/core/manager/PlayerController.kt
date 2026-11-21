@@ -13,6 +13,8 @@ interface PlayerController {
     val isPlaying: StateFlow<Boolean>
     val queue: StateFlow<List<SongUiModel>> get() = MutableStateFlow(emptyList())
     fun togglePlayPause()
+    fun play() {}
+    fun pause() {}
     fun playNext()
     fun playPrevious()
     fun playQueueItem(index: Int) {}
