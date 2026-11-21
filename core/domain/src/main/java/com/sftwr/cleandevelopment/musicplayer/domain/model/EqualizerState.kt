@@ -32,6 +32,7 @@ enum class EqualizerPreset(
     val bandLevels: Map<Short, Short> = emptyMap()
 ) {
     OFF(-2, "Off", emptyMap()),
+    CUSTOM(-1, "Custom", emptyMap()),
     NORMAL(0, "Normal", mapOf(0.toShort() to 0, 1.toShort() to 0, 2.toShort() to 0, 3.toShort() to 0, 4.toShort() to 0)),
     FLAT(1, "Flat", mapOf(0.toShort() to 0, 1.toShort() to 0, 2.toShort() to 0, 3.toShort() to 0, 4.toShort() to 0)),
     BASS_BOOSTER(2, "Bass Booster", mapOf(0.toShort() to 600, 1.toShort() to 400, 2.toShort() to 200, 3.toShort() to 0, 4.toShort() to 0)),
@@ -45,7 +46,7 @@ enum class EqualizerPreset(
         const val CUSTOM_PRESET_ID: Short = -1
         const val CUSTOM_PRESET_NAME = "Custom"
 
-        val DEFAULT_PRESETS: List<EqualizerPreset> = entries.filter { it != OFF }
+        val DEFAULT_PRESETS: List<EqualizerPreset> = entries.filter { it != OFF && it != CUSTOM }
 
         val DEFAULT_BANDS = listOf(
             EqualizerBand(0, 60, "60Hz"),
@@ -75,7 +76,7 @@ enum class EqualizerPreset(
  * Returns true if the preset is available freely without watching a rewarded ad.
  */
 fun EqualizerPreset.isFree(): Boolean =
-    this == EqualizerPreset.NORMAL || this == EqualizerPreset.FLAT || this == EqualizerPreset.OFF
+    this == EqualizerPreset.NORMAL || this == EqualizerPreset.FLAT || this == EqualizerPreset.OFF || this == EqualizerPreset.CUSTOM
 
 /**
  * Domain model representing the full state of audio equalizer and sound effects.
@@ -87,6 +88,7 @@ fun EqualizerPreset.isFree(): Boolean =
  * @property bassBoostStrength Bass Boost effect strength (0..1000).
  * @property virtualizerStrength Virtualizer effect strength (0..1000).
  * @property availablePresets List of selectable presets.
+ * @property unlockedPresetId Single currently active/unlocked paid preset ID (null if no paid preset is unlocked).
  * @property isBassBoostSupported Whether BassBoost is hardware-supported.
  * @property isVirtualizerSupported Whether Virtualizer is hardware-supported.
  */
@@ -98,6 +100,15 @@ data class EqualizerState(
     val bassBoostStrength: Short = 0,
     val virtualizerStrength: Short = 0,
     val availablePresets: List<EqualizerPreset> = EqualizerPreset.DEFAULT_PRESETS,
+    val unlockedPresetId: Short? = null,
     val isBassBoostSupported: Boolean = true,
     val isVirtualizerSupported: Boolean = true
 )
+
+/**
+ * Returns true if the given preset is unlocked (either free, VIP/ad-free, or the single active unlocked preset).
+ */
+fun EqualizerState.isPresetUnlocked(preset: EqualizerPreset, isAdFree: Boolean): Boolean {
+    if (isAdFree || preset.isFree()) return true
+    return preset.id == unlockedPresetId
+}
