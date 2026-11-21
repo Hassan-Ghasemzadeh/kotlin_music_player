@@ -5,6 +5,7 @@ import android.content.pm.PackageManager
 import android.util.Log
 import android.widget.Toast
 import com.sftwr.cleandevelopment.musicplayer.home.R
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.runtime.DisposableEffect
@@ -212,9 +213,25 @@ fun PlayerScreen(
 
     val sessionId = viewModel.audioSessionId
 
-    // Bind and control the visualizer lifecycle based on playback state, active song, and audio recording permissions
-    DisposableEffect(isPlaying, hasAudioPermission, songState?.id, sessionId) {
-        if (isPlaying && hasAudioPermission && sessionId > 0) {
+    var isExiting by remember { mutableStateOf(false) }
+
+    val handleBack: () -> Unit = remember(onBackClick) {
+        {
+            if (!isExiting) {
+                isExiting = true
+                visualizerManager.stopListening()
+                onBackClick()
+            }
+        }
+    }
+
+    BackHandler(enabled = !isExiting) {
+        handleBack()
+    }
+
+    // Bind and control the visualizer lifecycle based on playback state, active song, exit state, and audio recording permissions
+    DisposableEffect(isPlaying, hasAudioPermission, songState?.id, sessionId, isExiting) {
+        if (isPlaying && hasAudioPermission && sessionId > 0 && !isExiting) {
             Log.d("VisualizerDebug", "Active Session ID: $sessionId")
             visualizerManager.startListening(sessionId)
         } else {
@@ -284,13 +301,6 @@ fun PlayerScreen(
         Modifier
     }
 
-    // Ensure audio visualizer resources are cleanly released when leaving the screen
-    DisposableEffect(Unit) {
-        onDispose {
-            visualizerManager.stopListening()
-        }
-    }
-
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -313,7 +323,7 @@ fun PlayerScreen(
                     },
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                IconButton(onClick = onBackClick) {
+                IconButton(onClick = handleBack) {
                     Icon(
                         imageVector = Icons.Default.KeyboardArrowDown,
                         contentDescription = "Back",
@@ -402,7 +412,7 @@ fun PlayerScreen(
                         type = visualizerStyle.type,
                         fftData = fftData,
                         albumArtUrl = songState?.uri,
-                        isPlaying = isPlaying,
+                        isPlaying = isPlaying && !isExiting,
                         size = 390.dp,
                         discRatio = 0.82f
                     )
