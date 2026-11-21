@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerPreset
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerState
+import com.sftwr.cleandevelopment.musicplayer.domain.model.isFree
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.EqualizerRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -31,6 +32,7 @@ class EqualizerRepositoryImpl @Inject constructor(
         val BAND_LEVELS = stringPreferencesKey("band_levels")
         val BASS_BOOST = intPreferencesKey("bass_boost_strength")
         val VIRTUALIZER = intPreferencesKey("virtualizer_strength")
+        val UNLOCKED_PRESET_ID = intPreferencesKey("unlocked_preset_id")
     }
 
     override fun getEqualizerState(): Flow<EqualizerState> {
@@ -41,6 +43,7 @@ class EqualizerRepositoryImpl @Inject constructor(
             val bassBoost = (preferences[Keys.BASS_BOOST] ?: 0).toShort()
             val virtualizer = (preferences[Keys.VIRTUALIZER] ?: 0).toShort()
             val rawBandsStr = preferences[Keys.BAND_LEVELS] ?: ""
+            val unlockedPresetId = preferences[Keys.UNLOCKED_PRESET_ID]?.toShort()
 
             val savedBandLevels = parseBandLevels(rawBandsStr)
             val updatedBands = EqualizerPreset.DEFAULT_BANDS.map { band ->
@@ -55,7 +58,8 @@ class EqualizerRepositoryImpl @Inject constructor(
                 bands = updatedBands,
                 bassBoostStrength = bassBoost,
                 virtualizerStrength = virtualizer,
-                availablePresets = EqualizerPreset.DEFAULT_PRESETS
+                availablePresets = EqualizerPreset.DEFAULT_PRESETS,
+                unlockedPresetId = unlockedPresetId
             )
         }
     }
@@ -68,6 +72,12 @@ class EqualizerRepositoryImpl @Inject constructor(
             preferences[Keys.BAND_LEVELS] = serializeBandLevels(state.bands.associate { it.index to it.currentLevelMb })
             preferences[Keys.BASS_BOOST] = state.bassBoostStrength.toInt()
             preferences[Keys.VIRTUALIZER] = state.virtualizerStrength.toInt()
+            val unlockedId = state.unlockedPresetId
+            if (unlockedId != null) {
+                preferences[Keys.UNLOCKED_PRESET_ID] = unlockedId.toInt()
+            } else {
+                preferences.remove(Keys.UNLOCKED_PRESET_ID)
+            }
         }
     }
 
@@ -82,7 +92,16 @@ class EqualizerRepositoryImpl @Inject constructor(
             preferences[Keys.PRESET_ID] = preset.id.toInt()
             preferences[Keys.PRESET_NAME] = preset.displayName
             if (preset.bandLevels.isNotEmpty()) {
-                preferences[Keys.BAND_LEVELS] = serializeBandLevels(preset.bandLevels)
+                val rawBandsStr = preferences[Keys.BAND_LEVELS] ?: ""
+                val levelsMap = parseBandLevels(rawBandsStr).toMutableMap()
+                preset.bandLevels.forEach { (bandIdx, level) ->
+                    levelsMap[bandIdx] = level
+                }
+                preferences[Keys.BAND_LEVELS] = serializeBandLevels(levelsMap)
+            }
+            // If switching to a free preset, lock/clear previous paid preset unlock
+            if (preset.isFree()) {
+                preferences.remove(Keys.UNLOCKED_PRESET_ID)
             }
         }
     }
@@ -94,9 +113,10 @@ class EqualizerRepositoryImpl @Inject constructor(
             levelsMap[bandIndex] = levelMb
 
             preferences[Keys.BAND_LEVELS] = serializeBandLevels(levelsMap)
-            // When band level is changed manually, switch preset to Custom (-1)
-            preferences[Keys.PRESET_ID] = EqualizerPreset.CUSTOM_PRESET_ID.toInt()
-            preferences[Keys.PRESET_NAME] = EqualizerPreset.CUSTOM_PRESET_NAME
+            // When band level is changed manually, switch preset to Custom (-1) and lock paid presets
+            preferences[Keys.PRESET_ID] = EqualizerPreset.CUSTOM.id.toInt()
+            preferences[Keys.PRESET_NAME] = EqualizerPreset.CUSTOM.displayName
+            preferences.remove(Keys.UNLOCKED_PRESET_ID)
         }
     }
 
@@ -109,6 +129,18 @@ class EqualizerRepositoryImpl @Inject constructor(
     override suspend fun setVirtualizerStrength(strength: Short) {
         context.equalizerDataStore.edit { preferences ->
             preferences[Keys.VIRTUALIZER] = strength.toInt()
+        }
+    }
+
+    override suspend fun unlockPreset(presetId: Short) {
+        context.equalizerDataStore.edit { preferences ->
+            preferences[Keys.UNLOCKED_PRESET_ID] = presetId.toInt()
+        }
+    }
+
+    override suspend fun lockPresets() {
+        context.equalizerDataStore.edit { preferences ->
+            preferences.remove(Keys.UNLOCKED_PRESET_ID)
         }
     }
 
