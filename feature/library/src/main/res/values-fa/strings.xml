@@ -196,6 +196,7 @@
     <string name="eq_preset_pop">پاپ</string>
     <string name="eq_preset_jazz">جاز</string>
     <string name="eq_preset_classical">کلاسیک</string>
+    <string name="eq_preset_custom">سفارشی</string>
 
     <!-- Search & Empty States -->
     <string name="search_placeholder">جستجوی آهنگ، خواننده، آلبوم...</string>

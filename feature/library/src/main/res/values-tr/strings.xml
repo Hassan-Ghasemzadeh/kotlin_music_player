@@ -196,6 +196,7 @@
     <string name="eq_preset_pop">Pop</string>
     <string name="eq_preset_jazz">Caz</string>
     <string name="eq_preset_classical">Klasik</string>
+    <string name="eq_preset_custom">Özel</string>
 
     <!-- Search & Empty States -->
     <string name="search_placeholder">Şarkı, sanatçı, albüm ara...</string>
