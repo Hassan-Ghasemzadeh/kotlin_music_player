@@ -12,4 +12,6 @@ class GetSettingsUseCase @Inject constructor(
     private val settingsRepository: SettingsRepository
 ) {
     operator fun invoke(): Flow<AppSettings> = settingsRepository.getSettings()
+
+    fun getInitialSettings(): AppSettings = settingsRepository.getInitialSettings()
 }
