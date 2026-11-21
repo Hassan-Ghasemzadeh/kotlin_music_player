@@ -47,17 +47,24 @@ class EqualizerViewModel @Inject constructor(
         }
     }
 
+    fun unlockAndSelectPreset(preset: EqualizerPreset) {
+        viewModelScope.launch {
+            saveEqualizerSettingsUseCase.unlockPreset(preset.id)
+            saveEqualizerSettingsUseCase.setPreset(preset)
+        }
+    }
+
     fun pausePlaybackIfPlaying(): Boolean {
         val playing = playerController.isPlaying.value
         if (playing) {
-            playerController.togglePlayPause()
+            playerController.pause()
         }
         return playing
     }
 
     fun resumePlaybackIfWasPlaying(wasPlaying: Boolean) {
-        if (wasPlaying && !playerController.isPlaying.value) {
-            playerController.togglePlayPause()
+        if (wasPlaying) {
+            playerController.play()
         }
     }
 
