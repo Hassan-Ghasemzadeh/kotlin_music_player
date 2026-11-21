@@ -40,19 +40,26 @@ fun showRewardedAdToUnlockFeature(
                 return@requestRewardedAd
             }
 
+            var rewardEarned = false
+
             adManager.showRewardedAd(
                 adId = adId,
                 activity = activity,
                 onRewarded = {
+                    rewardEarned = true
                     Toast.makeText(context, "Feature Unlocked: $featureName!", Toast.LENGTH_SHORT).show()
                     onRewardUnlocked()
                 },
                 onError = { error ->
-                    Toast.makeText(context, "Failed to show ad: $error", Toast.LENGTH_SHORT).show()
-                    onAdDismissOrError()
+                    if (!rewardEarned) {
+                        Toast.makeText(context, "Failed to show ad: $error", Toast.LENGTH_SHORT).show()
+                        onAdDismissOrError()
+                    }
                 },
                 onClosed = {
-                    onAdDismissOrError()
+                    if (!rewardEarned) {
+                        onAdDismissOrError()
+                    }
                 }
             )
         },
