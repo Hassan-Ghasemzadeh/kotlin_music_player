@@ -31,8 +31,8 @@ data class AppSettings(
     val crossfadeDurationSeconds: Int = 0,
     val skipSilenceEnabled: Boolean = false,
     val defaultEqualizerPreset: EqualizerPreset = EqualizerPreset.NORMAL,
-    val selectedVisualizer: String = "dynamic_scale",
-    val circularVisualizerType: String = "NEON_FREQUENCY_BARS",
+    val selectedVisualizer: String = "fantasy_planet",
+    val circularVisualizerType: String = "FANTASY_PLANET",
     val replayGainMode: ReplayGainMode = ReplayGainMode.OFF,
 
     // Library & Storage Management
