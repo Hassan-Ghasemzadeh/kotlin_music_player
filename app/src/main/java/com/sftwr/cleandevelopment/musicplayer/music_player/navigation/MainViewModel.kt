@@ -13,6 +13,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -38,8 +40,8 @@ class MainViewModel @Inject constructor(
     val settingsState: StateFlow<AppSettings> = getSettingsUseCase()
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = AppSettings()
+            started = SharingStarted.Eagerly,
+            initialValue = getSettingsUseCase.getInitialSettings()
         )
 
     private val _shortcutCommand = MutableStateFlow<ShortcutCommand?>(null)
@@ -47,9 +49,12 @@ class MainViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            settingsState.collect { settings ->
-                LocaleHelper.applyLanguage(context, settings.language)
-            }
+            settingsState
+                .map { it.language }
+                .distinctUntilChanged()
+                .collect { language ->
+                    LocaleHelper.applyLanguage(context, language)
+                }
         }
     }
 
