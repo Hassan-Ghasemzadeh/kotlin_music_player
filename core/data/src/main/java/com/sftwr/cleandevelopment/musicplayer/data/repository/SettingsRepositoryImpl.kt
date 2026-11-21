@@ -16,7 +16,9 @@ import com.sftwr.cleandevelopment.musicplayer.domain.model.ColorPalette
 import com.sftwr.cleandevelopment.musicplayer.domain.model.ReplayGainMode
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.SettingsRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -66,8 +68,30 @@ class SettingsRepositoryImpl @Inject constructor(
         val SWIPE_ARTWORK_TO_SKIP_ENABLED = booleanPreferencesKey("swipe_artwork_to_skip_enabled")
     }
 
+    private val quickCachePrefs by lazy {
+        context.getSharedPreferences("music_player_quick_cache", Context.MODE_PRIVATE)
+    }
+
+    override fun getInitialSettings(): AppSettings {
+        val cachedLangCode = quickCachePrefs.getString("app_language", null)
+        val cachedPaletteId = quickCachePrefs.getString("color_palette", null)
+        val language = if (cachedLangCode != null) AppLanguage.fromCode(cachedLangCode) else AppLanguage.ENGLISH
+        val palette = if (cachedPaletteId != null) ColorPalette.fromId(cachedPaletteId) else ColorPalette.NEON_DARK
+        return AppSettings(
+            language = language,
+            colorPalette = palette
+        )
+    }
+
     override fun getSettings(): Flow<AppSettings> {
         return context.appSettingsDataStore.data.map { preferences ->
+            val langCode = preferences[PreferencesKeys.LANGUAGE] ?: "en"
+            val paletteId = preferences[PreferencesKeys.COLOR_PALETTE] ?: ColorPalette.NEON_DARK.id
+            quickCachePrefs.edit()
+                .putString("app_language", langCode)
+                .putString("color_palette", paletteId)
+                .apply()
+
             val albumArtEnabled = preferences[PreferencesKeys.ALBUM_ARTWORK_ENABLED]
                 ?: preferences[PreferencesKeys.SHOW_ALBUM_ART]
                 ?: true
@@ -87,8 +111,8 @@ class SettingsRepositoryImpl @Inject constructor(
                 ?: preferences[PreferencesKeys.ALLOW_EXTERNAL_DEVICE_PLAYBACK]
                 ?: true
             AppSettings(
-                language = AppLanguage.fromCode(preferences[PreferencesKeys.LANGUAGE] ?: "en"),
-                colorPalette = ColorPalette.fromId(preferences[PreferencesKeys.COLOR_PALETTE]),
+                language = AppLanguage.fromCode(langCode),
+                colorPalette = ColorPalette.fromId(paletteId),
                 glassmorphicStyleEnabled = preferences[PreferencesKeys.GLASSMORPHIC_ENABLED] ?: true,
                 isAlbumArtworkEnabled = albumArtEnabled,
                 playbackSpeed = preferences[PreferencesKeys.PLAYBACK_SPEED] ?: 1.0f,
@@ -112,16 +136,18 @@ class SettingsRepositoryImpl @Inject constructor(
                 shakeToSkipEnabled = preferences[PreferencesKeys.SHAKE_TO_SKIP] ?: false,
                 swipeArtworkToSkipEnabled = preferences[PreferencesKeys.SWIPE_ARTWORK_TO_SKIP_ENABLED] ?: true
             )
-        }
+        }.flowOn(Dispatchers.IO)
     }
 
     override suspend fun updateLanguage(language: AppLanguage) {
+        quickCachePrefs.edit().putString("app_language", language.code).apply()
         context.appSettingsDataStore.edit { preferences ->
             preferences[PreferencesKeys.LANGUAGE] = language.code
         }
     }
 
     override suspend fun updateColorPalette(palette: ColorPalette) {
+        quickCachePrefs.edit().putString("color_palette", palette.id).apply()
         context.appSettingsDataStore.edit { preferences ->
             preferences[PreferencesKeys.COLOR_PALETTE] = palette.id
         }
