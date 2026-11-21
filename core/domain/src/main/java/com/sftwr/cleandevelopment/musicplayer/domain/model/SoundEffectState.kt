@@ -60,10 +60,12 @@ fun SoundEffect.isFree(): Boolean =
  * @property currentEffect Currently selected [SoundEffect].
  * @property volumeOrBoost Active volume or boost intensity parameter (0.0f to 1.0f).
  * @property availableEffects List of selectable sound effects.
+ * @property unlockedEffectId ID of the currently unlocked effect via rewarded ad, if any.
  */
 data class SoundEffectState(
     val isEnabled: Boolean = false,
     val currentEffect: SoundEffect = SoundEffect.ELECTRONIC_TUBE,
     val volumeOrBoost: Float = 0.5f,
-    val availableEffects: List<SoundEffect> = SoundEffect.entries
+    val availableEffects: List<SoundEffect> = SoundEffect.entries,
+    val unlockedEffectId: String? = null
 )
