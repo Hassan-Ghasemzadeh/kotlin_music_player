@@ -219,8 +219,8 @@ class PlayerViewModel @Inject constructor(
         }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = VisualizerStyle.DEFAULT
+            started = SharingStarted.Eagerly,
+            initialValue = VisualizerStyle.fromId(getSettingsUseCase.getInitialSettings().selectedVisualizer)
         )
 
     // Only custom playlists are shown in the Add to Playlist dialog
