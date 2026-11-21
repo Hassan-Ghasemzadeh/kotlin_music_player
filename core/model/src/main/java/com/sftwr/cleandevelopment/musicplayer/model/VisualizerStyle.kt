@@ -119,7 +119,7 @@ enum class VisualizerStyle(
     );
 
     companion object {
-        val DEFAULT = DYNAMIC_SCALE
+        val DEFAULT = FANTASY_PLANET
 
         fun fromId(id: String?): VisualizerStyle {
             if (id.isNullOrBlank()) return DEFAULT
