@@ -17,6 +17,11 @@ interface SettingsRepository {
      */
     fun getSettings(): Flow<AppSettings>
 
+    /**
+     * Retrieves initial cached [AppSettings] synchronously to eliminate cold start flash.
+     */
+    fun getInitialSettings(): AppSettings
+
     suspend fun updateLanguage(language: AppLanguage)
     suspend fun updateColorPalette(palette: ColorPalette)
     suspend fun updateGlassmorphicStyle(enabled: Boolean)
