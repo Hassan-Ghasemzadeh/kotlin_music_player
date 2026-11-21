@@ -55,6 +55,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.domain.model.SoundEffect
+import com.sftwr.cleandevelopment.musicplayer.domain.model.isFree
 import com.sftwr.cleandevelopment.musicplayer.home.R
 
 fun SoundEffect.getNameRes(): Int {
@@ -184,6 +185,8 @@ fun SoundEffectScreen(
                             .fillMaxWidth()
                             .alpha(if (uiState.isEnabled) 1.0f else 0.4f)
                     ) {
+                        var sliderPosition by remember(uiState.volumeOrBoost) { mutableStateOf(uiState.volumeOrBoost) }
+
                         Row(
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
@@ -194,15 +197,16 @@ fun SoundEffectScreen(
                                 fontSize = 13.sp
                             )
                             Text(
-                                text = "${(uiState.volumeOrBoost * 100).toInt()}%",
+                                text = "${(sliderPosition.coerceIn(0f, 1f) * 100).toInt()}%",
                                 color = accent,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 13.sp
                             )
                         }
                         Slider(
-                            value = uiState.volumeOrBoost,
-                            onValueChange = { viewModel.setVolumeOrBoost(it) },
+                            value = sliderPosition,
+                            onValueChange = { sliderPosition = it },
+                            onValueChangeFinished = { viewModel.setVolumeOrBoost(sliderPosition) },
                             enabled = uiState.isEnabled,
                             colors = SliderDefaults.colors(
                                 thumbColor = accent,
@@ -226,7 +230,6 @@ fun SoundEffectScreen(
 
             val context = LocalContext.current
             val isAdFree by viewModel.adManager.isAdFree.collectAsState()
-            var transientUnlockedEffect by remember { mutableStateOf<SoundEffect?>(null) }
 
             // Effects List
             LazyColumn(
@@ -238,8 +241,8 @@ fun SoundEffectScreen(
             ) {
                 items(uiState.availableEffects) { effect ->
                     val isSelected = effect == uiState.currentEffect
-                    val isFree = effect == SoundEffect.ELECTRONIC_TUBE || effect == SoundEffect.LIVE_TREBLE
-                    val isUnlocked = isAdFree || isFree || transientUnlockedEffect == effect
+                    val isFree = effect.isFree()
+                    val isUnlocked = isAdFree || isFree || uiState.unlockedEffectId == effect.id
                     SoundEffectItem(
                         effect = effect,
                         isSelected = isSelected,
@@ -249,13 +252,6 @@ fun SoundEffectScreen(
                             if (!uiState.isEnabled) {
                                 viewModel.toggleEnabled(true)
                             }
-                            val isFree = effect == SoundEffect.ELECTRONIC_TUBE || effect == SoundEffect.LIVE_TREBLE
-                            val isUnlocked = isAdFree || isFree || transientUnlockedEffect == effect
-
-                            if (effect != transientUnlockedEffect) {
-                                transientUnlockedEffect = null
-                            }
-
                             if (isUnlocked) {
                                 viewModel.selectEffect(effect)
                             } else {
@@ -265,7 +261,7 @@ fun SoundEffectScreen(
                                     adManager = viewModel.adManager,
                                     featureName = "Sound Effect: ${effect.displayName}",
                                     onRewardUnlocked = {
-                                        transientUnlockedEffect = effect
+                                        viewModel.unlockEffect(effect)
                                         viewModel.selectEffect(effect)
                                         viewModel.resumePlaybackIfWasPlaying(wasPlaying)
                                     },
