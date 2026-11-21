@@ -1231,12 +1231,17 @@ class PlayerManager @Inject constructor(
         runOnMainThread {
             val currentlyPlaying = isPlayerActive(currentPlayer) || (isCrossfading && isPlayerActive(nextPlayer))
             if (currentlyPlaying) {
-                currentPlayer.pause()
-                if (isCrossfading) {
-                    nextPlayer.pause()
-                }
-                updateIsPlayingState()
+                pause()
             } else {
+                play()
+            }
+        }
+    }
+
+    override fun play() {
+        runOnMainThread {
+            val currentlyPlaying = isPlayerActive(currentPlayer) || (isCrossfading && isPlayerActive(nextPlayer))
+            if (!currentlyPlaying) {
                 requestAudioFocus()
                 val state = currentPlayer.playbackState
                 if (state == Player.STATE_ENDED) {
@@ -1270,6 +1275,19 @@ class PlayerManager @Inject constructor(
                     }
                 }
                 startPlaybackService()
+                updateIsPlayingState()
+            }
+        }
+    }
+
+    override fun pause() {
+        runOnMainThread {
+            val currentlyPlaying = isPlayerActive(currentPlayer) || (isCrossfading && isPlayerActive(nextPlayer))
+            if (currentlyPlaying) {
+                currentPlayer.pause()
+                if (isCrossfading) {
+                    nextPlayer.pause()
+                }
                 updateIsPlayingState()
             }
         }
