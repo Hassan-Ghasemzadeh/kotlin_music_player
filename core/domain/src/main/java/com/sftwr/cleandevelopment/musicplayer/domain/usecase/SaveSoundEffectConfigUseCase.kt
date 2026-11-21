@@ -26,4 +26,12 @@ class SaveSoundEffectConfigUseCase @Inject constructor(
     suspend fun saveFullState(state: SoundEffectState) {
         soundEffectRepository.saveSoundEffectState(state)
     }
+
+    suspend fun unlockEffect(effectId: String) {
+        soundEffectRepository.unlockEffect(effectId)
+    }
+
+    suspend fun lockEffects() {
+        soundEffectRepository.lockEffects()
+    }
 }
