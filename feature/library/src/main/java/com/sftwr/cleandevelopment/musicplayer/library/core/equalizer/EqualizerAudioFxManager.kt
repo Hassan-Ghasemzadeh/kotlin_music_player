@@ -247,21 +247,21 @@ class EqualizerAudioFxManager @Inject constructor(
      */
     @Synchronized
     fun releaseEffects() {
-        runCatching {
-            equalizerEffect?.enabled = false
-            equalizerEffect?.release()
+        equalizerEffect?.let { eq ->
+            runCatching { eq.enabled = false }
+            runCatching { eq.release() }
         }
         equalizerEffect = null
 
-        runCatching {
-            bassBoostEffect?.enabled = false
-            bassBoostEffect?.release()
+        bassBoostEffect?.let { bb ->
+            runCatching { bb.enabled = false }
+            runCatching { bb.release() }
         }
         bassBoostEffect = null
 
-        runCatching {
-            virtualizerEffect?.enabled = false
-            virtualizerEffect?.release()
+        virtualizerEffect?.let { virt ->
+            runCatching { virt.enabled = false }
+            runCatching { virt.release() }
         }
         virtualizerEffect = null
 
