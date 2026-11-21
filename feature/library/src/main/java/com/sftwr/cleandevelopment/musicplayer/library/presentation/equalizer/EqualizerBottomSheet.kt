@@ -27,6 +27,8 @@ import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.SurroundSound
 import androidx.compose.ui.platform.LocalContext
 import com.sftwr.cleandevelopment.musicplayer.domain.ad.AdManager
+import com.sftwr.cleandevelopment.musicplayer.domain.model.isFree
+import com.sftwr.cleandevelopment.musicplayer.domain.model.isPresetUnlocked
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.ad.showRewardedAdToUnlockFeature
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -118,23 +120,17 @@ fun EqualizerBottomSheet(
                 Column {
                     val context = LocalContext.current
                     val isAdFree by viewModel.adManager.isAdFree.collectAsState()
-                    var transientUnlockedPreset by remember { mutableStateOf<EqualizerPreset?>(null) }
 
                     PresetsSection(
                         availablePresets = uiState.availablePresets,
                         currentPresetId = uiState.currentPresetId,
+                        unlockedPresetId = uiState.unlockedPresetId,
                         isAdFree = isAdFree,
-                        transientUnlockedPreset = transientUnlockedPreset,
                         isEnabled = uiState.isEnabled,
                         accentColor = accent,
                         secondaryColor = palette.surfaceCard,
                         onPresetSelected = { preset ->
-                            val isFree = preset == EqualizerPreset.NORMAL || preset == EqualizerPreset.FLAT || preset == EqualizerPreset.OFF
-                            val isUnlocked = isAdFree || isFree || transientUnlockedPreset == preset
-
-                            if (preset != transientUnlockedPreset) {
-                                transientUnlockedPreset = null
-                            }
+                            val isUnlocked = uiState.isPresetUnlocked(preset, isAdFree)
 
                             if (isUnlocked) {
                                 viewModel.selectPreset(preset)
@@ -145,8 +141,7 @@ fun EqualizerBottomSheet(
                                     adManager = viewModel.adManager,
                                     featureName = "Equalizer Preset: ${preset.displayName}",
                                     onRewardUnlocked = {
-                                        transientUnlockedPreset = preset
-                                        viewModel.selectPreset(preset)
+                                        viewModel.unlockAndSelectPreset(preset)
                                         viewModel.resumePlaybackIfWasPlaying(wasPlaying)
                                     },
                                     onAdDismissOrError = {
@@ -267,8 +262,8 @@ private fun EqualizerHeader(
 private fun PresetsSection(
     availablePresets: List<EqualizerPreset>,
     currentPresetId: Short,
+    unlockedPresetId: Short?,
     isAdFree: Boolean,
-    transientUnlockedPreset: EqualizerPreset?,
     isEnabled: Boolean,
     accentColor: Color,
     secondaryColor: Color,
@@ -293,8 +288,7 @@ private fun PresetsSection(
                 key = { it.id }
             ) { preset ->
                 val isSelected = currentPresetId == preset.id
-                val isFree = preset == EqualizerPreset.NORMAL || preset == EqualizerPreset.FLAT || preset == EqualizerPreset.OFF
-                val isUnlocked = isAdFree || isFree || transientUnlockedPreset == preset
+                val isUnlocked = isAdFree || preset.isFree() || preset.id == unlockedPresetId
                 val shape = RoundedCornerShape(20.dp)
 
                 Box(
@@ -403,7 +397,10 @@ private fun EqualizerBandItem(
     accentColor: Color,
     onLevelChanged: (Short) -> Unit
 ) {
-    val levelDb = band.currentLevelMb / 100f
+    var isDragging by remember { mutableStateOf(false) }
+    var localLevelMb by remember(band.currentLevelMb) { mutableStateOf(band.currentLevelMb.toFloat()) }
+    val displayLevelMb = if (isDragging) localLevelMb.toInt().toShort() else band.currentLevelMb
+    val levelDb = displayLevelMb / 100f
     val formattedDb = if (levelDb > 0) "+%.1f dB".format(levelDb) else "%.1f dB".format(levelDb)
 
     Column(
@@ -415,7 +412,7 @@ private fun EqualizerBandItem(
             style = MaterialTheme.typography.labelSmall.copy(
                 fontSize = 10.sp,
                 fontWeight = FontWeight.Bold,
-                color = if (band.currentLevelMb != 0.toShort()) accentColor else Color.White.copy(alpha = 0.6f)
+                color = if (displayLevelMb != 0.toShort()) accentColor else Color.White.copy(alpha = 0.6f)
             ),
             maxLines = 1
         )
@@ -423,9 +420,14 @@ private fun EqualizerBandItem(
         Spacer(modifier = Modifier.height(8.dp))
 
         Slider(
-            value = band.currentLevelMb.toFloat(),
+            value = if (isDragging) localLevelMb else band.currentLevelMb.toFloat(),
             onValueChange = { newValue ->
+                isDragging = true
+                localLevelMb = newValue
                 onLevelChanged(newValue.toInt().toShort())
+            },
+            onValueChangeFinished = {
+                isDragging = false
             },
             valueRange = band.minLevelMb.toFloat()..band.maxLevelMb.toFloat(),
             enabled = isEnabled,
