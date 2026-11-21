@@ -75,11 +75,14 @@ class SettingsRepositoryImpl @Inject constructor(
     override fun getInitialSettings(): AppSettings {
         val cachedLangCode = quickCachePrefs.getString("app_language", null)
         val cachedPaletteId = quickCachePrefs.getString("color_palette", null)
+        val cachedVisualizer = quickCachePrefs.getString("selected_visualizer", null)
         val language = if (cachedLangCode != null) AppLanguage.fromCode(cachedLangCode) else AppLanguage.ENGLISH
         val palette = if (cachedPaletteId != null) ColorPalette.fromId(cachedPaletteId) else ColorPalette.NEON_DARK
+        val selectedViz = cachedVisualizer ?: "fantasy_planet"
         return AppSettings(
             language = language,
-            colorPalette = palette
+            colorPalette = palette,
+            selectedVisualizer = selectedViz
         )
     }
 
@@ -87,9 +90,13 @@ class SettingsRepositoryImpl @Inject constructor(
         return context.appSettingsDataStore.data.map { preferences ->
             val langCode = preferences[PreferencesKeys.LANGUAGE] ?: "en"
             val paletteId = preferences[PreferencesKeys.COLOR_PALETTE] ?: ColorPalette.NEON_DARK.id
+            val selectedViz = preferences[PreferencesKeys.SELECTED_VISUALIZER]
+                ?: preferences[PreferencesKeys.CIRCULAR_VISUALIZER_TYPE]
+                ?: "fantasy_planet"
             quickCachePrefs.edit()
                 .putString("app_language", langCode)
                 .putString("color_palette", paletteId)
+                .putString("selected_visualizer", selectedViz)
                 .apply()
 
             val albumArtEnabled = preferences[PreferencesKeys.ALBUM_ARTWORK_ENABLED]
@@ -122,10 +129,8 @@ class SettingsRepositoryImpl @Inject constructor(
                     ?: 0,
                 skipSilenceEnabled = preferences[PreferencesKeys.SKIP_SILENCE] ?: false,
                 defaultEqualizerPreset = EqualizerPreset.fromName(rawPreset),
-                selectedVisualizer = preferences[PreferencesKeys.SELECTED_VISUALIZER]
-                    ?: preferences[PreferencesKeys.CIRCULAR_VISUALIZER_TYPE]
-                    ?: "dynamic_scale",
-                circularVisualizerType = preferences[PreferencesKeys.CIRCULAR_VISUALIZER_TYPE] ?: "NEON_FREQUENCY_BARS",
+                selectedVisualizer = selectedViz,
+                circularVisualizerType = preferences[PreferencesKeys.CIRCULAR_VISUALIZER_TYPE] ?: "FANTASY_PLANET",
                 replayGainMode = ReplayGainMode.fromKey(preferences[PreferencesKeys.REPLAY_GAIN_MODE] ?: "off"),
                 excludedFolders = preferences[PreferencesKeys.EXCLUDED_FOLDERS] ?: emptySet(),
                 minTrackDurationSeconds = preferences[PreferencesKeys.MIN_TRACK_DURATION] ?: 30,
@@ -206,6 +211,7 @@ class SettingsRepositoryImpl @Inject constructor(
     }
 
     override suspend fun updateCircularVisualizerType(typeKey: String) {
+        quickCachePrefs.edit().putString("selected_visualizer", typeKey).apply()
         context.appSettingsDataStore.edit { preferences ->
             preferences[PreferencesKeys.SELECTED_VISUALIZER] = typeKey
             preferences[PreferencesKeys.CIRCULAR_VISUALIZER_TYPE] = typeKey
