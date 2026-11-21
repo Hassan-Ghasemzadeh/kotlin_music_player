@@ -81,14 +81,6 @@ fun AppRootContent(
     val context = LocalContext.current
     LaunchedEffect(currentLanguage) {
         LocaleHelper.applyLanguage(context, currentLanguage)
-        val locale = Locale.forLanguageTag(currentLanguage.code)
-        Locale.setDefault(locale)
-        val resources = context.resources
-        val config = resources.configuration
-        config.setLocale(locale)
-        config.setLayoutDirection(locale)
-        @Suppress("DEPRECATION")
-        resources.updateConfiguration(config, resources.displayMetrics)
     }
 
     val shortcutCommand by mainViewModel.shortcutCommand.collectAsStateWithLifecycle()
