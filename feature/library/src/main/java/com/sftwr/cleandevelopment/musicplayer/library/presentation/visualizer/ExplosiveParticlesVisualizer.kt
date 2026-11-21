@@ -3,6 +3,7 @@ package com.sftwr.cleandevelopment.musicplayer.library.presentation.visualizer
 import android.graphics.Bitmap
 import android.graphics.PixelFormat
 import android.opengl.GLSurfaceView
+import android.view.View
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -27,6 +28,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import coil.compose.AsyncImage
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalAlbumArtworkEnabled
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.extractAlbumArt
@@ -61,15 +65,34 @@ fun ExplosiveParticlesVisualizer(
         GLSurfaceView(context).apply {
             setEGLConfigChooser(8, 8, 8, 8, 16, 0)
             holder.setFormat(PixelFormat.TRANSLUCENT)
-            setZOrderOnTop(true) // قرار گرفتن لایه اوپن‌جی‌ال بالاتر از بقیه
+            setZOrderOnTop(true)
             setEGLContextClientVersion(2)
             setRenderer(renderer)
             renderMode = GLSurfaceView.RENDERMODE_CONTINUOUSLY
         }
     }
 
-    DisposableEffect(Unit) {
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner, glSurfaceView, isPlaying) {
+        val observer = LifecycleEventObserver { _, event ->
+            when (event) {
+                Lifecycle.Event.ON_PAUSE, Lifecycle.Event.ON_STOP -> {
+                    glSurfaceView.onPause()
+                }
+                Lifecycle.Event.ON_RESUME -> {
+                    if (isPlaying) {
+                        glSurfaceView.onResume()
+                    }
+                }
+                Lifecycle.Event.ON_DESTROY -> {
+                    glSurfaceView.onPause()
+                }
+                else -> {}
+            }
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
         onDispose {
+            lifecycleOwner.lifecycle.removeObserver(observer)
             glSurfaceView.onPause()
         }
     }
@@ -129,8 +152,10 @@ fun ExplosiveParticlesVisualizer(
         ) { view ->
             if (isPlaying) {
                 view.onResume()
+                view.visibility = View.VISIBLE
             } else {
                 view.onPause()
+                view.visibility = View.INVISIBLE
             }
         }
     }
