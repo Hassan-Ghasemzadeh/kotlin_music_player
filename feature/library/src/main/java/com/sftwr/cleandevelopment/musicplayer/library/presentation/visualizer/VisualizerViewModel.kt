@@ -36,8 +36,8 @@ class VisualizerViewModel @Inject constructor(
         }
         .stateIn(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5000),
-            initialValue = VisualizerStyle.DEFAULT
+            started = SharingStarted.Eagerly,
+            initialValue = VisualizerStyle.fromId(getSettingsUseCase.getInitialSettings().selectedVisualizer)
         )
 
     private val _selectedIndex = MutableStateFlow(0)
