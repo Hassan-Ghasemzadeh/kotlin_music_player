@@ -80,6 +80,7 @@ class DriveModeViewModelTest {
 
     private val fakeSettingsRepository = object : SettingsRepository {
         override fun getSettings(): Flow<AppSettings> = MutableStateFlow(AppSettings())
+        override fun getInitialSettings(): AppSettings = AppSettings()
         override suspend fun updateLanguage(language: AppLanguage) {}
         override suspend fun updateColorPalette(palette: ColorPalette) {}
         override suspend fun updateGlassmorphicStyle(enabled: Boolean) {}
