@@ -153,6 +153,7 @@ class EqualizerUseCaseTest {
 private class FakeSettingsRepository : SettingsRepository {
     private val settingsFlow = MutableStateFlow(AppSettings())
     override fun getSettings(): Flow<AppSettings> = settingsFlow
+    override fun getInitialSettings(): AppSettings = settingsFlow.value
     override suspend fun updateLanguage(language: AppLanguage) {}
     override suspend fun updateColorPalette(palette: ColorPalette) {}
     override suspend fun updateGlassmorphicStyle(enabled: Boolean) {}
