@@ -35,7 +35,14 @@ import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.Headset
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.LockClock
+import androidx.compose.ui.platform.LocalContext
+import com.sftwr.cleandevelopment.musicplayer.domain.ad.AdManager
+import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerState
+import com.sftwr.cleandevelopment.musicplayer.domain.model.isFree
+import com.sftwr.cleandevelopment.musicplayer.domain.model.isPresetUnlocked
+import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.ad.showRewardedAdToUnlockFeature
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Palette
@@ -102,6 +109,7 @@ import java.util.Locale
 fun EqualizerPreset.getStringRes(): Int {
     return when (this) {
         EqualizerPreset.OFF -> R.string.eq_preset_off
+        EqualizerPreset.CUSTOM -> R.string.eq_preset_custom
         EqualizerPreset.NORMAL -> R.string.eq_preset_normal
         EqualizerPreset.FLAT -> R.string.eq_preset_flat
         EqualizerPreset.BASS_BOOSTER -> R.string.eq_preset_bass_booster
@@ -133,6 +141,8 @@ fun SettingsScreen(
     isAllowExternalDevicePlaybackEnabled: Boolean = uiState.settings.allowExternalDevicePlayback,
     isSwipeArtworkToSkipEnabled: Boolean = uiState.settings.swipeArtworkToSkipEnabled,
     isAdFree: Boolean = false,
+    equalizerState: EqualizerState = EqualizerState(),
+    adManager: AdManager? = null,
     onAdFreeToggle: (Boolean) -> Unit = {},
     onBackClick: () -> Unit,
     onLanguageClick: () -> Unit,
@@ -148,6 +158,9 @@ fun SettingsScreen(
     onCrossfadeDurationChange: (Int) -> Unit,
     onSkipSilenceToggle: (Boolean) -> Unit,
     onEqualizerPresetSelected: (EqualizerPreset) -> Unit,
+    onUnlockAndSetEqualizerPreset: (EqualizerPreset) -> Unit = {},
+    onPausePlaybackIfPlaying: () -> Boolean = { false },
+    onResumePlaybackIfWasPlaying: (Boolean) -> Unit = {},
     onReplayGainModeSelected: (ReplayGainMode) -> Unit,
     onVisualizerClick: () -> Unit,
     onVisualizerDialogDismiss: () -> Unit,
@@ -372,13 +385,16 @@ fun SettingsScreen(
                                 modifier = Modifier.padding(bottom = 8.dp)
                             )
 
+                            val context = LocalContext.current
+
                             FlowRow(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
                             ) {
-                                EqualizerPreset.entries.forEach { preset ->
+                                EqualizerPreset.entries.filter { it != EqualizerPreset.CUSTOM }.forEach { preset ->
                                     val isSelected = preset == settings.defaultEqualizerPreset
                                     val presetLabel = stringResource(preset.getStringRes())
+                                    val isUnlocked = equalizerState.isPresetUnlocked(preset, isAdFree)
                                     val shape = RoundedCornerShape(20.dp)
 
                                     Box(
@@ -403,19 +419,48 @@ fun SettingsScreen(
                                                 ),
                                                 shape = shape
                                             )
-                                            .clickable { onEqualizerPresetSelected(preset) }
+                                            .clickable {
+                                                if (isUnlocked) {
+                                                    onEqualizerPresetSelected(preset)
+                                                } else if (adManager != null) {
+                                                    val wasPlaying = onPausePlaybackIfPlaying()
+                                                    showRewardedAdToUnlockFeature(
+                                                        context = context,
+                                                        adManager = adManager,
+                                                        featureName = "Equalizer Preset: ${preset.displayName}",
+                                                        onRewardUnlocked = {
+                                                            onUnlockAndSetEqualizerPreset(preset)
+                                                            onResumePlaybackIfWasPlaying(wasPlaying)
+                                                        },
+                                                        onAdDismissOrError = {
+                                                            onResumePlaybackIfWasPlaying(wasPlaying)
+                                                        }
+                                                    )
+                                                }
+                                            }
                                             .padding(horizontal = 14.dp, vertical = 8.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
-                                        Text(
-                                            text = presetLabel,
-                                            style = MaterialTheme.typography.bodyMedium.copy(
-                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                                color = if (isSelected) accent else Color.White.copy(
-                                                    alpha = 0.8f
+                                        Row(verticalAlignment = Alignment.CenterVertically) {
+                                            if (!isUnlocked) {
+                                                Icon(
+                                                    imageVector = Icons.Default.Lock,
+                                                    contentDescription = "Locked",
+                                                    tint = Color(0xFFFFD54F),
+                                                    modifier = Modifier.size(14.dp)
+                                                )
+                                                Spacer(modifier = Modifier.width(4.dp))
+                                            }
+                                            Text(
+                                                text = presetLabel,
+                                                style = MaterialTheme.typography.bodyMedium.copy(
+                                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                                    color = if (isSelected) accent else Color.White.copy(
+                                                        alpha = 0.8f
+                                                    )
                                                 )
                                             )
-                                        )
+                                        }
                                     }
                                 }
                             }
