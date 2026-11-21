@@ -10,6 +10,7 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.sftwr.cleandevelopment.musicplayer.domain.model.SoundEffect
 import com.sftwr.cleandevelopment.musicplayer.domain.model.SoundEffectState
+import com.sftwr.cleandevelopment.musicplayer.domain.model.isFree
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.SoundEffectRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.flow.Flow
@@ -28,19 +29,22 @@ class SoundEffectRepositoryImpl @Inject constructor(
         val SOUND_EFFECT_ENABLED = booleanPreferencesKey("sound_effect_enabled")
         val CURRENT_EFFECT_ID = stringPreferencesKey("current_effect_id")
         val VOLUME_OR_BOOST = floatPreferencesKey("volume_or_boost")
+        val UNLOCKED_EFFECT_ID = stringPreferencesKey("unlocked_effect_id")
     }
 
     override fun getSoundEffectState(): Flow<SoundEffectState> {
         return context.soundEffectDataStore.data.map { preferences ->
             val isEnabled = preferences[Keys.SOUND_EFFECT_ENABLED] ?: false
             val effectId = preferences[Keys.CURRENT_EFFECT_ID] ?: SoundEffect.ELECTRONIC_TUBE.id
-            val volumeOrBoost = preferences[Keys.VOLUME_OR_BOOST] ?: 0.5f
+            val volumeOrBoost = (preferences[Keys.VOLUME_OR_BOOST] ?: 0.5f).coerceIn(0f, 1f)
+            val unlockedEffectId = preferences[Keys.UNLOCKED_EFFECT_ID]
 
             SoundEffectState(
                 isEnabled = isEnabled,
                 currentEffect = SoundEffect.fromId(effectId),
                 volumeOrBoost = volumeOrBoost,
-                availableEffects = SoundEffect.entries
+                availableEffects = SoundEffect.entries,
+                unlockedEffectId = unlockedEffectId
             )
         }
     }
@@ -49,7 +53,13 @@ class SoundEffectRepositoryImpl @Inject constructor(
         context.soundEffectDataStore.edit { preferences ->
             preferences[Keys.SOUND_EFFECT_ENABLED] = state.isEnabled
             preferences[Keys.CURRENT_EFFECT_ID] = state.currentEffect.id
-            preferences[Keys.VOLUME_OR_BOOST] = state.volumeOrBoost
+            preferences[Keys.VOLUME_OR_BOOST] = state.volumeOrBoost.coerceIn(0f, 1f)
+            val unlockedId = state.unlockedEffectId
+            if (unlockedId != null) {
+                preferences[Keys.UNLOCKED_EFFECT_ID] = unlockedId
+            } else {
+                preferences.remove(Keys.UNLOCKED_EFFECT_ID)
+            }
         }
     }
 
@@ -62,12 +72,27 @@ class SoundEffectRepositoryImpl @Inject constructor(
     override suspend fun setCurrentEffect(effect: SoundEffect) {
         context.soundEffectDataStore.edit { preferences ->
             preferences[Keys.CURRENT_EFFECT_ID] = effect.id
+            if (effect.isFree()) {
+                preferences.remove(Keys.UNLOCKED_EFFECT_ID)
+            }
         }
     }
 
     override suspend fun setVolumeOrBoost(value: Float) {
         context.soundEffectDataStore.edit { preferences ->
-            preferences[Keys.VOLUME_OR_BOOST] = value
+            preferences[Keys.VOLUME_OR_BOOST] = value.coerceIn(0f, 1f)
+        }
+    }
+
+    override suspend fun unlockEffect(effectId: String) {
+        context.soundEffectDataStore.edit { preferences ->
+            preferences[Keys.UNLOCKED_EFFECT_ID] = effectId
+        }
+    }
+
+    override suspend fun lockEffects() {
+        context.soundEffectDataStore.edit { preferences ->
+            preferences.remove(Keys.UNLOCKED_EFFECT_ID)
         }
     }
 }
