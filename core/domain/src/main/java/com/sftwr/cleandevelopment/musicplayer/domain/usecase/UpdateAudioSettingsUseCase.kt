@@ -43,6 +43,10 @@ class UpdateAudioSettingsUseCase @Inject constructor(
         }
     }
 
+    suspend fun unlockPreset(presetId: Short) {
+        equalizerRepository.unlockPreset(presetId)
+    }
+
     suspend fun setDefaultEqualizerPreset(preset: String) {
         setDefaultEqualizerPreset(EqualizerPreset.fromName(preset))
     }
