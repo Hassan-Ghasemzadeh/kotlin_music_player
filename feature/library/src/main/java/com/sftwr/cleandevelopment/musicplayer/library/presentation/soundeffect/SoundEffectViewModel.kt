@@ -47,17 +47,23 @@ class SoundEffectViewModel @Inject constructor(
         }
     }
 
+    fun unlockEffect(effect: SoundEffect) {
+        viewModelScope.launch {
+            saveSoundEffectConfigUseCase.unlockEffect(effect.id)
+        }
+    }
+
     fun pausePlaybackIfPlaying(): Boolean {
         val playing = playerController.isPlaying.value
         if (playing) {
-            playerController.togglePlayPause()
+            playerController.pause()
         }
         return playing
     }
 
     fun resumePlaybackIfWasPlaying(wasPlaying: Boolean) {
         if (wasPlaying && !playerController.isPlaying.value) {
-            playerController.togglePlayPause()
+            playerController.play()
         }
     }
 
