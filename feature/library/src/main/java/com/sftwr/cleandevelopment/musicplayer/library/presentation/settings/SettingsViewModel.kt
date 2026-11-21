@@ -31,14 +31,17 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+import com.sftwr.cleandevelopment.musicplayer.domain.ad.AdManager
 import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerPreset
-
+import com.sftwr.cleandevelopment.musicplayer.domain.model.EqualizerState
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.PremiumRepository
+import com.sftwr.cleandevelopment.musicplayer.domain.usecase.GetEqualizerSettingsUseCase
 
 @OptIn(UnstableApi::class)
 @HiltViewModel
 class SettingsViewModel @Inject constructor(
     private val getSettingsUseCase: GetSettingsUseCase,
+    private val getEqualizerSettingsUseCase: GetEqualizerSettingsUseCase,
     private val updateLanguageUseCase: UpdateLanguageUseCase,
     private val updateAppearanceSettingsUseCase: UpdateAppearanceSettingsUseCase,
     private val updateAudioSettingsUseCase: UpdateAudioSettingsUseCase,
@@ -48,6 +51,7 @@ class SettingsViewModel @Inject constructor(
     private val playerManager: PlayerManager,
     private val settingsRepository: SettingsRepository,
     private val premiumRepository: PremiumRepository,
+    val adManager: AdManager,
     @param:ApplicationContext private val context: Context
 ) : ViewModel() {
 
@@ -66,6 +70,13 @@ class SettingsViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState: StateFlow<SettingsUiState> = _uiState.asStateFlow()
+
+    val equalizerState: StateFlow<EqualizerState> = getEqualizerSettingsUseCase()
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = EqualizerState()
+        )
 
     val defaultEqualizerPreset: StateFlow<EqualizerPreset> = getSettingsUseCase()
         .map { it.defaultEqualizerPreset }
@@ -249,8 +260,29 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
+    fun pausePlaybackIfPlaying(): Boolean {
+        val playing = playerManager.isPlaying.value
+        if (playing) {
+            playerManager.pause()
+        }
+        return playing
+    }
+
+    fun resumePlaybackIfWasPlaying(wasPlaying: Boolean) {
+        if (wasPlaying) {
+            playerManager.play()
+        }
+    }
+
     fun onEqualizerPresetSelected(preset: EqualizerPreset) {
         viewModelScope.launch {
+            updateAudioSettingsUseCase.setDefaultEqualizerPreset(preset)
+        }
+    }
+
+    fun unlockAndSetEqualizerPreset(preset: EqualizerPreset) {
+        viewModelScope.launch {
+            updateAudioSettingsUseCase.unlockPreset(preset.id)
             updateAudioSettingsUseCase.setDefaultEqualizerPreset(preset)
         }
     }
