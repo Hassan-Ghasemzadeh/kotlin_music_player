@@ -53,6 +53,7 @@ fun SettingsRoute(
     val isAllowExternalDevicePlaybackEnabled by viewModel.isAllowExternalDevicePlaybackEnabled.collectAsStateWithLifecycle()
     val isSwipeArtworkToSkipEnabled by viewModel.isSwipeArtworkToSkipEnabled.collectAsStateWithLifecycle()
     val isAdFree by viewModel.isAdFree.collectAsStateWithLifecycle()
+    val equalizerState by viewModel.equalizerState.collectAsStateWithLifecycle()
 
     SettingsScreen(
         uiState = uiState,
@@ -67,6 +68,8 @@ fun SettingsRoute(
         isAllowExternalDevicePlaybackEnabled = isAllowExternalDevicePlaybackEnabled,
         isSwipeArtworkToSkipEnabled = isSwipeArtworkToSkipEnabled,
         isAdFree = isAdFree,
+        equalizerState = equalizerState,
+        adManager = viewModel.adManager,
         onAdFreeToggle = viewModel::setAdFree,
         onBackClick = onBackClick,
         onLanguageClick = { viewModel.showLanguageDialog(true) },
@@ -82,6 +85,9 @@ fun SettingsRoute(
         onCrossfadeDurationChange = viewModel::onCrossfadeDurationChange,
         onSkipSilenceToggle = viewModel::onSkipSilenceToggle,
         onEqualizerPresetSelected = viewModel::onEqualizerPresetSelected,
+        onUnlockAndSetEqualizerPreset = viewModel::unlockAndSetEqualizerPreset,
+        onPausePlaybackIfPlaying = viewModel::pausePlaybackIfPlaying,
+        onResumePlaybackIfWasPlaying = viewModel::resumePlaybackIfWasPlaying,
         onReplayGainModeSelected = viewModel::onReplayGainModeSelected,
         onVisualizerClick = onNavigateToVisualizerSelection,
         onVisualizerDialogDismiss = { viewModel.showVisualizerDialog(false) },
