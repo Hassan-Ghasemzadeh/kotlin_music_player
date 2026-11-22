@@ -19,6 +19,9 @@ import kotlin.math.sin
  */
 class CrystalSonicRenderer : GLSurfaceView.Renderer {
 
+    @Volatile
+    var discRatio: Float = 0.82f
+
     private val projectionMatrix = FloatArray(16)
     private val viewMatrix = FloatArray(16)
     private val mvpMatrix = FloatArray(16)
@@ -33,6 +36,7 @@ class CrystalSonicRenderer : GLSurfaceView.Renderer {
     private var particleParamsHandle = 0
     private var isParticleHandle = 0
     private var aspectUniformHandle = 0
+    private var discRatioUniformHandle = 0
     private var mvpMatrixHandle = 0
     private var timeHandle = 0
     private var fftValuesHandle = 0
@@ -77,12 +81,16 @@ class CrystalSonicRenderer : GLSurfaceView.Renderer {
             uniform float u_fftValues[32];
             uniform float u_isParticle;
             uniform float u_aspect;
+            uniform float u_discRatio;
             
             varying vec4 fragColor;
             
             void main() {
                 vec4 pos = vec4(0.0, 0.0, 0.0, 1.0);
                 float alphaFade = 1.0;
+                
+                // Dynamically calculate inner base radius in world space (baseSpan = 1.8)
+                float baseR = (u_discRatio + 0.02) * 1.8;
                 
                 if (u_isParticle > 0.5) {
                     // Dynamic Particle System: Smooth travel with larger triangles and late edge-only fade
@@ -94,8 +102,8 @@ class CrystalSonicRenderer : GLSurfaceView.Renderer {
                     float period = 8.5;
                     float age = mod(u_time + timeOffset, period);
                     
-                    // Outward radial distance drifting across full viewport space
-                    float r = 1.52 + speed * age;
+                    // Outward radial distance drifting across full viewport space starting right outside album disc
+                    float r = baseR + speed * age;
                     
                     // Particle center coordinates in direction vAngle
                     vec2 centerPos = vec2(r * cos(vAngle), r * sin(vAngle));
@@ -110,14 +118,9 @@ class CrystalSonicRenderer : GLSurfaceView.Renderer {
                     vec2 localPos = rotMat * (vPosition.xy * particleSize);
                     pos = vec4(centerPos + localPos, 0.0, 1.0);
                     
-                    // Screen-Edge Proximity Metric:
-                    float aspectFactor = max(u_aspect, 1.0);
-                    float uNorm = abs(pos.x) / 1.76;
-                    float vNorm = abs(pos.y) / (1.76 * aspectFactor);
-                    float edgeDist = sqrt(uNorm * uNorm + vNorm * vNorm);
-                    
-                    float fadeIn = smoothstep(1.50, 1.56, length(pos.xy));
-                    float fadeOut = 1.0 - smoothstep(0.96, 1.08, edgeDist);
+                    // Smooth edge attenuation
+                    float fadeIn = smoothstep(baseR - 0.06, baseR + 0.02, length(pos.xy));
+                    float fadeOut = 1.0 - smoothstep(1.60, 1.76, length(pos.xy));
                     
                     alphaFade = fadeIn * fadeOut;
                     
@@ -140,7 +143,7 @@ class CrystalSonicRenderer : GLSurfaceView.Renderer {
                     float dynamicGap = activeAudio * dnaFactor * (0.0375 + bandFft * 0.1125 + u_bassValue * 0.060);
                     float helixDisplacement = sin(vAngle * 14.0) * dynamicGap * vStrandSign;
                     
-                    float r = 1.56 + helixDisplacement;
+                    float r = baseR + helixDisplacement;
                     pos = vec4(r * cos(vAngle), r * sin(vAngle), 0.0, 1.0);
                 }
                 
@@ -181,7 +184,7 @@ class CrystalSonicRenderer : GLSurfaceView.Renderer {
 
         currentAspect = if ((width > 0) && (height > 0)) height.toFloat() / width.toFloat() else 1.0f
 
-        val minDim = minOf(width, height).toFloat()
+        val minDim = minOf(width, height).toFloat().coerceAtLeast(1f)
         val baseSpan = 1.8f
         val xSpan = baseSpan * (width.toFloat() / minDim)
         val ySpan = baseSpan * (height.toFloat() / minDim)
@@ -222,6 +225,7 @@ class CrystalSonicRenderer : GLSurfaceView.Renderer {
 
         isParticleHandle = GLES20.glGetUniformLocation(programId, "u_isParticle")
         aspectUniformHandle = GLES20.glGetUniformLocation(programId, "u_aspect")
+        discRatioUniformHandle = GLES20.glGetUniformLocation(programId, "u_discRatio")
         mvpMatrixHandle = GLES20.glGetUniformLocation(programId, "uMVPMatrix")
         timeHandle = GLES20.glGetUniformLocation(programId, "u_time")
         fftValuesHandle = GLES20.glGetUniformLocation(programId, "u_fftValues")
@@ -230,6 +234,7 @@ class CrystalSonicRenderer : GLSurfaceView.Renderer {
 
         GLES20.glUniform1f(timeHandle, timeSec)
         if (aspectUniformHandle >= 0) GLES20.glUniform1f(aspectUniformHandle, currentAspect)
+        if (discRatioUniformHandle >= 0) GLES20.glUniform1f(discRatioUniformHandle, discRatio)
         if (bassHandle >= 0) GLES20.glUniform1f(bassHandle, bassValue)
         if (averageFftHandle >= 0) GLES20.glUniform1f(averageFftHandle, averageFft)
         if (fftValuesHandle >= 0) GLES20.glUniform1fv(fftValuesHandle, 32, smoothedFftData, 0)
