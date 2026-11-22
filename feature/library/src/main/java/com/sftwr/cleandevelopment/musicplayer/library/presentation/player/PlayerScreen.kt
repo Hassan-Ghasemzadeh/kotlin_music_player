@@ -30,7 +30,6 @@ import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
 import androidx.compose.material.icons.automirrored.filled.QueueMusic
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Equalizer
-import androidx.compose.material.icons.filled.Public
 import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
@@ -64,7 +63,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.ui.res.stringResource
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -84,6 +82,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
@@ -91,14 +90,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.library.core.util.formatTime
-
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.components.AddToPlaylistDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.equalizer.EqualizerBottomSheet
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.viewmodel.PlayerViewModel
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.player.viewmodel.RepeatMode
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.sleeptimer.SleepTimerDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.visualizer.NeonCircularVisualizer
-import com.sftwr.cleandevelopment.musicplayer.model.VisualizerStyle
 import androidx.compose.material.icons.filled.Search
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.sftwr.cleandevelopment.musicplayer.library.core.visualizer.AudioVisualizerManager
@@ -108,9 +105,7 @@ import com.sftwr.cleandevelopment.musicplayer.library.presentation.lyrics.NoLyri
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.lyrics.OnlineLyricSearchDialog
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.lyrics.SynchronizedLyricView
 import com.sftwr.cleandevelopment.musicplayer.library.presentation.lyrics.viewmodel.LyricViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
-import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * PlayerScreen displays the full-screen media player interface featuring dynamic neon circular visualizers,
@@ -246,7 +241,7 @@ fun PlayerScreen(
     val swipeArtworkToSkip by viewModel.swipeArtworkToSkip.collectAsState()
     val density = LocalDensity.current
     val screenWidthPx = with(density) { 350.dp.toPx() }
-    var dragOffset by remember { androidx.compose.runtime.mutableFloatStateOf(0f) }
+    var dragOffset by remember { mutableFloatStateOf(0f) }
     val animatedOffset = remember { androidx.compose.animation.core.Animatable(0f) }
     val scope = rememberCoroutineScope()
 
@@ -332,7 +327,7 @@ fun PlayerScreen(
                     )
                 }
                 Text(
-                    text = stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.now_playing),
+                    text = stringResource(R.string.now_playing),
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold, color = Color.White.copy(alpha = 0.9f)
                     ),
@@ -413,8 +408,9 @@ fun PlayerScreen(
                         fftData = fftData,
                         albumArtUrl = songState?.uri,
                         isPlaying = isPlaying && !isExiting,
-                        size = 390.dp,
-                        discRatio = 0.82f
+                        modifier = Modifier.fillMaxSize(),
+                        size = Dp.Unspecified,
+                        discRatio = 0.86f
                     )
                 }
             }
@@ -425,7 +421,7 @@ fun PlayerScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 32.dp)
+                    .padding(horizontal = 16.dp)
                     .graphicsLayer {
                         alpha = ((sheetProgress - 0.35f) / 0.65f).coerceIn(0f, 1f)
                     },
@@ -454,7 +450,7 @@ fun PlayerScreen(
                 IconButton(onClick = onNavigateToSoundEffect) {
                     Icon(
                         imageVector = Icons.Default.AutoAwesome,
-                        contentDescription = stringResource(com.sftwr.cleandevelopment.musicplayer.home.R.string.sound_effects),
+                        contentDescription = stringResource(R.string.sound_effects),
                         tint = accent,
                         modifier = Modifier.size(24.dp)
                     )
@@ -546,7 +542,8 @@ fun PlayerScreen(
                     val maxDuration = if (durationMs > 0f) durationMs else 1f
                     var isDragging by remember { mutableStateOf(false) }
                     var dragPosition by remember { mutableFloatStateOf(0f) }
-                    val sliderValue = if (isDragging) dragPosition else currentPosition.toFloat().coerceIn(0f, maxDuration)
+                    val sliderValue = if (isDragging) dragPosition else currentPosition.toFloat()
+                        .coerceIn(0f, maxDuration)
                     val displayPosition = if (isDragging) dragPosition.toLong() else currentPosition
 
                     Row(
