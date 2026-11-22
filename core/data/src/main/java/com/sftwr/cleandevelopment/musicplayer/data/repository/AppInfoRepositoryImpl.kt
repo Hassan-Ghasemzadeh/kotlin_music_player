@@ -15,7 +15,7 @@ class AppInfoRepositoryImpl @Inject constructor(
 ) : AppInfoRepository {
 
     override suspend fun getAppInfo(): AppInfo = withContext(Dispatchers.IO) {
-        var version = "v3.0.4"
+        var version = "v3.0.5"
         try {
             val pInfo = context.packageManager.getPackageInfo(context.packageName, 0)
             val pkgVersion = pInfo.versionName
