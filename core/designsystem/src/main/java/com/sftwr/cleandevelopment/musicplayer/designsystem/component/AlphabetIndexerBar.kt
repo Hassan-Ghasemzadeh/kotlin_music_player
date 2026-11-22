@@ -32,8 +32,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.layout.onGloballyPositioned
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -60,6 +63,7 @@ fun AlphabetIndexerBar(
     // Detect active layout direction
     val layoutDirection = LocalLayoutDirection.current
     val isRtl = layoutDirection == LayoutDirection.Rtl
+    val haptic = LocalHapticFeedback.current
 
     // Remember updated state references to prevent pointer input cancellation on recomposition
     val currentLetters by rememberUpdatedState(letters)
@@ -70,19 +74,26 @@ fun AlphabetIndexerBar(
     var isDragging by remember { mutableStateOf(false) }
     var totalHeight by remember { mutableFloatStateOf(0f) }
 
+    val density = LocalDensity.current
+    val verticalPaddingPx = remember(density) { with(density) { 4.dp.toPx() } }
+
     /**
      * Safely maps vertical touch position (posY) to the corresponding letter in the list.
+     * Accounts for vertical insets/padding inside the track column so top-to-bottom drag
+     * aligns accurately with visual letter items.
      */
     fun updateSelectedLetter(posY: Float) {
         if (totalHeight > 0f && currentLetters.isNotEmpty()) {
-            val clampedY = posY.coerceIn(0f, totalHeight)
-            val fraction = (clampedY / totalHeight).coerceIn(0f, 0.999f)
+            val contentHeight = (totalHeight - (verticalPaddingPx * 2)).coerceAtLeast(1f)
+            val clampedY = (posY - verticalPaddingPx).coerceIn(0f, contentHeight - 0.0001f)
+            val fraction = clampedY / contentHeight
             val index = (fraction * currentLetters.size).toInt().coerceIn(0, currentLetters.size - 1)
 
             val letter = currentLetters[index]
             if (selectedLetter != letter) {
                 selectedLetter = letter
                 currentOnLetterSelected(letter)
+                haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
             }
         }
     }
@@ -112,8 +123,8 @@ fun AlphabetIndexerBar(
                 .width(22.dp)
                 .clip(RoundedCornerShape(11.dp))
                 .background(glassColor)
-                .onGloballyPositioned { coordinates ->
-                    totalHeight = coordinates.size.height.toFloat()
+                .onSizeChanged { size ->
+                    totalHeight = size.height.toFloat()
                 }
                 .pointerInput(Unit) {
                     awaitEachGesture {
