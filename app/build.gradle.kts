@@ -27,8 +27,8 @@ android {
         applicationId = "com.sftwr.cleandevelopment.musicplayer.music_player"
         minSdk = 24
         targetSdk = 37
-        versionCode = 36
-        versionName = "3.0.4"
+        versionCode = 37
+        versionName = "3.0.5"
         addManifestPlaceholders(
             mapOf("TapsellMediationAppKey" to "bkmtlebgltcebmnpnlcoqrcraorfjjdjffqefsmrtebidmqakgicbddqojdalabtmeegmr")
         )
