@@ -15,10 +15,14 @@ import javax.microedition.khronos.opengles.GL10
  */
 class FantasyPlanetRenderer : GLSurfaceView.Renderer {
 
+    @Volatile
+    var discRatio: Float = 0.82f
+
     private var programId = 0
     private var resolutionHandle = 0
     private var timeHandle = 0
     private var audioAmplitudeHandle = 0
+    private var discRatioHandle = 0
     private var fftBandsHandle = 0
 
     private var positionBuffer: FloatBuffer? = null
@@ -65,6 +69,7 @@ class FantasyPlanetRenderer : GLSurfaceView.Renderer {
             uniform vec2 u_Resolution;
             uniform float u_Time;
             uniform float u_AudioAmplitude;
+            uniform float u_discRatio;
             uniform float u_FftBands[16];
             varying vec2 v_UV;
 
@@ -78,8 +83,8 @@ class FantasyPlanetRenderer : GLSurfaceView.Renderer {
 
                 float r = length(st) * 2.0;
 
-                // پاکسازی مرکز دقیقاً مماس با لبه بیرونی بوردر عکس (0.80)
-                if (r < 0.80) {
+                // Clear inner disc area according to dynamic discRatio
+                if (r < u_discRatio) {
                     gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
                     return;
                 }
@@ -93,24 +98,20 @@ class FantasyPlanetRenderer : GLSurfaceView.Renderer {
                     float floatI = float(i);
                     float timeOffset = floatI * (cycleDuration / float(RING_COUNT));
                     float t = mod(u_Time + timeOffset, cycleDuration);
-                    float age = t / cycleDuration; // از 0.0 تا 1.0
+                    float age = t / cycleDuration;
 
-                    // شروع دقیق مماس بر لبه بوردر آلبوم (0.80) و انبساط به سمت بیرون
-                    float currentR = 0.84 + age * 0.32;
+                    // Start expanding rings cleanly outside album cover disc
+                    float currentR = (u_discRatio + 0.02) + age * 0.32;
 
-                    // ضخامت بسیار نازک و ظریف خط
                     float ringDist = abs(r - currentR);
                     float thickness = 0.003; 
 
-                    // تنظیم بازه محو شدن نرم و هماهنگ
                     float lifeAlpha = smoothstep(0.0, 0.04, age) * (1.0 - smoothstep(0.45, 0.80, age));
 
-                    // رسم خط بسیار نازک
                     float lineAlpha = (1.0 - smoothstep(0.0, thickness + 0.002, ringDist)) * lifeAlpha * 0.55;
                     vec3 ringColor = mix(vec3(0.5, 0.75, 1.0), vec3(0.85, 0.6, 1.0), fract(floatI * 0.25 + u_Time * 0.03));
                     finalColor += vec4(ringColor * lineAlpha, lineAlpha);
 
-                    // --- دایره کوچک متحرک دقیقاً سوار بر روی خط ---
                     float particleAngle = u_Time * (0.12 + floatI * 0.02) + floatI * 2.3;
                     vec2 particlePos = vec2(cos(particleAngle), sin(particleAngle)) * currentR;
                     float distToParticle = length(st * 2.0 - particlePos);
@@ -119,7 +120,6 @@ class FantasyPlanetRenderer : GLSurfaceView.Renderer {
                     finalColor += vec4(vec3(1.0, 0.95, 0.85) * dot, dot * 0.80);
                 }
 
-                // محو ملایم لبه‌های بیرونی صفحه
                 float outerFade = 1.0 - smoothstep(1.18, 1.42, r);
                 finalColor.a *= outerFade;
 
@@ -158,11 +158,13 @@ class FantasyPlanetRenderer : GLSurfaceView.Renderer {
         resolutionHandle = GLES20.glGetUniformLocation(programId, "u_Resolution")
         timeHandle = GLES20.glGetUniformLocation(programId, "u_Time")
         audioAmplitudeHandle = GLES20.glGetUniformLocation(programId, "u_AudioAmplitude")
+        discRatioHandle = GLES20.glGetUniformLocation(programId, "u_discRatio")
         fftBandsHandle = GLES20.glGetUniformLocation(programId, "u_FftBands")
 
         if (resolutionHandle >= 0) GLES20.glUniform2f(resolutionHandle, viewportWidth.toFloat(), viewportHeight.toFloat())
         if (timeHandle >= 0) GLES20.glUniform1f(timeHandle, timeSec)
         if (audioAmplitudeHandle >= 0) GLES20.glUniform1f(audioAmplitudeHandle, audioAmplitude)
+        if (discRatioHandle >= 0) GLES20.glUniform1f(discRatioHandle, discRatio)
         if (fftBandsHandle >= 0) GLES20.glUniform1fv(fftBandsHandle, 16, smoothedFftData, 0)
 
         positionBuffer?.let { posBuf ->
