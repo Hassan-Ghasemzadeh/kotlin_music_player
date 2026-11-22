@@ -220,7 +220,7 @@ fun SlantedNavigationDrawerContent(
 
             // Footer version
             Text(
-                text = stringResource(R.string.version, "3.0.4"),
+                text = stringResource(R.string.version, "3.0.5"),
                 color = Color.White.copy(alpha = 0.5f),
                 fontSize = 11.sp,
                 modifier = Modifier.align(Alignment.CenterHorizontally)
