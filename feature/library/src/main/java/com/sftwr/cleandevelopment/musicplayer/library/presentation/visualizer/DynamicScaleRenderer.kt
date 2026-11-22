@@ -20,6 +20,9 @@ import kotlin.math.sin
  */
 class DynamicScaleRenderer : GLSurfaceView.Renderer {
 
+    @Volatile
+    var discRatio: Float = 0.82f
+
     private val projectionMatrix = FloatArray(16)
     private val viewMatrix = FloatArray(16)
     private val mvpMatrix = FloatArray(16)
@@ -31,6 +34,7 @@ class DynamicScaleRenderer : GLSurfaceView.Renderer {
     private var angleHandle = 0
     private var isOuterHandle = 0
     private var elementTypeHandle = 0
+    private var discRatioHandle = 0
 
     private var mvpMatrixHandle = 0
     private var timeHandle = 0
@@ -72,6 +76,7 @@ class DynamicScaleRenderer : GLSurfaceView.Renderer {
             uniform float u_bassValue;
             uniform float u_averageFft;
             uniform float u_fftValues[32];
+            uniform float u_discRatio;
             
             varying vec4 fragColor;
             
@@ -89,7 +94,8 @@ class DynamicScaleRenderer : GLSurfaceView.Renderer {
                 
                 float bandFft = u_fftValues[fftIdx];
                 
-                float baseRadius = 1.04;
+                // Dynamically calculate inner base radius in world space (baseSpan = 1.2)
+                float baseRadius = (u_discRatio + 0.025) * 1.2;
                 float maxBarHeight = 0.24;
                 
                 // Frequency-reactive bar extension
@@ -143,7 +149,7 @@ class DynamicScaleRenderer : GLSurfaceView.Renderer {
         GLES20.glViewport(0, 0, width, height)
         Matrix.setIdentityM(projectionMatrix, 0)
 
-        val minDim = minOf(width, height).toFloat()
+        val minDim = minOf(width, height).toFloat().coerceAtLeast(1f)
         val baseSpan = 1.2f
         val xSpan = baseSpan * (width.toFloat() / minDim)
         val ySpan = baseSpan * (height.toFloat() / minDim)
@@ -181,6 +187,7 @@ class DynamicScaleRenderer : GLSurfaceView.Renderer {
         isOuterHandle = GLES20.glGetAttribLocation(programId, "vIsOuter")
         elementTypeHandle = GLES20.glGetAttribLocation(programId, "vElementType")
 
+        discRatioHandle = GLES20.glGetUniformLocation(programId, "u_discRatio")
         mvpMatrixHandle = GLES20.glGetUniformLocation(programId, "uMVPMatrix")
         timeHandle = GLES20.glGetUniformLocation(programId, "u_time")
         fftValuesHandle = GLES20.glGetUniformLocation(programId, "u_fftValues")
@@ -188,6 +195,7 @@ class DynamicScaleRenderer : GLSurfaceView.Renderer {
         averageFftHandle = GLES20.glGetUniformLocation(programId, "u_averageFft")
 
         GLES20.glUniform1f(timeHandle, timeSec)
+        if (discRatioHandle >= 0) GLES20.glUniform1f(discRatioHandle, discRatio)
         if (bassHandle >= 0) GLES20.glUniform1f(bassHandle, bassValue)
         if (averageFftHandle >= 0) GLES20.glUniform1f(averageFftHandle, averageFft)
         if (fftValuesHandle >= 0) GLES20.glUniform1fv(fftValuesHandle, 32, smoothedFftData, 0)
