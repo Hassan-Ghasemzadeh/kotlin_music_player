@@ -118,9 +118,21 @@ class CrystalSonicRenderer : GLSurfaceView.Renderer {
                     vec2 localPos = rotMat * (vPosition.xy * particleSize);
                     pos = vec4(centerPos + localPos, 0.0, 1.0);
                     
-                    // Smooth edge attenuation
+                    // Directional weight: 0.0 for horizontal travel (X-axis), 1.0 for vertical travel (Y-axis)
+                    float vertWeight = abs(sin(vAngle));
+                    
+                    // Vertical Fade Delay Parameter:
+                    // Controls how much further outward vertical (Y-axis) triangles travel before fading out.
+                    // Base vertical delay is 0.18 world units; scales slightly with u_aspect in portrait mode.
+                    float aspectBonus = max(u_aspect - 1.0, 0.0) * 0.12;
+                    float verticalFadeDelay = vertWeight * (0.18 + aspectBonus);
+                    
+                    // Smooth edge attenuation with directional Y-axis threshold extension
                     float fadeIn = smoothstep(baseR - 0.06, baseR + 0.02, length(pos.xy));
-                    float fadeOut = 1.0 - smoothstep(1.60, 1.76, length(pos.xy));
+                    
+                    float fadeOutStart = 1.60 + verticalFadeDelay;
+                    float fadeOutEnd = 1.76 + verticalFadeDelay;
+                    float fadeOut = 1.0 - smoothstep(fadeOutStart, fadeOutEnd, length(pos.xy));
                     
                     alphaFade = fadeIn * fadeOut;
                     
