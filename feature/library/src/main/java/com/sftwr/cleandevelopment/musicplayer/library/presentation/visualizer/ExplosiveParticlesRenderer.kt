@@ -15,6 +15,9 @@ import kotlin.math.sin
 
 class ExplosiveParticlesRenderer : GLSurfaceView.Renderer {
 
+    @Volatile
+    var discRatio: Float = 0.82f
+
     private val projectionMatrix = FloatArray(16)
     private val viewMatrix = FloatArray(16)
     private val mvpMatrix = FloatArray(16)
@@ -26,6 +29,7 @@ class ExplosiveParticlesRenderer : GLSurfaceView.Renderer {
     private var angleHandle = 0
     private var elementTypeHandle = 0
     private var particleParamsHandle = 0
+    private var discRatioHandle = 0
 
     private var mvpMatrixHandle = 0
     private var timeHandle = 0
@@ -75,6 +79,7 @@ class ExplosiveParticlesRenderer : GLSurfaceView.Renderer {
             uniform float u_time;
             uniform float u_bassValue;
             uniform float u_fftValues[32];
+            uniform float u_discRatio;
             
             varying vec4 fragColor;
             
@@ -91,7 +96,9 @@ class ExplosiveParticlesRenderer : GLSurfaceView.Renderer {
                 if (fftIdx > 31) fftIdx = 31;
                 
                 float bandFft = u_fftValues[fftIdx];
-                float baseRadius = 1.04;
+                
+                // Dynamically calculate inner base radius in world space (baseSpan = 1.2)
+                float baseRadius = (u_discRatio + 0.025) * 1.2;
                 float rDot = baseRadius + 0.04 + (bandFft * 0.12) + (u_bassValue * 0.06);
                 
                 if (vElementType < 0.5) {
@@ -107,12 +114,12 @@ class ExplosiveParticlesRenderer : GLSurfaceView.Renderer {
                     gl_PointSize = 7.5;
                     
                 } else if (vElementType < 1.7) {
-                    // 3. Trailing Tails (خطوط متصل از خط پایه تا زیر دایره‌ها با محوشدگی رو به پایین)
-                    float tParam = vPosition.x; // 0.0 در خط پایه، قبلاً 1.0 در زیر دایره
+                    // 3. Trailing Tails
+                    float tParam = vPosition.x;
                     float rVertex = mix(baseRadius, rDot, tParam);
                     
                     pos = vec4(rVertex * cos(vAngle), rVertex * sin(vAngle), 0.0, 1.0);
-                    alphaMod = smoothstep(0.0, 0.6, tParam) * 0.65; // پررنگ‌تر در بالا و محو در سمت خط پایه
+                    alphaMod = smoothstep(0.0, 0.6, tParam) * 0.65;
                     gl_PointSize = 3.0;
                     
                 } else {
@@ -128,7 +135,7 @@ class ExplosiveParticlesRenderer : GLSurfaceView.Renderer {
                     
                     pos = vec4(rVertex * cos(vAngle), rVertex * sin(vAngle), 0.0, 1.0);
                     float currentRadius = length(pos.xy);
-                    alphaMod = tParam * smoothstep(1.05, 1.15, currentRadius) * (1.0 - smoothstep(1.30, 2.00, currentRadius));
+                    alphaMod = tParam * smoothstep(baseRadius + 0.01, baseRadius + 0.11, currentRadius) * (1.0 - smoothstep(1.30, 2.00, currentRadius));
                     gl_PointSize = 4.0;
                 }
                 
@@ -170,7 +177,7 @@ class ExplosiveParticlesRenderer : GLSurfaceView.Renderer {
         GLES20.glViewport(0, 0, width, height)
         Matrix.setIdentityM(projectionMatrix, 0)
 
-        val minDim = minOf(width, height).toFloat()
+        val minDim = minOf(width, height).toFloat().coerceAtLeast(1f)
         val baseSpan = 1.2f
         val xSpan = baseSpan * (width.toFloat() / minDim)
         val ySpan = baseSpan * (height.toFloat() / minDim)
@@ -208,6 +215,7 @@ class ExplosiveParticlesRenderer : GLSurfaceView.Renderer {
         elementTypeHandle = GLES20.glGetAttribLocation(programId, "vElementType")
         particleParamsHandle = GLES20.glGetAttribLocation(programId, "vParticleParams")
 
+        discRatioHandle = GLES20.glGetUniformLocation(programId, "u_discRatio")
         mvpMatrixHandle = GLES20.glGetUniformLocation(programId, "uMVPMatrix")
         timeHandle = GLES20.glGetUniformLocation(programId, "u_time")
         fftValuesHandle = GLES20.glGetUniformLocation(programId, "u_fftValues")
@@ -215,6 +223,7 @@ class ExplosiveParticlesRenderer : GLSurfaceView.Renderer {
         averageFftHandle = GLES20.glGetUniformLocation(programId, "u_averageFft")
 
         GLES20.glUniform1f(timeHandle, timeSec)
+        if (discRatioHandle >= 0) GLES20.glUniform1f(discRatioHandle, discRatio)
         if (bassHandle >= 0) GLES20.glUniform1f(bassHandle, bassValue)
         if (averageFftHandle >= 0) GLES20.glUniform1f(averageFftHandle, averageFft)
         if (fftValuesHandle >= 0) GLES20.glUniform1fv(fftValuesHandle, 32, smoothedFftData, 0)
