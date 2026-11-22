@@ -429,15 +429,20 @@ fun ArtistDetailScreen(
                                 AlphabetIndexerBar(
                                     letters = alphabet,
                                     onLetterSelected = { targetLetter ->
-                                        val index = songs.indexOfFirst { song ->
-                                            song.title.startsWith(
-                                                targetLetter,
-                                                ignoreCase = true
-                                            )
-                                        }
-                                        if (index != -1) {
+                                        val targetChar = targetLetter.uppercase().firstOrNull()
+                                        if (targetChar != null && songs.isNotEmpty()) {
+                                            val headerOffset = if (albums.isNotEmpty()) 1 else 0
+                                            val songIndex = songs.indexOfFirst { song ->
+                                                val firstChar = song.title.trimStart().firstOrNull()?.uppercaseChar()
+                                                firstChar != null && firstChar >= targetChar
+                                            }
+                                            val targetIndex = if (songIndex != -1) {
+                                                songIndex + headerOffset
+                                            } else {
+                                                songs.lastIndex + headerOffset
+                                            }
                                             coroutineScope.launch {
-                                                listState.animateScrollToItem(index)
+                                                listState.animateScrollToItem(targetIndex)
                                             }
                                         }
                                     },
