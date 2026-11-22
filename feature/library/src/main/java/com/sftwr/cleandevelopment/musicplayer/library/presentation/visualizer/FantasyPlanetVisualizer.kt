@@ -8,6 +8,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -43,13 +44,15 @@ fun FantasyPlanetVisualizer(
     albumArtUrl: String?,
     isPlaying: Boolean,
     modifier: Modifier = Modifier,
-    size: Dp = 460.dp,
+    size: Dp = Dp.Unspecified,
+    discRatio: Float = 0.86f,
     discSize: Dp = Dp.Unspecified,
 ) {
     val context = LocalContext.current
     val renderer = remember { FantasyPlanetRenderer() }
 
     renderer.updateFft(fftData)
+    renderer.discRatio = discRatio
 
     val albumArtBytes by produceState<Bitmap?>(initialValue = null, key1 = albumArtUrl) {
         value = if (!albumArtUrl.isNullOrBlank()) {
@@ -97,65 +100,72 @@ fun FantasyPlanetVisualizer(
         }
     }
 
-    val actualDiscSize = if (discSize != Dp.Unspecified) discSize else size * (340f / 460f)
-
-    Box(
-        modifier = modifier.size(size),
+    BoxWithConstraints(
+        modifier = modifier,
         contentAlignment = Alignment.Center,
     ) {
-        // Layer 1: OpenGL Audio-Reactive Visualizer Overlay
-        AndroidView(
-            factory = { glSurfaceView },
-            modifier = Modifier.size(size),
-        ) { view ->
-            if (isPlaying) {
-                view.onResume()
-                view.visibility = View.VISIBLE
-            } else {
-                view.onPause()
-                view.visibility = View.INVISIBLE
-            }
-        }
+        val maxAvailable = minOf(this.maxWidth, this.maxHeight)
+        val effectiveSize = if ((size != Dp.Unspecified) && (size < maxAvailable)) size else maxAvailable
+        val actualDiscSize = if (discSize != Dp.Unspecified) discSize else effectiveSize * discRatio
 
-        // Layer 2: Central Circular Album Art Disc with matching styled border
         Box(
-            modifier = Modifier
-                .size(actualDiscSize)
-                .clip(CircleShape)
-                .background(Color(0xFF16122B))
-                .border(
-                    width = 3.dp,
-                    brush = Brush.sweepGradient(
-                        colors = listOf(
-                            Color(0xFF00D2FF), // Cyan
-                            Color(0xFF9C27B0), // Purple
-                            Color(0xFFFF9800), // Gold/Orange
-                            Color(0xFF00D2FF), // Cyan
-                        ),
-                    ),
-                    shape = CircleShape,
-                ),
+            modifier = Modifier.size(effectiveSize),
             contentAlignment = Alignment.Center,
         ) {
-            val isAlbumArtworkEnabled = LocalAlbumArtworkEnabled.current
-            if (isAlbumArtworkEnabled && (albumArtBytes != null)) {
-                AsyncImage(
-                    model = albumArtBytes,
-                    contentDescription = "Album Cover",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape),
-                )
-            } else {
-                Image(
-                    painter = painterResource(id = com.sftwr.cleandevelopment.musicplayer.home.R.drawable.ic_default_album_art),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .matchParentSize()
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop,
-                )
+            // Layer 1: OpenGL Audio-Reactive Visualizer Overlay
+            AndroidView(
+                factory = { glSurfaceView },
+                modifier = Modifier.size(effectiveSize),
+            ) { view ->
+                if (isPlaying) {
+                    view.onResume()
+                    view.visibility = View.VISIBLE
+                } else {
+                    view.onPause()
+                    view.visibility = View.INVISIBLE
+                }
+            }
+
+            // Layer 2: Central Circular Album Art Disc with matching styled border
+            Box(
+                modifier = Modifier
+                    .size(actualDiscSize)
+                    .clip(CircleShape)
+                    .background(Color(0xFF16122B))
+                    .border(
+                        width = 3.dp,
+                        brush = Brush.sweepGradient(
+                            colors = listOf(
+                                Color(0xFF00D2FF), // Cyan
+                                Color(0xFF9C27B0), // Purple
+                                Color(0xFFFF9800), // Gold/Orange
+                                Color(0xFF00D2FF), // Cyan
+                            ),
+                        ),
+                        shape = CircleShape,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                val isAlbumArtworkEnabled = LocalAlbumArtworkEnabled.current
+                if (isAlbumArtworkEnabled && (albumArtBytes != null)) {
+                    AsyncImage(
+                        model = albumArtBytes,
+                        contentDescription = "Album Cover",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape),
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = com.sftwr.cleandevelopment.musicplayer.home.R.drawable.ic_default_album_art),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop,
+                    )
+                }
             }
         }
     }
