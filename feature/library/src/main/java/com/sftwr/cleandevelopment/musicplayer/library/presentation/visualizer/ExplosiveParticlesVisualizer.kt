@@ -8,6 +8,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -43,13 +44,15 @@ fun ExplosiveParticlesVisualizer(
     albumArtUrl: String?,
     isPlaying: Boolean,
     modifier: Modifier = Modifier,
-    size: Dp = 320.dp,
+    size: Dp = Dp.Unspecified,
+    discRatio: Float = 0.86f,
     discSize: Dp = Dp.Unspecified,
 ) {
     val context = LocalContext.current
     val renderer = remember { ExplosiveParticlesRenderer() }
 
     renderer.updateFft(fftData)
+    renderer.discRatio = discRatio
 
     val albumArtBytes by produceState<Bitmap?>(initialValue = null, key1 = albumArtUrl) {
         value = if (!albumArtUrl.isNullOrBlank()) {
@@ -97,65 +100,72 @@ fun ExplosiveParticlesVisualizer(
         }
     }
 
-    val actualDiscSize = if (discSize != Dp.Unspecified) discSize else size * (340f / 420f)
-
-    Box(
-        modifier = modifier.size(size),
+    BoxWithConstraints(
+        modifier = modifier,
         contentAlignment = Alignment.Center,
     ) {
-        // Layer 1: Central Circular Album Art Disc (زیر ویژولایزر قرار می‌گیرد تا خطوط روی آن جلوه کنند)
+        val maxAvailable = minOf(this.maxWidth, this.maxHeight)
+        val effectiveSize = if ((size != Dp.Unspecified) && (size < maxAvailable)) size else maxAvailable
+        val actualDiscSize = if (discSize != Dp.Unspecified) discSize else effectiveSize * discRatio
+
         Box(
-            modifier = Modifier
-                .size(actualDiscSize)
-                .clip(CircleShape)
-                .background(Color(0xFF1D1838))
-                .border(
-                    width = 3.dp,
-                    brush = Brush.sweepGradient(
-                        colors = listOf(
-                            Color(0xFFFFB300),
-                            Color(0xFFFF5722),
-                            Color(0xFFFF2D55),
-                            Color(0xFFFFB300),
-                        ),
-                    ),
-                    shape = CircleShape,
-                ),
+            modifier = Modifier.size(effectiveSize),
             contentAlignment = Alignment.Center,
         ) {
-            val isAlbumArtworkEnabled = LocalAlbumArtworkEnabled.current
-            if (isAlbumArtworkEnabled && (albumArtBytes != null)) {
-                AsyncImage(
-                    model = albumArtBytes,
-                    contentDescription = "Album Cover",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape),
-                )
-            } else {
-                Image(
-                    painter = painterResource(id = com.sftwr.cleandevelopment.musicplayer.home.R.drawable.ic_default_album_art),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .matchParentSize()
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop,
-                )
+            // Layer 1: Central Circular Album Art Disc
+            Box(
+                modifier = Modifier
+                    .size(actualDiscSize)
+                    .clip(CircleShape)
+                    .background(Color(0xFF1D1838))
+                    .border(
+                        width = 3.dp,
+                        brush = Brush.sweepGradient(
+                            colors = listOf(
+                                Color(0xFFFFB300),
+                                Color(0xFFFF5722),
+                                Color(0xFFFF2D55),
+                                Color(0xFFFFB300),
+                            ),
+                        ),
+                        shape = CircleShape,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                val isAlbumArtworkEnabled = LocalAlbumArtworkEnabled.current
+                if (isAlbumArtworkEnabled && (albumArtBytes != null)) {
+                    AsyncImage(
+                        model = albumArtBytes,
+                        contentDescription = "Album Cover",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape),
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = com.sftwr.cleandevelopment.musicplayer.home.R.drawable.ic_default_album_art),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop,
+                    )
+                }
             }
-        }
 
-        // Layer 2: OpenGL Visualizer Overlay (حالا بالاتر از عکس قرار دارد و خطوط و دنباله‌ها کاملاً دیده می‌شوند)
-        AndroidView(
-            factory = { glSurfaceView },
-            modifier = Modifier.size(size),
-        ) { view ->
-            if (isPlaying) {
-                view.onResume()
-                view.visibility = View.VISIBLE
-            } else {
-                view.onPause()
-                view.visibility = View.INVISIBLE
+            // Layer 2: OpenGL Visualizer Overlay
+            AndroidView(
+                factory = { glSurfaceView },
+                modifier = Modifier.size(effectiveSize),
+            ) { view ->
+                if (isPlaying) {
+                    view.onResume()
+                    view.visibility = View.VISIBLE
+                } else {
+                    view.onPause()
+                    view.visibility = View.INVISIBLE
+                }
             }
         }
     }
