@@ -359,15 +359,19 @@ fun AlbumDetailScreen(
                                 AlphabetIndexerBar(
                                     letters = alphabet,
                                     onLetterSelected = { targetLetter ->
-                                        val index = songs.indexOfFirst { song ->
-                                            song.title.startsWith(
-                                                targetLetter,
-                                                ignoreCase = true
-                                            )
-                                        }
-                                        if (index != -1) {
-                                            coroutineScope.launch {
-                                                listState.animateScrollToItem(index)
+                                        val targetChar = targetLetter.uppercase().firstOrNull()
+                                        if (targetChar != null && songs.isNotEmpty()) {
+                                            var targetIndex = songs.indexOfFirst { song ->
+                                                val firstChar = song.title.trimStart().firstOrNull()?.uppercaseChar()
+                                                firstChar != null && firstChar >= targetChar
+                                            }
+                                            if (targetIndex == -1) {
+                                                targetIndex = songs.lastIndex
+                                            }
+                                            if (targetIndex != -1) {
+                                                coroutineScope.launch {
+                                                    listState.animateScrollToItem(targetIndex)
+                                                }
                                             }
                                         }
                                     },
