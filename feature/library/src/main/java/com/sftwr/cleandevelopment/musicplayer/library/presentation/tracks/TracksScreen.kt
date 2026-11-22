@@ -370,15 +370,21 @@ fun TracksScreen(
                                 AlphabetIndexerBar(
                                     letters = alphabet,
                                     onLetterSelected = { targetLetter ->
-                                        val index = songs.indexOfFirst { song ->
-                                            song.title.startsWith(
-                                                targetLetter,
-                                                ignoreCase = true
-                                            )
-                                        }
-                                        if (index != -1) {
-                                            coroutineScope.launch {
-                                                listState.animateScrollToItem(index)
+                                        val targetChar = targetLetter.uppercase().firstOrNull()
+                                        if (targetChar != null && songsWithAds.isNotEmpty()) {
+                                            var targetIndex = songsWithAds.indexOfFirst { item ->
+                                                if (item is ListItemWithAd.Item) {
+                                                    val firstChar = item.data.title.trimStart().firstOrNull()?.uppercaseChar()
+                                                    firstChar != null && firstChar >= targetChar
+                                                } else false
+                                            }
+                                            if (targetIndex == -1) {
+                                                targetIndex = songsWithAds.indexOfLast { it is ListItemWithAd.Item }
+                                            }
+                                            if (targetIndex != -1) {
+                                                coroutineScope.launch {
+                                                    listState.animateScrollToItem(targetIndex)
+                                                }
                                             }
                                         }
                                     },
