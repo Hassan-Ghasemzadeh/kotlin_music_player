@@ -8,6 +8,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
@@ -47,13 +48,15 @@ fun DynamicScaleVisualizer(
     albumArtUrl: String?,
     isPlaying: Boolean,
     modifier: Modifier = Modifier,
-    size: Dp = 420.dp,
+    size: Dp = Dp.Unspecified,
+    discRatio: Float = 0.86f,
     discSize: Dp = Dp.Unspecified,
 ) {
     val context = LocalContext.current
     val renderer = remember { DynamicScaleRenderer() }
 
     renderer.updateFft(fftData)
+    renderer.discRatio = discRatio
 
     val albumArtBytes by produceState<Bitmap?>(initialValue = null, key1 = albumArtUrl) {
         value = if (!albumArtUrl.isNullOrBlank()) {
@@ -101,65 +104,72 @@ fun DynamicScaleVisualizer(
         }
     }
 
-    val actualDiscSize = if (discSize != Dp.Unspecified) discSize else size * (340f / 420f)
-
-    Box(
-        modifier = modifier.size(size),
+    BoxWithConstraints(
+        modifier = modifier,
         contentAlignment = Alignment.Center,
     ) {
-        // Layer 1: OpenGL Audio-Reactive Dynamic Scale Radial Bar Ring Overlay
-        AndroidView(
-            factory = { glSurfaceView },
-            modifier = Modifier.size(size),
-        ) { view ->
-            if (isPlaying) {
-                view.onResume()
-                view.visibility = View.VISIBLE
-            } else {
-                view.onPause()
-                view.visibility = View.INVISIBLE
-            }
-        }
+        val maxAvailable = minOf(this.maxWidth, this.maxHeight)
+        val effectiveSize = if ((size != Dp.Unspecified) && (size < maxAvailable)) size else maxAvailable
+        val actualDiscSize = if (discSize != Dp.Unspecified) discSize else effectiveSize * discRatio
 
-        // Layer 2: Central Circular Album Art Disc
         Box(
-            modifier = Modifier
-                .size(actualDiscSize)
-                .clip(CircleShape)
-                .background(Color(0xFF1D1838))
-                .border(
-                    width = 3.dp,
-                    brush = Brush.sweepGradient(
-                        colors = listOf(
-                            Color(0xFFFFB300), // Golden Yellow
-                            Color(0xFFFF5722), // Deep Warm Orange
-                            Color(0xFFFF2D55), // Vibrant Coral Pink
-                            Color(0xFFFFB300), // Golden Yellow
-                        ),
-                    ),
-                    shape = CircleShape,
-                ),
+            modifier = Modifier.size(effectiveSize),
             contentAlignment = Alignment.Center,
         ) {
-            val isAlbumArtworkEnabled = LocalAlbumArtworkEnabled.current
-            if (isAlbumArtworkEnabled && (albumArtBytes != null)) {
-                AsyncImage(
-                    model = albumArtBytes,
-                    contentDescription = "Album Cover",
-                    contentScale = ContentScale.Crop,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .clip(CircleShape),
-                )
-            } else {
-                Image(
-                    painter = painterResource(id = com.sftwr.cleandevelopment.musicplayer.home.R.drawable.ic_default_album_art),
-                    contentDescription = null,
-                    modifier = Modifier
-                        .matchParentSize()
-                        .clip(CircleShape),
-                    contentScale = ContentScale.Crop,
-                )
+            // Layer 1: OpenGL Audio-Reactive Dynamic Scale Radial Bar Ring Overlay
+            AndroidView(
+                factory = { glSurfaceView },
+                modifier = Modifier.size(effectiveSize),
+            ) { view ->
+                if (isPlaying) {
+                    view.onResume()
+                    view.visibility = View.VISIBLE
+                } else {
+                    view.onPause()
+                    view.visibility = View.INVISIBLE
+                }
+            }
+
+            // Layer 2: Central Circular Album Art Disc
+            Box(
+                modifier = Modifier
+                    .size(actualDiscSize)
+                    .clip(CircleShape)
+                    .background(Color(0xFF1D1838))
+                    .border(
+                        width = 3.dp,
+                        brush = Brush.sweepGradient(
+                            colors = listOf(
+                                Color(0xFFFFB300), // Golden Yellow
+                                Color(0xFFFF5722), // Deep Warm Orange
+                                Color(0xFFFF2D55), // Vibrant Coral Pink
+                                Color(0xFFFFB300), // Golden Yellow
+                            ),
+                        ),
+                        shape = CircleShape,
+                    ),
+                contentAlignment = Alignment.Center,
+            ) {
+                val isAlbumArtworkEnabled = LocalAlbumArtworkEnabled.current
+                if (isAlbumArtworkEnabled && (albumArtBytes != null)) {
+                    AsyncImage(
+                        model = albumArtBytes,
+                        contentDescription = "Album Cover",
+                        contentScale = ContentScale.Crop,
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .clip(CircleShape),
+                    )
+                } else {
+                    Image(
+                        painter = painterResource(id = com.sftwr.cleandevelopment.musicplayer.home.R.drawable.ic_default_album_art),
+                        contentDescription = null,
+                        modifier = Modifier
+                            .matchParentSize()
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop,
+                    )
+                }
             }
         }
     }
