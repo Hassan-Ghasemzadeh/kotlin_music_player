@@ -354,7 +354,7 @@ fun VisualizerSelectionScreen(
                                         albumArtUrl = null,
                                         isPlaying = isCentered,
                                         size = 180.dp,
-                                        discRatio = 340f / 420f
+                                        discRatio = 0.86f
                                     )
                                 }
 
