@@ -15,11 +15,15 @@ import javax.microedition.khronos.opengles.GL10
  */
 class PsychedelicWavesRenderer : GLSurfaceView.Renderer {
 
+    @Volatile
+    var discRatio: Float = 0.82f
+
     private var programId = 0
     private var resolutionHandle = 0
     private var timeHandle = 0
     private var audioAmplitudeHandle = 0
     private var rotationAngleHandle = 0
+    private var discRatioHandle = 0
     private var fftBandsHandle = 0
 
     private var positionBuffer: FloatBuffer? = null
@@ -69,6 +73,7 @@ class PsychedelicWavesRenderer : GLSurfaceView.Renderer {
             uniform float u_Time;
             uniform float u_AudioAmplitude;
             uniform float u_RotationAngle;
+            uniform float u_discRatio;
             uniform float u_FftBands[16];
 
             varying vec2 v_UV;
@@ -113,8 +118,8 @@ class PsychedelicWavesRenderer : GLSurfaceView.Renderer {
                 
                 float r = length(st) * 2.0;
 
-                // پاکسازی مرکز قاب عکس و حریم بیرونی
-                if (r < 0.72 || r > 1.45) {
+                // Clear inner album disc area and outer margin
+                if (r < u_discRatio || r > 1.45) {
                     gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);
                     return;
                 }
@@ -122,22 +127,21 @@ class PsychedelicWavesRenderer : GLSurfaceView.Renderer {
                 float rawAngle = atan(st.y, st.x);
                 float normAngle = fract((rawAngle + 3.14159265359) / 6.28318530718);
 
-                // پالت‌های رنگی متمایز و ملایم (Pastel & Muted)
-                vec3 layer1ColorA = vec3(0.85, 0.60, 0.30); // کهربایی گرم
-                vec3 layer1ColorB = vec3(0.90, 0.40, 0.35); // مرجانی ملایم
+                vec3 layer1ColorA = vec3(0.85, 0.60, 0.30);
+                vec3 layer1ColorB = vec3(0.90, 0.40, 0.35);
 
-                vec3 layer2ColorA = vec3(0.40, 0.72, 0.45); // سبز زیتونی / نعنایی
-                vec3 layer2ColorB = vec3(0.30, 0.68, 0.60); // سبز یشمی روشن
+                vec3 layer2ColorA = vec3(0.40, 0.72, 0.45);
+                vec3 layer2ColorB = vec3(0.30, 0.68, 0.60);
 
-                vec3 layer3ColorA = vec3(0.30, 0.55, 0.80); // آبی ملایم
-                vec3 layer3ColorB = vec3(0.60, 0.45, 0.75); // یاسی مات
+                vec3 layer3ColorA = vec3(0.30, 0.55, 0.80);
+                vec3 layer3ColorB = vec3(0.60, 0.45, 0.75);
 
-                // --- حلقه اول (داخلی - پالس مستقل مبتنی بر زاویه خود و زمان) ---
+                // Layer 1 (Inner ring)
                 float angle1 = rawAngle + u_Time * 0.25;
                 float localFft1 = sampleFft(fract(normAngle + u_Time * 0.08));
                 float localAmp1 = clamp(localFft1 * 1.2, 0.0, 1.0);
 
-                float baseR1 = 0.84;
+                float baseR1 = u_discRatio + 0.02;
                 float peakR1 = baseR1 + (localAmp1 * 0.08);
                 
                 float fillFactor1 = step(baseR1, r) * step(r, peakR1);
@@ -147,13 +151,12 @@ class PsychedelicWavesRenderer : GLSurfaceView.Renderer {
                 vec3 color1 = mix(layer1ColorA, layer1ColorB, 0.5 + 0.5 * sin(angle1 * 2.0 + u_Time));
                 vec4 ring1 = vec4(color1 * (0.95 + glow1), clamp(fillFactor1 * 0.70 + glow1 * 0.25, 0.0, 1.0));
 
-
-                // --- حلقه دوم (میانی - پالس غیرهمزمان با شیفت فاز زاویه‌ای و زمانی) ---
+                // Layer 2 (Middle ring)
                 float angle2 = rawAngle - u_Time * 0.35;
                 float localFft2 = sampleFft(fract(normAngle + 0.35 - u_Time * 0.12));
                 float localAmp2 = clamp(localFft2 * 1.1, 0.0, 1.0);
 
-                float baseR2 = 0.85;
+                float baseR2 = u_discRatio + 0.03;
                 float peakR2 = baseR2 + (localAmp2 * 0.07);
 
                 float fillFactor2 = step(baseR2, r) * step(r, peakR2);
@@ -163,13 +166,12 @@ class PsychedelicWavesRenderer : GLSurfaceView.Renderer {
                 vec3 color2 = mix(layer2ColorA, layer2ColorB, 0.5 + 0.5 * cos(angle2 * 2.5 - u_Time * 1.3));
                 vec4 ring2 = vec4(color2 * (0.95 + glow2), clamp(fillFactor2 * 0.68 + glow2 * 0.25, 0.0, 1.0));
 
-
-                // --- حلقه سوم (بیرونی - پالس کاملاً مستقل و مختص به خود) ---
+                // Layer 3 (Outer ring)
                 float angle3 = rawAngle + u_Time * 0.45;
                 float localFft3 = sampleFft(fract(normAngle + 0.70 + u_Time * 0.15));
                 float localAmp3 = clamp(localFft3 * 1.0, 0.0, 1.0);
 
-                float baseR3 = 0.86;
+                float baseR3 = u_discRatio + 0.04;
                 float peakR3 = baseR3 + (localAmp3 * 0.06);
 
                 float fillFactor3 = step(baseR3, r) * step(r, peakR3);
@@ -179,8 +181,6 @@ class PsychedelicWavesRenderer : GLSurfaceView.Renderer {
                 vec3 color3 = mix(layer3ColorA, layer3ColorB, 0.5 + 0.5 * sin(angle3 * 3.0 + u_Time * 1.5));
                 vec4 ring3 = vec4(color3 * (0.90 + glow3), clamp(fillFactor3 * 0.65 + glow3 * 0.22, 0.0, 1.0));
 
-
-                // ترکیب سه لایه بدون تداخل و با شفافیت ملایم
                 vec4 accumColor = ring1;
                 accumColor.rgb = mix(accumColor.rgb, ring2.rgb, ring2.a);
                 accumColor.a = max(accumColor.a, ring2.a);
@@ -231,11 +231,14 @@ class PsychedelicWavesRenderer : GLSurfaceView.Renderer {
         timeHandle = GLES20.glGetUniformLocation(programId, "u_Time")
         audioAmplitudeHandle = GLES20.glGetUniformLocation(programId, "u_AudioAmplitude")
         rotationAngleHandle = GLES20.glGetUniformLocation(programId, "u_RotationAngle")
+        discRatioHandle = GLES20.glGetUniformLocation(programId, "u_discRatio")
         fftBandsHandle = GLES20.glGetUniformLocation(programId, "u_FftBands")
 
         if (resolutionHandle >= 0) GLES20.glUniform2f(resolutionHandle, viewportWidth.toFloat(), viewportHeight.toFloat())
         if (timeHandle >= 0) GLES20.glUniform1f(timeHandle, timeSec)
         if (audioAmplitudeHandle >= 0) GLES20.glUniform1f(audioAmplitudeHandle, audioAmplitude)
+        if (rotationAngleHandle >= 0) GLES20.glUniform1f(rotationAngleHandle, rotationAngle)
+        if (discRatioHandle >= 0) GLES20.glUniform1f(discRatioHandle, discRatio)
         if (rotationAngleHandle >= 0) GLES20.glUniform1f(rotationAngleHandle, rotationAngle)
         if (fftBandsHandle >= 0) GLES20.glUniform1fv(fftBandsHandle, 16, smoothedFftData, 0)
 
