@@ -124,6 +124,11 @@ fun TracksScreen(
     val currentSong by viewModel.currentPlayingSong.collectAsState()
     val isPlayingGlobal by viewModel.isPlayerPlaying.collectAsState()
 
+    val isAdFreeState = adManager?.isAdFree?.collectAsState()?.value ?: false
+    val songsWithAds = remember(songs, isAdFreeState) {
+        songs.insertAdsEvery(interval = 10, isAdFree = isAdFreeState)
+    }
+
     // Restore and save list scroll state across configuration changes
     val listState = rememberSaveable(saver = LazyListState.Saver) {
         LazyListState(
@@ -167,7 +172,9 @@ fun TracksScreen(
                 currentSong?.let { playingSong ->
                     FloatingActionButton(
                         onClick = {
-                            val targetIndex = songs.indexOfFirst { it.id == playingSong.id }
+                            val targetIndex = songsWithAds.indexOfFirst {
+                                it is ListItemWithAd.Item && it.data.id == playingSong.id
+                            }
                             if (targetIndex != -1) {
                                 coroutineScope.launch {
                                     listState.animateScrollToItem(targetIndex)
@@ -287,10 +294,6 @@ fun TracksScreen(
                         // 3. Populated list state with LazyColumn and A-Z Fast Indexer Bar
                         else -> {
                             val bottomPadding = rememberPlayerAwareBottomPadding()
-                            val isAdFreeState = adManager?.isAdFree?.collectAsState()?.value ?: false
-                            val songsWithAds = remember(songs, isAdFreeState) {
-                                songs.insertAdsEvery(interval = 10, isAdFree = isAdFreeState)
-                            }
 
                             Box(modifier = Modifier.fillMaxSize()) {
                                 LazyColumn(
