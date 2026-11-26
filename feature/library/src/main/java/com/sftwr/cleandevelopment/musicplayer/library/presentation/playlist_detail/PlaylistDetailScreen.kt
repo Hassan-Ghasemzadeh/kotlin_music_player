@@ -130,6 +130,11 @@ fun PlaylistDetailScreen(
         PlaylistType.CUSTOM -> Icons.AutoMirrored.Filled.QueueMusic
     }
 
+    val isAdFreeState = adManager?.isAdFree?.collectAsState()?.value ?: false
+    val songsWithAds = remember(songs, isAdFreeState) {
+        songs.insertAdsEvery(interval = 10, isAdFree = isAdFreeState)
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = Color.Transparent,
@@ -144,7 +149,9 @@ fun PlaylistDetailScreen(
                 currentPlayingSongId?.let { playingSongId ->
                     FloatingActionButton(
                         onClick = {
-                            val targetIndex = songs.indexOfFirst { it.id == playingSongId }
+                            val targetIndex = songsWithAds.indexOfFirst {
+                                it is ListItemWithAd.Item && it.data.id == playingSongId
+                            }
                             if (targetIndex != -1) {
                                 coroutineScope.launch {
                                     listState.animateScrollToItem(targetIndex)
@@ -349,11 +356,6 @@ fun PlaylistDetailScreen(
                         }
 
                         else -> {
-                            val isAdFreeState = adManager?.isAdFree?.collectAsState()?.value ?: false
-                            val songsWithAds = remember(songs, isAdFreeState) {
-                                songs.insertAdsEvery(interval = 10, isAdFree = isAdFreeState)
-                            }
-
                             Box(modifier = Modifier.fillMaxSize()) {
                                 LazyColumn(
                                     state = listState,
