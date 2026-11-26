@@ -102,8 +102,10 @@ fun ArtistDetailScreen(
                 currentPlayingSongId?.let { playingId ->
                     FloatingActionButton(
                         onClick = {
-                            val targetIndex = songs.indexOfFirst { it.id == playingId }
-                            if (targetIndex != -1) {
+                            val songIndex = songs.indexOfFirst { it.id == playingId }
+                            if (songIndex != -1) {
+                                val headerOffset = if (albums.isNotEmpty()) 1 else 0
+                                val targetIndex = songIndex + headerOffset
                                 coroutineScope.launch {
                                     listState.animateScrollToItem(targetIndex)
                                 }
