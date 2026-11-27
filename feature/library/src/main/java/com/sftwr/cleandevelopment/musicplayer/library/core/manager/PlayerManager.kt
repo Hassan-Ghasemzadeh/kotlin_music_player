@@ -1276,6 +1276,11 @@ class PlayerManager @Inject constructor(
                 }
                 startPlaybackService()
                 updateIsPlayingState()
+                val sessionId = try { currentPlayer.audioSessionId } catch (_: Exception) { 0 }
+                if (sessionId > 0) {
+                    equalizerAudioFxManager.attachAudioSession(sessionId)
+                    soundEffectAudioFxManager.attachAudioSession(sessionId)
+                }
             }
         }
     }
