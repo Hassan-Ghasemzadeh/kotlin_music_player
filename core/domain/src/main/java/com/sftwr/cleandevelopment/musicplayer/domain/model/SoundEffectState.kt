@@ -54,6 +54,14 @@ fun SoundEffect.isFree(): Boolean =
     this == SoundEffect.ELECTRONIC_TUBE || this == SoundEffect.LIVE_TREBLE
 
 /**
+ * Returns true if the given sound effect is unlocked (either free, VIP/ad-free, or unlocked via ad).
+ */
+fun SoundEffectState.isEffectUnlocked(effect: SoundEffect, isAdFree: Boolean): Boolean {
+    if (isAdFree || effect.isFree()) return true
+    return effect.id == unlockedEffectId
+}
+
+/**
  * Domain model representing the full state of audio sound effects.
  *
  * @property isEnabled Whether sound effects are globally active.
