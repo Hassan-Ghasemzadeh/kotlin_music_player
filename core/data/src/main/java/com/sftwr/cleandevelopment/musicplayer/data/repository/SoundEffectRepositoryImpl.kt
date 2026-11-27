@@ -39,9 +39,15 @@ class SoundEffectRepositoryImpl @Inject constructor(
             val volumeOrBoost = (preferences[Keys.VOLUME_OR_BOOST] ?: 0.5f).coerceIn(0f, 1f)
             val unlockedEffectId = preferences[Keys.UNLOCKED_EFFECT_ID]
 
+            var currentEffect = SoundEffect.fromId(effectId)
+            val isEffectUnlocked = currentEffect.isFree() || currentEffect.id == unlockedEffectId
+            if (!isEffectUnlocked) {
+                currentEffect = SoundEffect.ELECTRONIC_TUBE
+            }
+
             SoundEffectState(
                 isEnabled = isEnabled,
-                currentEffect = SoundEffect.fromId(effectId),
+                currentEffect = currentEffect,
                 volumeOrBoost = volumeOrBoost,
                 availableEffects = SoundEffect.entries,
                 unlockedEffectId = unlockedEffectId
@@ -72,9 +78,6 @@ class SoundEffectRepositoryImpl @Inject constructor(
     override suspend fun setCurrentEffect(effect: SoundEffect) {
         context.soundEffectDataStore.edit { preferences ->
             preferences[Keys.CURRENT_EFFECT_ID] = effect.id
-            if (effect.isFree()) {
-                preferences.remove(Keys.UNLOCKED_EFFECT_ID)
-            }
         }
     }
 
