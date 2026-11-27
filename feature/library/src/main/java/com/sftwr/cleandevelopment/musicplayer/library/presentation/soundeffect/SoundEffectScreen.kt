@@ -55,7 +55,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.GlassCard
 import com.sftwr.cleandevelopment.musicplayer.designsystem.component.LocalColorPalette
 import com.sftwr.cleandevelopment.musicplayer.domain.model.SoundEffect
-import com.sftwr.cleandevelopment.musicplayer.domain.model.isFree
+import com.sftwr.cleandevelopment.musicplayer.domain.model.isEffectUnlocked
 import com.sftwr.cleandevelopment.musicplayer.home.R
 
 fun SoundEffect.getNameRes(): Int {
@@ -205,7 +205,10 @@ fun SoundEffectScreen(
                         }
                         Slider(
                             value = sliderPosition,
-                            onValueChange = { sliderPosition = it },
+                            onValueChange = {
+                                sliderPosition = it
+                                viewModel.setVolumeOrBoost(it)
+                            },
                             onValueChangeFinished = { viewModel.setVolumeOrBoost(sliderPosition) },
                             enabled = uiState.isEnabled,
                             colors = SliderDefaults.colors(
@@ -241,8 +244,7 @@ fun SoundEffectScreen(
             ) {
                 items(uiState.availableEffects) { effect ->
                     val isSelected = effect == uiState.currentEffect
-                    val isFree = effect.isFree()
-                    val isUnlocked = isAdFree || isFree || uiState.unlockedEffectId == effect.id
+                    val isUnlocked = uiState.isEffectUnlocked(effect, isAdFree)
                     SoundEffectItem(
                         effect = effect,
                         isSelected = isSelected,
@@ -261,6 +263,7 @@ fun SoundEffectScreen(
                                     adManager = viewModel.adManager,
                                     featureName = "Sound Effect: ${effect.displayName}",
                                     onRewardUnlocked = {
+                                        viewModel.toggleEnabled(true)
                                         viewModel.unlockEffect(effect)
                                         viewModel.selectEffect(effect)
                                         viewModel.resumePlaybackIfWasPlaying(wasPlaying)
