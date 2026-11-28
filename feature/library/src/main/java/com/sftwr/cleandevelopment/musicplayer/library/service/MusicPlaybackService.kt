@@ -192,14 +192,16 @@ class MusicPlaybackService : MediaSessionService() {
                 return Futures.immediateFuture(loadDefaultBitmap())
             }
 
-            private fun loadDefaultBitmap(): Bitmap {
-                return runCatching {
+            private val cachedDefaultBitmap: Bitmap by lazy {
+                runCatching {
                     BitmapFactory.decodeResource(
                         resources,
                         com.sftwr.cleandevelopment.musicplayer.home.R.drawable.ic_default_album_art
                     )
                 }.getOrNull() ?: Bitmap.createBitmap(1, 1, Bitmap.Config.ARGB_8888)
             }
+
+            private fun loadDefaultBitmap(): Bitmap = cachedDefaultBitmap
         }
 
         val activityIntent = packageManager.getLaunchIntentForPackage(packageName)
