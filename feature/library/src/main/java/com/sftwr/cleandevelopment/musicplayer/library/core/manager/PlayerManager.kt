@@ -1,12 +1,20 @@
 package com.sftwr.cleandevelopment.musicplayer.library.core.manager
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.IntentFilter
+import android.media.AudioAttributes
+import android.media.AudioFocusRequest
 import android.media.AudioManager
 import android.media.MediaMetadataRetriever
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.telephony.PhoneStateListener
+import android.telephony.TelephonyCallback
+import android.telephony.TelephonyManager
+import android.util.Log
 import androidx.annotation.OptIn
 import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
@@ -69,6 +77,14 @@ class PlayerManager @Inject constructor(
 
     private val mainHandler = Handler(Looper.getMainLooper())
     private val audioManager = context.getSystemService(Context.AUDIO_SERVICE) as? AudioManager
+    private val telephonyManager = context.getSystemService(Context.TELEPHONY_SERVICE) as? TelephonyManager
+
+    @Volatile
+    private var resumeOnFocusGain = false
+
+    private var audioFocusRequest: AudioFocusRequest? = null
+    private var becomingNoisyReceiver: BroadcastReceiver? = null
+    private var telephonyCallback: Any? = null
 
     private var isAlbumArtworkEnabled = true
 
@@ -117,42 +133,64 @@ class PlayerManager @Inject constructor(
 
     private val audioFocusChangeListener = AudioManager.OnAudioFocusChangeListener { focusChange ->
         runOnMainThread {
+            Log.d("PlayerManager", "OnAudioFocusChangeListener focusChange=$focusChange")
             when (focusChange) {
-                AudioManager.AUDIOFOCUS_LOSS,
-                AudioManager.AUDIOFOCUS_LOSS_TRANSIENT -> {
-                    if (isPlaying.value) {
+                AudioManager.AUDIOFOCUS_LOSS -> {
+                    resumeOnFocusGain = false
+                    if (isPlayerActive(currentPlayer) || (isCrossfading && isPlayerActive(nextPlayer)) || _isPlaying.value) {
                         currentPlayer.pause()
                         if (isCrossfading) nextPlayer.pause()
+                        updateIsPlayingState()
+                        saveCurrentPlaybackState()
                     }
+                    abandonAudioFocus()
                 }
 
+                AudioManager.AUDIOFOCUS_LOSS_TRANSIENT,
                 AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK -> {
-                    setPlayerVolume(currentPlayer, 0.2f)
-                    if (isCrossfading) setPlayerVolume(nextPlayer, 0.2f)
+                    val wasPlaying = _isPlaying.value || isPlayerActive(currentPlayer) || (isCrossfading && isPlayerActive(nextPlayer))
+                    if (wasPlaying) {
+                        resumeOnFocusGain = true
+                    }
+                    currentPlayer.pause()
+                    if (isCrossfading) nextPlayer.pause()
+                    updateIsPlayingState()
+                    saveCurrentPlaybackState()
                 }
 
                 AudioManager.AUDIOFOCUS_GAIN -> {
-                    if (!isCrossfading) {
-                        setPlayerVolume(currentPlayer, 1.0f)
+                    setPlayerVolume(currentPlayer, 1.0f)
+                    if (isCrossfading) {
+                        setPlayerVolume(nextPlayer, 1.0f)
+                    }
+                    if (resumeOnFocusGain) {
+                        resumeOnFocusGain = false
+                        if (!_isPlaying.value) {
+                            if (requestAudioFocus()) {
+                                play()
+                            }
+                        }
                     }
                 }
             }
         }
     }
 
-    private fun requestAudioFocus(): Boolean {
+    fun requestAudioFocus(): Boolean {
         if (audioManager == null) return true
         val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val focusRequest = android.media.AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
-                .setAudioAttributes(
-                    android.media.AudioAttributes.Builder()
-                        .setContentType(android.media.AudioAttributes.CONTENT_TYPE_MUSIC)
-                        .setUsage(android.media.AudioAttributes.USAGE_MEDIA)
-                        .build()
-                )
-                .setOnAudioFocusChangeListener(audioFocusChangeListener, mainHandler)
-                .build()
-            audioManager.requestAudioFocus(focusRequest)
+            if (audioFocusRequest == null) {
+                val focusAttributes = AudioAttributes.Builder()
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .setUsage(AudioAttributes.USAGE_MEDIA)
+                    .build()
+                audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN)
+                    .setAudioAttributes(focusAttributes)
+                    .setWillPauseWhenDucked(true)
+                    .setOnAudioFocusChangeListener(audioFocusChangeListener, mainHandler)
+                    .build()
+            }
+            audioManager.requestAudioFocus(audioFocusRequest!!)
         } else {
             @Suppress("DEPRECATION")
             audioManager.requestAudioFocus(
@@ -161,7 +199,103 @@ class PlayerManager @Inject constructor(
                 AudioManager.AUDIOFOCUS_GAIN
             )
         }
-        return result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+        val granted = result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED
+        Log.d("PlayerManager", "requestAudioFocus granted=$granted")
+        return granted
+    }
+
+    fun abandonAudioFocus() {
+        if (audioManager == null) return
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                audioFocusRequest?.let {
+                    audioManager.abandonAudioFocusRequest(it)
+                }
+            } else {
+                @Suppress("DEPRECATION")
+                audioManager.abandonAudioFocus(audioFocusChangeListener)
+            }
+        } catch (e: Exception) {
+            Log.e("PlayerManager", "Error abandoning audio focus", e)
+        }
+    }
+
+    private fun registerTelephonyAndNoisyReceivers() {
+        becomingNoisyReceiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                if (intent?.action == AudioManager.ACTION_AUDIO_BECOMING_NOISY) {
+                    runOnMainThread {
+                        Log.d("PlayerManager", "Audio becoming noisy - pausing playback")
+                        resumeOnFocusGain = false
+                        pause()
+                    }
+                }
+            }
+        }
+        try {
+            val noisyFilter = IntentFilter(AudioManager.ACTION_AUDIO_BECOMING_NOISY)
+            ContextCompat.registerReceiver(
+                context,
+                becomingNoisyReceiver!!,
+                noisyFilter,
+                ContextCompat.RECEIVER_NOT_EXPORTED
+            )
+        } catch (e: Exception) {
+            Log.e("PlayerManager", "Failed to register becoming noisy receiver", e)
+        }
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                val callback = object : TelephonyCallback(), TelephonyCallback.CallStateListener {
+                    override fun onCallStateChanged(state: Int) {
+                        handleCallStateChange(state)
+                    }
+                }
+                telephonyCallback = callback
+                telephonyManager?.registerTelephonyCallback(context.mainExecutor, callback)
+            } else {
+                @Suppress("DEPRECATION")
+                val listener = object : PhoneStateListener() {
+                    @Deprecated("Deprecated in Java")
+                    override fun onCallStateChanged(state: Int, phoneNumber: String?) {
+                        handleCallStateChange(state)
+                    }
+                }
+                telephonyCallback = listener
+                @Suppress("DEPRECATION")
+                telephonyManager?.listen(listener, PhoneStateListener.LISTEN_CALL_STATE)
+            }
+        } catch (e: Exception) {
+            Log.w("PlayerManager", "Telephony manager call state listener not registered: ${e.message}")
+        }
+    }
+
+    private fun handleCallStateChange(state: Int) {
+        runOnMainThread {
+            Log.d("PlayerManager", "handleCallStateChange state=$state")
+            when (state) {
+                TelephonyManager.CALL_STATE_RINGING,
+                TelephonyManager.CALL_STATE_OFFHOOK -> {
+                    val wasPlaying = _isPlaying.value || isPlayerActive(currentPlayer) || (isCrossfading && isPlayerActive(nextPlayer))
+                    if (wasPlaying) {
+                        resumeOnFocusGain = true
+                    }
+                    currentPlayer.pause()
+                    if (isCrossfading) nextPlayer.pause()
+                    updateIsPlayingState()
+                    saveCurrentPlaybackState()
+                }
+
+                TelephonyManager.CALL_STATE_IDLE -> {
+                    if (resumeOnFocusGain && !_isPlaying.value) {
+                        resumeOnFocusGain = false
+                        if (requestAudioFocus()) {
+                            play()
+                        }
+                    }
+                }
+            }
+        }
     }
 
     private fun isPlayerActive(player: ExoPlayer): Boolean {
@@ -179,6 +313,7 @@ class PlayerManager @Inject constructor(
     }
 
     init {
+        registerTelephonyAndNoisyReceivers()
         CoroutineScope(Dispatchers.IO + SupervisorJob()).launch {
             getSettingsUseCase().collect { settings ->
                 val prev = isAlbumArtworkEnabled
@@ -835,6 +970,8 @@ class PlayerManager @Inject constructor(
         cancelCrossfade()
         crossfadeJob?.cancel()
         withContext(Dispatchers.Main) {
+            resumeOnFocusGain = false
+            abandonAudioFocus()
             equalizerAudioFxManager.releaseEffects()
             soundEffectAudioFxManager.releaseEffects()
             playerA.stop()
@@ -906,10 +1043,11 @@ class PlayerManager @Inject constructor(
     override fun playNext() {
         runOnMainThread {
             if (!hasNext) return@runOnMainThread
+            resumeOnFocusGain = false
             cancelCrossfade()
             if (exoPlayer.hasNextMediaItem()) {
+                if (!requestAudioFocus()) return@runOnMainThread
                 exoPlayer.seekToNextMediaItem()
-                requestAudioFocus()
                 exoPlayer.play()
             } else {
                 val songs = if (activeQueue.isNotEmpty()) activeQueue else _allSongs.value
@@ -926,7 +1064,7 @@ class PlayerManager @Inject constructor(
                         _currentSong.value = nextSong
                         currentPlayer.setMediaItems(mediaItems, nextIndex, 0L)
                         currentPlayer.prepare()
-                        requestAudioFocus()
+                        if (!requestAudioFocus()) return@runOnMainThread
                         currentPlayer.play()
                         startPlaybackService()
                         loadArtworkForIndex(nextIndex)
@@ -939,10 +1077,11 @@ class PlayerManager @Inject constructor(
     override fun playPrevious() {
         runOnMainThread {
             if (!hasPrevious) return@runOnMainThread
+            resumeOnFocusGain = false
             cancelCrossfade()
             if (exoPlayer.hasPreviousMediaItem()) {
+                if (!requestAudioFocus()) return@runOnMainThread
                 exoPlayer.seekToPreviousMediaItem()
-                requestAudioFocus()
                 exoPlayer.play()
             } else {
                 val songs = if (activeQueue.isNotEmpty()) activeQueue else _allSongs.value
@@ -959,7 +1098,7 @@ class PlayerManager @Inject constructor(
                         _currentSong.value = prevSong
                         currentPlayer.setMediaItems(mediaItems, prevIndex, 0L)
                         currentPlayer.prepare()
-                        requestAudioFocus()
+                        if (!requestAudioFocus()) return@runOnMainThread
                         currentPlayer.play()
                         startPlaybackService()
                         loadArtworkForIndex(prevIndex)
@@ -1071,7 +1210,11 @@ class PlayerManager @Inject constructor(
         }
 
         withContext(Dispatchers.Main) {
-            requestAudioFocus()
+            resumeOnFocusGain = false
+            if (!requestAudioFocus()) {
+                Log.w("PlayerManager", "Audio focus request denied in setQueue.")
+                return@withContext
+            }
             if (isSameQueue && currentPlayer.mediaItemCount > 0) {
                 try {
                     isSettingQueue = true
@@ -1124,7 +1267,8 @@ class PlayerManager @Inject constructor(
 
         val mediaItem = finalSong.toMediaItem()
         runOnMainThread {
-            requestAudioFocus()
+            resumeOnFocusGain = false
+            if (!requestAudioFocus()) return@runOnMainThread
             currentPlayer.setMediaItem(mediaItem)
             currentPlayer.prepare()
             currentPlayer.play()
@@ -1243,9 +1387,13 @@ class PlayerManager @Inject constructor(
 
     override fun play() {
         runOnMainThread {
+            resumeOnFocusGain = false
             val currentlyPlaying = isPlayerActive(currentPlayer) || (isCrossfading && isPlayerActive(nextPlayer))
             if (!currentlyPlaying) {
-                requestAudioFocus()
+                if (!requestAudioFocus()) {
+                    Log.w("PlayerManager", "Audio focus request denied. Playback not started.")
+                    return@runOnMainThread
+                }
                 val state = currentPlayer.playbackState
                 if (state == Player.STATE_ENDED) {
                     val index = currentPlayer.currentMediaItemIndex.coerceAtLeast(0)
@@ -1290,6 +1438,8 @@ class PlayerManager @Inject constructor(
 
     override fun pause() {
         runOnMainThread {
+            resumeOnFocusGain = false
+            abandonAudioFocus()
             val currentlyPlaying = isPlayerActive(currentPlayer) || (isCrossfading && isPlayerActive(nextPlayer))
             if (currentlyPlaying) {
                 currentPlayer.pause()
@@ -1297,7 +1447,34 @@ class PlayerManager @Inject constructor(
                     nextPlayer.pause()
                 }
                 updateIsPlayingState()
+                saveCurrentPlaybackState()
             }
+        }
+    }
+
+    fun release() {
+        runOnMainThread {
+            resumeOnFocusGain = false
+            abandonAudioFocus()
+            becomingNoisyReceiver?.let {
+                try {
+                    context.unregisterReceiver(it)
+                } catch (_: Exception) {}
+                becomingNoisyReceiver = null
+            }
+            try {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    telephonyCallback?.let {
+                        telephonyManager?.unregisterTelephonyCallback(it as TelephonyCallback)
+                    }
+                } else {
+                    telephonyCallback?.let {
+                        @Suppress("DEPRECATION")
+                        telephonyManager?.listen(it as PhoneStateListener, PhoneStateListener.LISTEN_NONE)
+                    }
+                }
+                telephonyCallback = null
+            } catch (_: Exception) {}
         }
     }
 
