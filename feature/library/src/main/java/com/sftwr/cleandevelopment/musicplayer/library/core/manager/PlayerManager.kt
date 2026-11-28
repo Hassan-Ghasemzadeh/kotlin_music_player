@@ -45,7 +45,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import com.sftwr.cleandevelopment.musicplayer.domain.player.PlayerControlBridge
 import com.sftwr.cleandevelopment.musicplayer.domain.repository.WidgetMusicRepository
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 import javax.inject.Named
 import javax.inject.Singleton
@@ -503,9 +502,12 @@ class PlayerManager @Inject constructor(
                 val currentIndex = exoPlayer.currentMediaItemIndex
                 if (currentIndex in activeQueue.indices) {
                     val song = activeQueue[currentIndex]
+                    val isSongChanged = _currentSong.value?.id != song.id
                     _currentSong.value = song
-                    loadArtworkForIndex(currentIndex)
-                    saveCurrentPlaybackState()
+                    if (isSongChanged) {
+                        loadArtworkForIndex(currentIndex)
+                        saveCurrentPlaybackState()
+                    }
                     if (exoPlayer.isPlaying && lastRecordedId != song.id) {
                         lastRecordedId = song.id
                         song.id.toLongOrNull()?.let { songId ->
@@ -750,6 +752,7 @@ class PlayerManager @Inject constructor(
     private fun loadArtworkForIndex(index: Int) {
         artworkJob?.cancel()
         val song = activeQueue.getOrNull(index) ?: return
+        if (artworkCache.containsKey(song.id)) return
         artworkJob = artworkScope.launch {
             val artBytes = loadArtworkBytes(song)
             if (artBytes != null) {
