@@ -10,6 +10,9 @@ import com.sftwr.cleandevelopment.musicplayer.domain.model.WidgetPlaybackState
 import com.sftwr.cleandevelopment.musicplayer.music_player.widget.lyrics.LyricTickerWidget
 import com.sftwr.cleandevelopment.musicplayer.music_player.widget.player.GlassmorphismPlayerWidget
 
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+
 /**
  * Utility helper responsible for updating Glance widget DataStore preferences across all active GlanceIds
  * and triggering immediate re-renders for both Glassmorphism Player Widget and Lyric Ticker Widget.
@@ -17,28 +20,32 @@ import com.sftwr.cleandevelopment.musicplayer.music_player.widget.player.Glassmo
 object WidgetStateUpdater {
 
     suspend fun updateAllWidgets(context: Context, state: WidgetPlaybackState? = null) {
-        runCatching {
-            val manager = GlanceAppWidgetManager(context)
-            val playerGlanceIds = manager.getGlanceIds(GlassmorphismPlayerWidget::class.java)
-            val lyricGlanceIds = manager.getGlanceIds(LyricTickerWidget::class.java)
-            val allGlanceIds = playerGlanceIds + lyricGlanceIds
+        withContext(Dispatchers.IO) {
+            runCatching {
+                val manager = GlanceAppWidgetManager(context)
+                val playerGlanceIds = manager.getGlanceIds(GlassmorphismPlayerWidget::class.java)
+                val lyricGlanceIds = manager.getGlanceIds(LyricTickerWidget::class.java)
+                val allGlanceIds = playerGlanceIds + lyricGlanceIds
 
-            if (state != null) {
-                for (glanceId in allGlanceIds) {
-                    updateAppWidgetState(context, glanceId) { prefs ->
-                        populatePreferences(prefs, state)
+                if (allGlanceIds.isEmpty()) return@runCatching
+
+                if (state != null) {
+                    for (glanceId in allGlanceIds) {
+                        updateAppWidgetState(context, glanceId) { prefs ->
+                            populatePreferences(prefs, state)
+                        }
+                    }
+                } else {
+                    for (glanceId in allGlanceIds) {
+                        updateAppWidgetState(context, glanceId) { prefs ->
+                            prefs[WidgetPreferencesKeys.KEY_REVISION] = System.currentTimeMillis()
+                        }
                     }
                 }
-            } else {
-                for (glanceId in allGlanceIds) {
-                    updateAppWidgetState(context, glanceId) { prefs ->
-                        prefs[WidgetPreferencesKeys.KEY_REVISION] = System.currentTimeMillis()
-                    }
-                }
+
+                GlassmorphismPlayerWidget().updateAll(context)
+                LyricTickerWidget().updateAll(context)
             }
-
-            GlassmorphismPlayerWidget().updateAll(context)
-            LyricTickerWidget().updateAll(context)
         }
     }
 
