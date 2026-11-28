@@ -478,7 +478,6 @@ class WidgetMusicRepositoryImpl @Inject constructor(
 
         tickerJob = scope.launch(Dispatchers.Default) {
             var lastPublishedLyricIndex: Int? = null
-            var lastPublishedPosBucket: Long? = null
 
             while (isActive) {
                 val current = _stateFlow.value
@@ -486,11 +485,9 @@ class WidgetMusicRepositoryImpl @Inject constructor(
 
                 val currentPos = calculateCurrentPositionMs(current)
                 val newLyricIndex = calculateLyricIndex(current.lyrics, currentPos)
-                val newPosBucket = currentPos / 1000L
 
                 val hasEnded = currentPos >= current.durationMs && current.durationMs > 0L
                 val lineChanged = lastPublishedLyricIndex == null || lastPublishedLyricIndex != newLyricIndex
-                val bucketChanged = lastPublishedPosBucket == null || lastPublishedPosBucket != newPosBucket
 
                 if (hasEnded) {
                     val endedState = current.copy(
@@ -502,9 +499,8 @@ class WidgetMusicRepositoryImpl @Inject constructor(
                     _stateFlow.value = endedState
                     persistStateToDataStore(endedState)
                     break
-                } else if (lineChanged || bucketChanged) {
+                } else if (lineChanged) {
                     lastPublishedLyricIndex = newLyricIndex
-                    lastPublishedPosBucket = newPosBucket
 
                     val updatedState = current.copy(
                         currentPositionMs = currentPos,
@@ -512,6 +508,8 @@ class WidgetMusicRepositoryImpl @Inject constructor(
                     )
                     _stateFlow.value = updatedState
                     persistStateToDataStore(updatedState)
+                } else {
+                    _stateFlow.value = current.copy(currentPositionMs = currentPos)
                 }
 
                 delay(200L)
