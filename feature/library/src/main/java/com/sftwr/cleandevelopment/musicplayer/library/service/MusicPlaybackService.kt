@@ -240,6 +240,7 @@ class MusicPlaybackService : MediaSessionService() {
 
     override fun onDestroy() {
         playerManager?.saveCurrentPlaybackState()
+        playerManager?.release()
         equalizerAudioFxManager?.releaseEffects()
         soundEffectAudioFxManager?.releaseEffects()
 
